@@ -1,0 +1,1621 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Yella Reddy Guda Meter Reader</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0f5a4e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* Layout: one-column field tool (max 640px). Sticky header, DTR picker card, scan actions, result card, status-tabbed service list, fixed bottom tabs */
+:root{
+  --bg:#eef2f0; --surface:#ffffff; --surface-2:#f6f8f7; --ink:#14201c; --muted:#5b6a65; --line:#d6dfdb;
+  --accent:#0f5a4e; --accent-ink:#ffffff; --accent-soft:#dcebe7;
+  --lcd:#b8dc7a; --lcd-ink:#1b2a10; --lcd-dim:#5f7a38; --lcd-edge:#8fb553;
+  --ok:#2d7a4b; --ok-soft:#dff0e5; --warn:#a2650c; --warn-soft:#f8ecd6; --bad:#b63b28; --bad-soft:#f7e0db;
+  --p1:#2f5f9a; --p1-soft:#e1eaf6; --p3:#8a4b8f; --p3-soft:#f1e3f2;
+  --f-ui:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-head:"Barlow Semi Condensed","Barlow",system-ui,sans-serif;
+  --f-code:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --f-lcd:"Share Tech Mono","IBM Plex Mono",ui-monospace,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1412; --surface:#151f1c; --surface-2:#1b2723; --ink:#e3ebe7; --muted:#93a39d; --line:#26342f;
+  --accent:#3fb59c; --accent-ink:#06201a; --accent-soft:#16332c;
+  --lcd:#93bd56; --lcd-ink:#13200a; --lcd-dim:#40581f; --lcd-edge:#6f9440;
+  --ok:#5cc282; --ok-soft:#14301f; --warn:#e0a548; --warn-soft:#33270f; --bad:#ef7a64; --bad-soft:#3a1a14;
+  --p1:#8db6ea; --p1-soft:#1a2a3d; --p3:#d39ad8; --p3-soft:#33203a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1412; --surface:#151f1c; --surface-2:#1b2723; --ink:#e3ebe7; --muted:#93a39d; --line:#26342f;
+  --accent:#3fb59c; --accent-ink:#06201a; --accent-soft:#16332c;
+  --lcd:#93bd56; --lcd-ink:#13200a; --lcd-dim:#40581f; --lcd-edge:#6f9440;
+  --ok:#5cc282; --ok-soft:#14301f; --warn:#e0a548; --warn-soft:#33270f; --bad:#ef7a64; --bad-soft:#3a1a14;
+  --p1:#8db6ea; --p1-soft:#1a2a3d; --p3:#d39ad8; --p3-soft:#33203a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-ui);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--accent)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-code);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--accent);color:var(--accent-ink)}
+.top-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:54px;padding-block:6px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top h1{font-family:var(--f-head);font-weight:700;font-size:19px;letter-spacing:.01em;margin:0;line-height:1.1;min-width:0;flex:1}
+.top h1 small{display:block;font-family:var(--f-ui);font-weight:500;font-size:12px;opacity:.85;letter-spacing:.02em}
+.store{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.18);white-space:nowrap}
+
+main{max-width:640px;margin:0 auto;padding-block:14px calc(86px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.eyebrow{font-family:var(--f-head);font-weight:600;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0}
+h2{font-family:var(--f-head);font-weight:700;font-size:22px;margin:0;text-wrap:balance;line-height:1.15}
+h3{font-family:var(--f-head);font-weight:600;font-size:17px;margin:0;text-wrap:balance}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+
+.picker{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center}
+.picker select{width:100%;min-height:50px;border:2px solid var(--accent);border-radius:var(--r);background:var(--surface);padding:0 10px;font-family:var(--f-code);font-size:15px;font-weight:600}
+.sq{width:46px;min-height:50px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);display:grid;place-items:center;cursor:pointer}
+.sq svg{width:20px;height:20px}
+.sq:disabled{opacity:.4;cursor:not-allowed}
+.field{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:0 12px;min-height:44px;flex:1;min-width:0}
+.field input{border:0;background:transparent;outline:0;flex:1;min-width:0;height:42px;font-size:16px}
+.field svg{width:18px;height:18px;color:var(--muted);flex:none}
+.bar{height:8px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .b-ok{background:var(--ok)}.bar .b-nf{background:var(--bad)}.bar .b-el{background:var(--warn)}
+
+.stabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stab{background:var(--surface);border:0;padding:8px 4px 7px;cursor:pointer;text-align:center;min-width:0}
+.stab b{display:block;font-family:var(--f-head);font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.stab span{display:block;font-size:11px;color:var(--muted);letter-spacing:.02em;line-height:1.2}
+.stab[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.stab[aria-pressed="true"] span{color:var(--bg);opacity:.8}
+.stab.t-ok b{color:var(--ok)}.stab.t-other b{color:var(--warn)}.stab.t-unk b{color:var(--bad)}.stab.t-nf b{color:var(--bad)}
+.stab[aria-pressed="true"] b{color:var(--bg)}
+.stabs.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);font-weight:600;cursor:pointer;text-decoration:none;text-align:center;line-height:1.15}
+.btn svg{width:20px;height:20px;flex:none}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.big{min-height:62px;font-size:16px;font-family:var(--f-head);letter-spacing:.02em}
+.btn.big svg{width:26px;height:26px}
+.btn.sm{min-height:36px;padding:0 12px;font-size:13px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn-row3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+
+.res{border-radius:var(--r);padding:14px;border:2px solid;display:flex;flex-direction:column;gap:8px}
+.res.ok{border-color:var(--ok);background:var(--ok-soft)}
+.res.other{border-color:var(--warn);background:var(--warn-soft)}
+.res.unk{border-color:var(--bad);background:var(--bad-soft)}
+.res .verdict{display:flex;align-items:center;gap:8px;font-family:var(--f-head);font-weight:700;font-size:18px;letter-spacing:.02em}
+.res.ok .verdict{color:var(--ok)}.res.other .verdict{color:var(--warn)}.res.unk .verdict{color:var(--bad)}
+.res .verdict svg{width:24px;height:24px;flex:none}
+.ids{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.idbox{background:var(--surface);border-radius:8px;padding:8px 10px;min-width:0}
+.idbox span{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.idbox b{display:block;font-family:var(--f-code);font-size:20px;font-weight:600;overflow-wrap:anywhere;line-height:1.2}
+
+.list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);cursor:pointer;background:transparent;width:100%;text-align:left;border-left:0;border-right:0;border-bottom:0}
+.li:first-child{border-top:0}
+.li:hover{background:var(--surface-2)}
+.li .t{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .s{font-size:13px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .r{text-align:right;font-size:13px}
+.li.open{background:var(--surface-2)}
+.detail{padding:4px 14px 14px;background:var(--surface-2);border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:5px;vertical-align:1px;white-space:nowrap}
+.pill.p1{background:var(--p1-soft);color:var(--p1)}.pill.p3{background:var(--p3-soft);color:var(--p3)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}.pill.neutral{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:0}
+.kv div{min-width:0}
+.kv dt{font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;font-weight:600}
+.kv dd{margin:1px 0 0;font-weight:500;overflow-wrap:anywhere}
+.empty{padding:22px 14px;text-align:center;color:var(--muted)}
+.more{display:block;text-align:center;color:var(--muted);font-size:13px}
+
+.viewfinder{position:relative;background:#000;border-radius:var(--r);overflow:hidden;aspect-ratio:4/3;max-width:100%}
+.viewfinder video{width:100%;height:100%;object-fit:cover;display:block}
+.viewfinder .aim{position:absolute;inset:24% 10%;border:2px solid rgba(255,255,255,.9);border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
+.viewfinder .laser{position:absolute;left:10%;right:10%;top:50%;height:2px;background:#ff5a3c;box-shadow:0 0 8px #ff5a3c}
+@media (prefers-reduced-motion:no-preference){.viewfinder .laser{animation:sweep 1.6s ease-in-out infinite alternate}}
+@keyframes sweep{from{top:28%}to{top:72%}}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.irmodes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.irm{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 6px;font-family:var(--f-head);font-weight:700;font-size:14px;letter-spacing:.02em;cursor:pointer;text-align:center}
+.irm[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent) inset}
+.irm.wide{grid-column:1/-1}
+.log{background:#0b1210;color:#b9e3c9;font-family:var(--f-code);font-size:12.5px;line-height:1.55;border-radius:8px;padding:10px 12px;min-height:96px;max-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.log .tx{color:#ffd07a}.log .rx{color:#8fd3ff}.log .ok{color:#7be39b}.log .er{color:#ff8a7a}.log .dim{color:#7c978b}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;white-space:nowrap}
+th{font-weight:600;color:var(--muted);background:var(--surface-2);font-size:12px;letter-spacing:.03em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--surface-2)}
+.wrap td{white-space:normal}
+.plan p,.plan li{max-width:65ch}
+.plan ol,.plan ul{padding-left:20px;margin:6px 0 0;display:flex;flex-direction:column;gap:6px}
+.sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.sum div{background:var(--surface);padding:10px;min-width:0}
+.sum b{display:block;font-family:var(--f-head);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.sum span{font-size:11.5px;color:var(--muted)}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);
+  padding-left:max(4px,env(safe-area-inset-left,0px));padding-right:max(4px,env(safe-area-inset-right,0px))}
+.tab{background:transparent;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 1px 9px;font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.02em}
+.tab svg{width:23px;height:23px}
+.tab[aria-current="page"]{color:var(--accent)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;font-size:14px;z-index:40;max-width:calc(100% - 32px);text-align:center}
+.dtrinfo{display:flex;flex-direction:column;gap:3px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px}
+.dname{font-family:var(--f-head);font-size:18px;font-weight:700;line-height:1.2;min-width:0;overflow-wrap:anywhere}
+.mchips{display:flex;flex-direction:column;gap:4px;margin-top:2px}
+.mchip{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;cursor:pointer;font-size:14px;color:var(--ink)}
+.mchip b{font-family:var(--f-code)}.mchip span{color:var(--muted)}
+.claims{display:flex;flex-direction:column;gap:6px;background:var(--surface);border-radius:8px;padding:8px 10px}
+.claim{font-size:13px;min-width:0}
+.claim b{font-weight:700}
+.claim>span{display:block;color:var(--muted);font-size:12px}
+select.sel{display:block;width:100%;max-width:100%;min-height:46px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:0 10px;color:var(--ink)}
+.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 4px;letter-spacing:.03em}
+.claimrow{display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:8px}
+.claimrow .claim{flex:1}
+.cfl{border-color:var(--bad)}
+.cbanner{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;border:2px solid var(--bad);background:var(--bad-soft);color:var(--ink);border-radius:var(--r);padding:10px 12px;cursor:pointer;font-size:14px}
+.cbanner svg{width:22px;height:22px;flex:none;color:var(--bad)}
+.rtabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:2px}
+.rtabs::-webkit-scrollbar{display:none}
+.rtab{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+.rtab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.rtab.hot{border-color:var(--bad);color:var(--bad)}.rtab.hot[aria-selected="true"]{background:var(--bad);color:#fff}
+.chips2{display:flex;gap:4px}.chip2{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.chip2[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dlgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+table.rep th.grp{text-align:center;border-left:1px solid var(--line);color:var(--ink)}
+table.rep tfoot td{background:var(--surface-2);font-weight:600;border-top:2px solid var(--line)}
+.tsub{font-size:11px;color:var(--muted);font-weight:400}
+tr[aria-expanded="true"] td{background:var(--accent-soft)}
+tr.sub>td{background:var(--surface-2);padding:10px;white-space:normal}
+table.inner{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+table.inner th,table.inner td{padding:5px 8px;font-size:12px}
+.mtr{display:inline-block;width:64px;height:8px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;vertical-align:middle}
+.mtr i{display:block;height:100%;background:var(--ok)}
+.mtr.wide{display:block;width:100%}
+.rrow .s.wide{grid-column:1/-1;white-space:normal;overflow:visible}
+.rrow .t{white-space:normal}
+.rrow .r b{font-family:var(--f-head);font-size:16px}
+.rtot{gap:6px}
+.drows{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.drow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px 10px;border-top:1px solid var(--line);font-size:13px}
+.drow:first-child{border-top:0}
+.drow .tsub{grid-column:1/-1}
+.drow>div{min-width:0;overflow-wrap:anywhere}
+.loading{display:grid;place-items:center;min-height:50vh;color:var(--muted);text-align:center}
+</style>
+</head><body>
+
+<header class="top"><div class="top-in">
+  <h1 id="hdr">DTR Verification<small>Sec 10 Yella Reddy Guda · ERO 11</small></h1>
+  <span class="store" id="storeBadge">Loading</span>
+</div></header>
+
+<main id="main"><div class="loading"><div><b>Loading section master…</b><br><span class="small">26,206 services · 625 structures</span></div></div></main>
+
+<nav class="tabs" aria-label="Sections"><div class="tabs-in">
+  <button class="tab" data-tab="verify" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3"/><path d="M8 12l3 3 5-6"/></svg>Services</button>
+  <button class="tab" data-tab="feeder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L5 13h6l-1 9 8-11h-6z"/></svg>Feeders</button>
+  <button class="tab" data-tab="area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Areas</button>
+  <button class="tab" data-tab="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</button>
+  <button class="tab" data-tab="report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Report</button>
+  <button class="tab" data-tab="guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M8 11h8M8 15h6"/></svg>Guide</button>
+</div></nav>
+<input type="file" id="photo" accept="image/*" capture="environment" hidden>
+<input type="file" id="dataFile" accept=".json,application/json" hidden>
+<input type="file" id="xlsFile" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden>
+<div id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script type="text/plain" id="masterdata"></script>
+<script type="application/json" id="structdata">{}</script>
+<script type="application/json" id="areadata">{}</script>
+<script>
+(function(){
+"use strict";
+const SECTION={name:"10 Yella Reddy Guda",ero:"11 Banjara Hills",mapOn:"17-Oct-2026",masterOn:"16-Oct-2026"};
+const F=['s','u','m','dtr','n','a','ph','ct','ld','mk','r','rm','sl','st','mf','an','x'];
+const NUMF=new Set(['ph','ld','r','mf','x']);
+const STYPE={PUBLIC:'Public',APRMT:'Apartment',INDUSTRIAL:'Industrial'};
+const LSKEY='dtrverify_v1', LSDTR='dtrverify_sel', LSF='dtrverify_feeder_v1', LSFS='dtrverify_feeder_sel', LSA='dtrverify_area_v1', LSAS='dtrverify_area_sel';
+const DTR_PREFIX='1607010', DTR_FROM=1, DTR_TO=800;
+const S={recs:[],live:[],rtab:'summary',ropen:null,rall:false,av:{},adr:null,atab:'pending',aopen:null,alast:null,apending:null,apanel:null,alimit:200,fv:{},fdr:null,ftab:'pending',fopen:null,flast:null,fpending:null,fpanel:null,flimit:200,byU:new Map(),byS:new Map(),byM:new Map(),dtrs:[],dtrMap:new Map(),
+  ver:{}, view:'verify', dtr:null, tab:'pending', open:null, last:null, panel:null, irMode:'irda1', q:'', dtrFilter:'', liveBlocked:false, limit:150};
+const main=document.getElementById('main');
+const $=id=>document.getElementById(id);
+const h=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Number(n).toLocaleString('en-IN');
+const normM=m=>String(m||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^0+/,'');
+const tstr=t=>new Date(t).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+const I={
+  qr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>',
+  ir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="13" width="10" height="7" rx="1.5"/><path d="M9.5 9.5a3.5 3.5 0 0 1 5 0M7 7a7 7 0 0 1 10 0"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4.5 4.5L19 7"/></svg>',
+  warn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17v.01"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+  next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+  plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>'
+};
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2600)}
+let actx;
+function beep(kind){
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const seq=kind==='ok'?[[1320,.1]]:kind==='warn'?[[700,.12],[700,.12]]:[[260,.3]];let t=actx.currentTime;
+    for(const [f,d] of seq){const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.start(t);o.stop(t+d);t+=d+.07}}catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate(kind==='ok'?70:[90,60,90])}catch(e){}
+}
+
+/* ---------- master data ---------- */
+async function loadData(P){
+  const txt=P.txt;
+  for(const ln of txt.split('\n')){if(!ln)continue;
+    const c=ln.split('\t');const o={};F.forEach((k,i)=>{o[k]=NUMF.has(k)?Number(c[i]||0):(c[i]||'')});
+    S.recs.push(o);S.byU.set(o.u,o);S.byS.set(o.s.toUpperCase(),o);
+    const nm=normM(o.m);if(nm){if(!S.byM.has(nm))S.byM.set(nm,[]);S.byM.get(nm).push(o)}
+    if(o.x)continue; // in the old consumer master but not in the current service mapping
+    S.live.push(o);
+    if(!S.dtrMap.has(o.dtr))S.dtrMap.set(o.dtr,{code:o.dtr,list:[],p1:0,p3:0});
+    const d=S.dtrMap.get(o.dtr);d.list.push(o);o.ph===3?d.p3++:d.p1++;
+  }
+  const STR=P.STR;S.structCount=Object.keys(STR).length;
+  S.dtrMap.forEach(d=>d.list.sort((a,b)=>a.s.localeCompare(b.s)));
+  // dropdown shows the fixed range 1607010001 to 1607010800, including codes with no services in the master
+  S.dtrs=[];
+  for(let i=DTR_FROM;i<=DTR_TO;i++){const code=DTR_PREFIX+String(i).padStart(3,'0');
+    if(!S.dtrMap.has(code))S.dtrMap.set(code,{code,list:[],p1:0,p3:0});S.dtrs.push(S.dtrMap.get(code))}
+  S.dtrMap.forEach((d,code)=>{const s=STR[code]||[];d.name=s[0]||'';d.type=s[1]||'';d.feeder=s[2]||'';d.fc=s[3]||'';
+    const ar={};d.list.forEach(o=>{if(o.an)ar[o.an]=(ar[o.an]||0)+1});d.areas=Object.entries(ar).sort((a,b)=>b[1]-a[1]).map(x=>x[0])});
+  S.dtrSet=new Set(S.dtrs.map(d=>d.code));
+  S.outside=S.live.filter(o=>!S.dtrSet.has(o.dtr)).length;
+  S.legacy=S.recs.length-S.live.length;
+  // feeders: every structure in the mapping, grouped by its feeder
+  const fm=new Map();
+  for(const [code,s] of Object.entries(STR)){const fc=s[3]||s[2];if(!fm.has(fc))fm.set(fc,{fc,name:s[2],list:[]});
+    if(!S.dtrMap.has(code))S.dtrMap.set(code,{code,list:[],p1:0,p3:0,name:s[0],type:s[1],feeder:s[2],fc,areas:[]});fm.get(fc).list.push(S.dtrMap.get(code))}
+  S.feeders=[...fm.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  S.feeders.forEach(f=>{f.list.sort((a,b)=>a.code.localeCompare(b.code));f.svc=f.list.reduce((n,d)=>n+d.list.length,0)});
+  S.fMap=new Map(S.feeders.map(f=>[f.fc,f]));
+  S.fNames=new Map(S.feeders.map(f=>[f.fc,f.name]));
+  // areas: area code is on each service, so one structure can sit in several areas
+  const AR=P.AR;
+  S.areas=Object.entries(AR).map(([ac,[name,sc]])=>{const list=Object.entries(sc).map(([code,n])=>{const d=S.dtrMap.get(code);if(!d.acs)d.acs={};d.acs[ac]=n;return{d,n}}).sort((a,b)=>a.d.code.localeCompare(b.d.code));
+    return{ac,name,list,svc:list.reduce((t,x)=>t+x.n,0)}}).sort((a,b)=>a.ac.localeCompare(b.ac,'en',{numeric:true}));
+  S.aMap=new Map(S.areas.map(a=>[a.ac,a]));
+  S.areaByName=new Map(S.areas.map(a=>[a.name,a.ac]));
+}
+
+/* ---------- verification store ----------
+   S.ver[dtr] = { s:{ukscno:{st,src,raw,t,mdtr}}, x:{meterKey:{raw,src,t}} }
+   st: ok = found on this DTR · other = found here, master says another DTR · nf = not found at site · na = no access
+   removals are kept as {del:1,t} so newest-wins merging works across devices */
+const live=e=>e&&!e.del;
+const docId=d=>'d'+(d||'0');
+const Store={mode:'device',db:null,seen:new Set(),
+  loadLocal(){try{const j=localStorage.getItem(LSKEY);if(j)S.ver=JSON.parse(j)||{}}catch(e){}
+    try{const d=localStorage.getItem(LSDTR);if(d&&S.dtrSet.has(d))S.dtr=d}catch(e){}},
+  saveLocal(){try{localStorage.setItem(LSKEY,JSON.stringify(S.ver))}catch(e){}},
+  badge(){const b=$('storeBadge');b.textContent=this.mode==='db'?'Synced':'On device';b.title=this.mode==='db'?'Saved to this page and shared with your other devices':'Saved in this browser only'},
+  async init(){
+    this.badge();
+    try{if(window.claude&&typeof window.claude.use==='function'){const db=await window.claude.use('db');if(db){this.db=db;this.mode='db';this.badge();this.subscribe();this.subscribeF();this.subscribeA()}}}catch(e){}
+  },
+  subscribe(){
+    try{this.db.collection('verify').onSnapshot(snap=>{
+      let changed=false;
+      snap.docs.forEach(d=>{this.seen.add(d.id);const x=d.data();if(!x||!x.dtr)return;
+        const cur=S.ver[x.dtr]||(S.ver[x.dtr]={s:{},x:{}});
+        for(const k of ['s','x'])for(const [key,rec] of Object.entries(x[k]||{})){
+          const c=cur[k][key];if(rec&&(!c||(rec.t||0)>(c.t||0))){cur[k][key]=rec;changed=true}}});
+      if(changed){this.saveLocal();if(S.view==='verify'&&!cam.timer)renderVerify();else if(S.view==='report')vReport()}
+    },()=>{this.mode='device';this.badge()})}catch(e){this.mode='device';this.badge()}
+  },
+  async put(dtr,kind,key,rec){
+    const cur=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});
+    cur[kind][key]=rec;this.saveLocal();
+    if(this.mode!=='db')return;
+    const id=docId(dtr),ref=this.db.doc('verify/'+id);
+    try{
+      let exists=this.seen.has(id);
+      if(!exists){const snap=await ref.get();exists=snap.exists}
+      if(exists)await ref.update({[kind]:{[key]:rec}});
+      else await ref.set({dtr,s:cur.s,x:cur.x});
+      this.seen.add(id);
+    }catch(e){toast(e&&e.code==='quota_exceeded'?'Page storage is full. Saved on this device only.':'Could not sync. Saved on this device.')}
+  }
+};
+function vrec(dtr){return S.ver[dtr]||{s:{},x:{}}}
+function pendingList(d){const v=vrec(d.code),el=elsewhereIndex();return d.list.filter(o=>!live(v.s[o.u])&&!el.has(o.u))}
+/* One service, one DTR.
+   A "location claim" is any live record saying the meter was found on a DTR: ok (its own DTR), other (a different DTR), conf (sent to AE review).
+   Two or more claims for the same UKSCNO = a conflict that only the AE (page owner / editor) can resolve. */
+const CLAIM=new Set(['ok','other','conf']);
+const isClaim=r=>live(r)&&CLAIM.has(r.st);
+function claimsFor(u,exceptDtr){
+  const out=[];for(const [d,v] of Object.entries(S.ver)){if(d===exceptDtr)continue;const r=v.s&&v.s[u];if(isClaim(r))out.push({dtr:d,rec:r})}
+  return out.sort((a,b)=>a.rec.t-b.rec.t);
+}
+function conflictIndex(){ // ukscno -> [{dtr,rec}] when claimed on 2+ DTRs
+  const m=new Map();
+  for(const [d,v] of Object.entries(S.ver))for(const [u,r] of Object.entries(v.s||{}))if(isClaim(r)){if(!m.has(u))m.set(u,[]);m.get(u).push({dtr:d,rec:r})}
+  for(const [u,c] of m)if(c.length<2)m.delete(u);else c.sort((a,b)=>a.rec.t-b.rec.t);
+  return m;
+}
+function elsewhereIndex(){
+  const m=new Map();
+  for(const [d,v] of Object.entries(S.ver))for(const [u,r] of Object.entries(v.s||{}))if(live(r)&&(r.st==='other'||r.st==='conf')){const p=m.get(u);if(!p||r.t>p.rec.t)m.set(u,{dtr:d,rec:r})}
+  return m;
+}
+function dtrStats(d,elsew){
+  const v=vrec(d.code);elsew=elsew||elsewhereIndex();
+  let ok=0,nf=0,el=0;
+  for(const o of d.list){const r=v.s[o.u];if(live(r)&&r.st==='ok')ok++;else if(live(r)&&(r.st==='nf'||r.st==='na'))nf++;else if(elsew.has(o.u))el++}
+  let other=0,unk=0;for(const r of Object.values(v.s))if(live(r)&&(r.st==='other'||r.st==='conf'))other++;for(const r of Object.values(v.x))if(live(r))unk++;
+  return{n:d.list.length,ok,nf,el,pending:d.list.length-ok-nf-el,other,unk};
+}
+function dtrConflicts(code,cx){ // conflicts that touch this DTR: a claim here, or the service belongs here by master
+  cx=cx||conflictIndex();const out=[];
+  for(const [u,c] of cx){const o=S.byU.get(u);if(c.some(x=>x.dtr===code)||(o&&o.dtr===code))out.push(u)}
+  return out;
+}
+
+/* ---------- who is recording ----------
+   Inside the page: the viewer's id from the user capability; the owner and editors act as AE (supervisor).
+   Hosted on its own: a random id per device, and that device is the supervisor. Only ids are stored, never names. */
+const Who={id:null,sup:false,u:null,ready:false,
+  async init(){
+    try{if(window.claude&&typeof window.claude.use==='function'){const u=await window.claude.use('user');
+      if(u){this.u=u;const me=await u.me();this.id=me.id;this.sup=!!(me.isOwner||me.canEdit)}else this.sup=true}else this.sup=true}catch(e){this.sup=true}
+    if(!this.id){try{let d=localStorage.getItem('dtrverify_dev');if(!d){d='dev-'+Math.random().toString(36).slice(2,10);localStorage.setItem('dtrverify_dev',d)}this.id=d}catch(e){this.id='dev-local'}}
+    this.ready=true;
+  },
+  async fill(root){ // put display names into [data-uid] spans
+    const els=[...(root||main).querySelectorAll('[data-uid]')];if(!els.length)return;
+    const ids=[...new Set(els.map(e=>e.dataset.uid).filter(i=>i&&i.startsWith('u_')))];
+    let ps={};if(this.u&&ids.length){try{ps=await this.u.profiles(ids)}catch(e){}}
+    els.forEach(e=>{const id=e.dataset.uid;e.textContent=!id?'unknown':id===this.id?'you':(ps[id]&&ps[id].name)||(id.startsWith('dev-')?'another device':'another user')});
+  }
+};
+const byTag=id=>`<span data-uid="${h(id||'')}">…</span>`;
+const ST_LABEL={ok:'Verified',other:'Found here',conf:'In AE review',nf:'Not found',na:'No access'};
+
+/* ---------- scan matching ---------- */
+function resolveScan(text){
+  const t=String(text||'').toUpperCase();
+  const toks=[t.replace(/\s+/g,''),...(t.match(/[A-Z0-9]{5,16}/g)||[])];
+  for(const k of toks){
+    const m=S.byM.get(normM(k));if(m&&m.length){const here=m.find(x=>x.dtr===S.dtr&&!x.x)||m.find(x=>!x.x);const all=m.filter(x=>!x.x);return{o:here||m[0],by:'Meter no',key:k,all:all.length>1?all:null}}
+    if(S.byU.has(k))return{o:S.byU.get(k),by:'UKSCNO',key:k};
+    if(S.byS.has(k))return{o:S.byS.get(k),by:'Service no',key:k};
+  }
+  return{o:null,key:(toks[1]||toks[0]||'').slice(0,24)};
+}
+async function processScan(text,src){
+  if(!S.dtr){toast('Select a DTR structure code first');return}
+  const r=resolveScan(text);const now=Date.now();const raw=String(text).slice(0,120);
+  let res;
+  if(!r.o){
+    const key=normM(r.key)||('X'+now);const prev=vrec(S.dtr).x[key];
+    await Store.put(S.dtr,'x',key,{raw,src,t:now,by:Who.id});
+    res={kind:'unk',raw,src,undo:{kind:'x',key,prev}};beep('bad');
+  }else if(r.o.x){
+    const o=r.o;const key=normM(o.m)||o.u;const prev=vrec(S.dtr).x[key];
+    await Store.put(S.dtr,'x',key,{raw,src,t:now,svc:o.s,u:o.u,by:Who.id});
+    res={kind:'legacy',o,raw,src,by:r.by,undo:{kind:'x',key,prev}};beep('bad');
+  }else{
+    const o=r.o;const prev=vrec(S.dtr).s[o.u];
+    const multi=r.all&&r.all.length>1?r.all:null;
+    const elsewhere=claimsFor(o.u,S.dtr);
+    if(elsewhere.length){
+      // the same service is already placed on another DTR: nothing is saved until someone decides
+      S.pending={type:'conflict',o,src,raw,by:r.by,others:elsewhere,multi};S.last=null;beep('bad');return showResult();
+    }
+    if(o.dtr===S.dtr){
+      const dup=live(prev)&&prev.st==='ok';
+      if(!dup)await Store.put(S.dtr,'s',o.u,{st:'ok',src,raw,t:now,by:Who.id});
+      res={kind:'ok',o,src,by:r.by,dup,dupT:dup?prev.t:0,undo:dup?null:{kind:'s',key:o.u,prev}};beep('ok');
+    }else if(isClaim(prev)){
+      res={kind:prev.st==='conf'?'conf':'other',o,src,by:r.by,dup:true,dupT:prev.t};beep('warn');
+    }else{
+      // master puts it on another DTR: ask before recording it here
+      S.pending={type:'confirm',o,src,raw,by:r.by,multi};S.last=null;beep('warn');return showResult();
+    }
+    if(multi)res.multi=multi;
+  }
+  S.last=res;S.pending=null;
+  showResult();
+}
+function showResult(){
+  if(S.view!=='verify'){go('verify');return}
+  if(cam.timer||cam.stream)refreshAfterScan();else{renderVerify();const rc=$('lastRes');if(rc)rc.scrollIntoView({block:'nearest',behavior:'smooth'})}
+}
+function refreshAfterScan(){ // update result, counts and list without tearing down the live camera
+  const d=S.dtrMap.get(S.dtr);const elsew=elsewhereIndex();
+  $('lastRes').innerHTML=resultBlock();
+  $('confBox').innerHTML=confBanner(d);
+  $('stabsBox').innerHTML=stabsHtml(dtrStats(d,elsew));
+  $('svcList').innerHTML=listHtml(d,elsew);
+  $('barBox').innerHTML=barHtml(dtrStats(d,elsew));
+  bindDynamic(d);
+}
+/* decisions on a held scan */
+async function decide(action){
+  const p=S.pending;if(!p)return;const o=p.o,now=Date.now();
+  const reason=($('pReason')&&$('pReason').value)||'';
+  if(action==='cancel'){S.pending=null;S.last=null;toast('Cancelled. Nothing saved.');return showResult()}
+  if((action==='review'||action==='move')&&!reason){toast('Choose a reason first');const s=$('pReason');if(s)s.focus();return}
+  const prev=vrec(S.dtr).s[o.u];
+  if(action==='confirm'){
+    await Store.put(S.dtr,'s',o.u,{st:'other',src:p.src,raw:p.raw,t:now,mdtr:o.dtr,by:Who.id});
+    S.last={kind:'other',o,src:p.src,by:p.by,multi:p.multi,undo:{kind:'s',key:o.u,prev}};beep('ok');
+  }else if(action==='review'){
+    await Store.put(S.dtr,'s',o.u,{st:'conf',src:p.src,raw:p.raw,t:now,mdtr:o.dtr,reason,by:Who.id});
+    S.last={kind:'conf',o,src:p.src,by:p.by,others:p.others,reason,undo:{kind:'s',key:o.u,prev}};toast('Sent to AE review');
+  }else if(action==='move'&&Who.sup){
+    await Store.put(S.dtr,'s',o.u,{st:o.dtr===S.dtr?'ok':'other',src:p.src,raw:p.raw,t:now,mdtr:o.dtr,reason,by:Who.id,moved:1});
+    for(const c of p.others)await Store.put(c.dtr,'s',o.u,{del:1,t:now,movedTo:S.dtr,reason,by:Who.id});
+    S.last={kind:o.dtr===S.dtr?'ok':'other',o,src:p.src,by:p.by,moved:p.others.map(c=>c.dtr)};toast('Moved to this DTR. Earlier entry removed.');
+  }
+  S.pending=null;showResult();
+}
+
+/* ---------- navigation ---------- */
+function go(view){stopCam();if(!S.ready){showSetup();return}S.view=view;
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===view?'page':'false'));
+  const T={verify:'DTR Verification',feeder:'Feeder-wise structures',area:'Area-wise structures',search:'Search services',report:'Verification report',guide:'Guide'};
+  $('hdr').innerHTML=h(T[view])+'<small>Sec '+h(SECTION.name)+' · ERO 11</small>';
+  ({verify:renderVerify,feeder:renderFeeder,area:renderArea,search:vSearch,report:vReport,guide:vGuide})[view]();window.scrollTo(0,0)}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(b.dataset.tab!=='verify')S.panel=null;if(b.dataset.tab!=='feeder')S.fpanel=null;if(b.dataset.tab!=='area')S.apanel=null;go(b.dataset.tab)});
+
+const phPill=p=>p===3?'<span class="pill p3">3Φ</span>':'<span class="pill p1">1Φ</span>';
+const dtrLabel=c=>c==='0'?'No structure code':c;
+
+/* ---------- VERIFY ---------- */
+function optionsHtml(){
+  const elsew=elsewhereIndex();
+  return (S.dtr?'':'<option value="" selected>Select DTR structure code…</option>')+S.dtrs.map(d=>{
+    const st=dtrStats(d,elsew);const done=st.ok+st.nf+st.el;
+    return `<option value="${h(d.code)}" ${d.code===S.dtr?'selected':''}>${h(d.code)} · ${h(d.name||'NO NAME')} (${d.list.length})${done?` ✓${done}`:''}</option>`}).join('');
+}
+const barHtml=st=>`<div class="bar" title="Green verified · amber seen on another DTR · red not found"><i class="b-ok" style="width:${st.ok*100/(st.n||1)}%"></i><i class="b-el" style="width:${st.el*100/(st.n||1)}%"></i><i class="b-nf" style="width:${st.nf*100/(st.n||1)}%"></i></div>`;
+const stabsHtml=st=>[['pending','Pending',st.pending,''],['ok','Verified',st.ok,'t-ok'],['other','From other DTR',st.other,'t-other'],['unk','Not in master',st.unk,'t-unk'],['nf','Not found',st.nf+st.el,'t-nf']].map(([k,l,n,c])=>`<button class="stab ${c}" data-t="${k}" aria-pressed="${S.tab===k}"><b>${n}</b><span>${l}</span></button>`).join('');
+function renderVerify(){
+  if(S.view!=='verify')return;
+  const d=S.dtr?S.dtrMap.get(S.dtr):null;
+  const elsew=elsewhereIndex();
+  const st=d?dtrStats(d,elsew):null;
+  const idx=d?S.dtrs.indexOf(d):-1;
+  main.innerHTML=`
+  <section class="card stack" aria-label="DTR">
+    <div class="row between"><label class="eyebrow" for="dtrSel">DTR structure code</label><span class="small muted">${DTR_PREFIX}${String(DTR_FROM).padStart(3,'0')} to ${String(DTR_TO).padStart(3,'0')}</span></div>
+    <div class="picker">
+      <button class="sq" id="prevD" aria-label="Previous DTR" ${idx<=0?'disabled':''}>${I.prev}</button>
+      <select id="dtrSel">${optionsHtml()}</select>
+      <button class="sq" id="nextD" aria-label="Next DTR" ${idx<0||idx>=S.dtrs.length-1?'disabled':''}>${I.next}</button>
+    </div>
+    <label class="field" for="dtrF">${I.search}<input id="dtrF" type="search" placeholder="Go to DTR: number 001–800 or structure name" value="${h(S.dtrFilter)}" autocomplete="off"></label>
+    <div class="hint" id="dtrHint" hidden></div>
+    ${d?`<div class="dtrinfo"><div class="row between" style="align-items:baseline"><b class="dname">${h(d.name||'NO NAME')}</b>${d.type?`<span class="pill neutral">${h(STYPE[d.type]||d.type)}</span>`:''}</div>
+      ${d.feeder?`<div class="small">${h(d.feeder)}</div>`:''}${d.areas&&d.areas.length?`<div class="small muted">Area: ${h(d.areas.slice(0,3).join(', '))}${d.areas.length>3?` +${d.areas.length-3} more`:''}</div>`:''}</div>`:''}
+    ${d?(d.list.length?`<div class="small muted">${d.list.length} services · ${d.p1} single-phase · ${d.p3} three-phase · ${st.ok+st.nf+st.el} of ${st.n} done</div><div id="barBox">${barHtml(st)}</div>`:`<div class="small" style="color:var(--warn)">No services mapped to this structure code in the service mapping. Meters you scan here are recorded as found on this DTR.</div><div id="barBox" hidden></div>`):''}
+  </section>
+  ${d?`
+  <div class="btn-row">
+    ${S.liveBlocked?`<label class="btn primary big" for="photo">${I.qr}QR / Barcode</label>`:`<button class="btn primary big" id="scanBtn">${I.qr}QR / Barcode</button>`}
+    <button class="btn primary big" id="irBtn">${I.ir}IR / IRDA</button>
+  </div>
+  <div id="panel">${S.panel==='scan'?scanPanel():S.panel==='ir'?irPanel():''}</div>
+  <div class="row"><label class="field" for="manual">${I.search}<input id="manual" placeholder="Type meter / service / UKSCNO" autocomplete="off"></label><button class="btn" id="findBtn">Check</button></div>
+  <div id="lastRes">${resultBlock()}</div>
+  <div id="confBox">${confBanner(d)}</div>
+  <div class="stabs" id="stabsBox" role="group" aria-label="Show services">${stabsHtml(st)}</div>
+  <div class="list" id="svcList">${listHtml(d,elsew)}</div>
+  <div class="row between"><span class="small muted">Saved ${Store.mode==='db'?'to this page, synced across your devices':'on this device'}</span><button class="btn sm" id="expD">${I.dl}Export this DTR</button></div>
+  `:`<div class="card empty">Choose a DTR structure code above to start verifying its services.</div>`}`;
+  bindVerify(d);
+}
+const REASONS=['Meter is physically on this DTR (checked at site)','Earlier entry was on the wrong DTR','Same meter number on two services','Not sure, needs joint site check'];
+function claimLine(c){const d=S.dtrMap.get(c.dtr);return `<div class="claim"><b class="mono">DTR ${h(c.dtr.slice(-3))}</b> ${h(d&&d.name||'NO NAME')}<span>${h(ST_LABEL[c.rec.st]||c.rec.st)} · ${h(c.rec.src||'')} · ${h(tstr(c.rec.t))} · by ${byTag(c.rec.by)}${c.rec.reason?' · '+h(c.rec.reason):''}</span></div>`}
+function resultBlock(){return S.pending?pendingHtml(S.pending):S.last?resultHtml(S.last):''}
+function pendingHtml(p){
+  const o=p.o,cur=S.dtrMap.get(S.dtr),md=S.dtrMap.get(o.dtr);
+  const head=`<div class="ids"><div class="idbox"><span>Service no</span><b>${h(o.s)}</b></div><div class="idbox"><span>UKSCNO</span><b>${h(o.u)}</b></div></div>
+    <div><b>${h(o.n)}</b> ${phPill(o.ph)}<div class="small">${h(o.a)}</div><div class="small">Meter <b class="mono">${h(o.m)}</b> · ${h(p.src)}</div></div>`;
+  if(p.type==='confirm')return `<div class="res other" role="alertdialog" aria-label="Confirm DTR">
+    <div class="verdict">${I.warn}Master says DTR ${h(o.dtr.slice(-3))}, not this one</div>${head}
+    <p class="small" style="margin:0">Master DTR: <b>${h(o.dtr)}</b> ${h(md&&md.name||'')}<br>You are on: <b>${h(S.dtr)}</b> ${h(cur&&cur.name||'')}</p>
+    <p class="small" style="margin:0"><b>Is this meter really fed from this DTR?</b> If you picked the wrong DTR in the dropdown, cancel and change it first.</p>
+    <div class="btn-row"><button class="btn" data-pa="cancel">No, cancel</button><button class="btn primary" data-pa="confirm">Yes, found here</button></div></div>`;
+  return `<div class="res unk" role="alertdialog" aria-label="Service already on another DTR">
+    <div class="verdict">${I.x}Already mapped on another DTR</div>${head}
+    <div class="claims"><div class="small"><b>Already recorded on:</b></div>${p.others.map(claimLine).join('')}</div>
+    <p class="small" style="margin:0">One service can be on only one DTR. Master DTR is <b>${h(o.dtr)}</b>${md&&md.name?' ('+h(md.name)+')':''}. Nothing has been saved for this scan.</p>
+    <div><label class="lbl" for="pReason">Reason (needed to send for review or move)</label><select class="sel" id="pReason"><option value="">Choose reason…</option>${REASONS.map(x=>`<option>${h(x)}</option>`).join('')}</select></div>
+    <div class="btn-row"><button class="btn primary" data-pa="cancel">Cancel, wrong scan</button><button class="btn" data-pa="review">Send to AE review</button></div>
+    ${Who.sup?`<button class="btn block" data-pa="move">AE: move to this DTR and remove the earlier entry</button>`:'<p class="hint">Only the AE (page owner or editor) can move a service between DTRs.</p>'}
+  </div>`;
+}
+function confBanner(d){
+  if(!d)return '';const n=dtrConflicts(d.code).length;
+  return n?`<button class="cbanner" id="toConf">${I.warn}<span><b>${n} service${n>1?'s':''} on this DTR ${n>1?'are':'is'} also recorded on another DTR.</b> The AE must pick the correct DTR in Report.</span></button>`:'';
+}
+function resultHtml(r){
+  if(r.kind==='conf')return `<div class="res unk" role="status"><div class="verdict">${I.warn}Sent to AE review</div>
+    <div class="ids"><div class="idbox"><span>Service no</span><b>${h(r.o.s)}</b></div><div class="idbox"><span>UKSCNO</span><b>${h(r.o.u)}</b></div></div>
+    <p class="small" style="margin:0">${r.dup?'Already in review on this DTR. ':''}Recorded on DTR ${h(S.dtr.slice(-3))} as a disputed claim${r.reason?' ('+h(r.reason)+')':''}. It shows under Conflicts in Report until the AE picks one DTR.</p>
+    ${r.undo?'<div class="row"><button class="btn sm" id="undoBtn">Undo</button></div>':''}</div>`;
+  if(r.kind==='legacy')return `<div class="res unk" role="status"><div class="verdict">${I.x}Not in current service mapping</div>
+    <div class="ids"><div class="idbox"><span>Service no</span><b>${h(r.o.s)}</b></div><div class="idbox"><span>UKSCNO</span><b>${h(r.o.u)}</b></div></div>
+    <div><b>${h(r.o.n)}</b> ${phPill(r.o.ph)}<div class="small">${h(r.o.a)}</div></div>
+    <p class="small" style="margin:0">Meter <b class="mono">${h(r.o.m)}</b> is in the old consumer master (status ${h(r.o.st)}, structure ${h(dtrLabel(r.o.dtr))}) but this service is not in the new service-to-structure mapping. Recorded under DTR ${h(dtrLabel(S.dtr))} for review.</p>
+    <div class="row"><button class="btn sm" id="undoBtn">Undo</button></div></div>`;
+  if(r.kind==='unk')return `<div class="res unk" role="status"><div class="verdict">${I.x}Meter not in section master</div>
+    <div class="idbox"><span>Scanned · ${h(r.src)}</span><b>${h(r.raw.slice(0,60))}</b></div>
+    <p class="small" style="margin:0">Recorded under DTR ${h(dtrLabel(S.dtr))} as an unknown meter. It may be a new or replaced meter, or a service not yet in EBS.</p>
+    <div class="row"><button class="btn sm" id="undoBtn">Undo</button></div></div>`;
+  const o=r.o;
+  const verdict=r.kind==='ok'?(r.dup?`${I.check}Already verified (${h(tstr(r.dupT))})`:`${I.check}Verified on this DTR`):r.dup?`${I.warn}Already recorded on this DTR (${h(tstr(r.dupT))})`:`${I.warn}Mapped to DTR ${h(dtrLabel(o.dtr))} in master`;
+  return `<div class="res ${r.kind}" role="status">
+    <div class="verdict">${verdict}</div>
+    <div class="ids"><div class="idbox"><span>Service no</span><b>${h(o.s)}</b></div><div class="idbox"><span>UKSCNO</span><b>${h(o.u)}</b></div></div>
+    <div><b>${h(o.n)}</b> ${phPill(o.ph)}<div class="small">${h(o.a)}</div></div>
+    <div class="small">Meter <b class="mono">${h(o.m)}</b> · ${h(o.mk||'')} · matched by ${h(r.by)} · ${h(r.src)}</div>
+    ${r.kind==='other'?`<p class="small" style="margin:0">Recorded as <b>found on DTR ${h(dtrLabel(S.dtr))}</b>. The EBS master maps it to ${h(dtrLabel(o.dtr))}, so its structure code may need correction.</p>`:''}
+    ${r.moved?`<p class="small" style="margin:0">Moved here by the AE. Removed from DTR ${r.moved.map(x=>h(x.slice(-3))).join(', ')}.</p>`:''}
+    ${r.multi?`<p class="small" style="margin:0">This meter number is on ${r.multi.length} services in the master: ${r.multi.map(x=>h(x.s)+' (DTR '+h(x.dtr)+')').join(', ')}.</p>`:''}
+    ${r.undo?'<div class="row"><button class="btn sm" id="undoBtn">Undo</button></div>':''}
+  </div>`;
+}
+function listHtml(d,elsew){
+  const v=vrec(d.code);let items=[];
+  if(S.tab==='pending')items=d.list.filter(o=>{const r=v.s[o.u];return !(live(r)&&['ok','nf','na'].includes(r.st))&&!elsew.has(o.u)}).map(o=>({o}));
+  else if(S.tab==='ok')items=d.list.filter(o=>{const r=v.s[o.u];return live(r)&&r.st==='ok'}).map(o=>({o,r:v.s[o.u]})).sort((a,b)=>b.r.t-a.r.t);
+  else if(S.tab==='nf')items=d.list.filter(o=>{const r=v.s[o.u];return (live(r)&&(r.st==='nf'||r.st==='na'))||(!(live(r)&&r.st==='ok')&&elsew.has(o.u))}).map(o=>({o,r:v.s[o.u],el:elsew.get(o.u)}));
+  else if(S.tab==='other')items=Object.entries(v.s).filter(([u,r])=>live(r)&&(r.st==='other'||r.st==='conf')).map(([u,r])=>({o:S.byU.get(u),r})).filter(x=>x.o).sort((a,b)=>b.r.t-a.r.t);
+  else if(S.tab==='unk')return Object.entries(v.x).filter(([k,r])=>live(r)).sort((a,b)=>b[1].t-a[1].t).map(([k,r])=>`<div class="li" style="cursor:default"><div class="t mono">${r.svc?h(r.svc)+' · ':''}${h(r.raw.slice(0,40))}</div><div class="r"><button class="btn sm" data-delx="${h(k)}">Remove</button></div><div class="s">${r.svc?'Not in current mapping · ':''}${h(r.src)} · ${h(tstr(r.t))}</div><div></div></div>`).join('')||'<div class="empty">No unknown meters scanned on this DTR.</div>';
+  if(!items.length)return `<div class="empty">${{pending:d.list.length?'All services on this DTR are accounted for.':'No services in the master for this DTR.',ok:'No services verified yet. Scan a meter to start.',other:'No meters from other DTRs found here.',nf:'Nothing marked as not found.'}[S.tab]}</div>`;
+  const shown=items.slice(0,S.limit);S.cx=conflictIndex();
+  return shown.map(rowHtml).join('')+(items.length>shown.length?`<button class="li more" id="moreBtn">Show ${Math.min(150,items.length-shown.length)} more of ${items.length-shown.length}</button>`:'');
+}
+function rowHtml({o,r,el}){
+  let right;
+  if(live(r)&&r.st==='ok')right=`<span class="pill ok">${h(r.src.split(' ')[0])} ${h(new Date(r.t).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}))}</span>`;
+  else if(live(r)&&r.st==='other')right=`<span class="pill warn">Master DTR ${h(o.dtr.slice(-4))}</span>`;
+  else if(live(r)&&r.st==='nf')right='<span class="pill bad">Not found</span>';
+  else if(live(r)&&r.st==='na')right='<span class="pill warn">No access</span>';
+  else if(el)right=`<span class="pill warn">Seen on DTR ${h(el.dtr.slice(-4))}</span>`;
+  else right=o.m==='0'?'<span class="pill neutral">No meter no</span>':'<span class="pill neutral">Pending</span>';
+  if(live(r)&&r.st==='conf')right='<span class="pill bad">In AE review</span>';
+  if(S.cx&&S.cx.has(o.u))right=`<span class="pill bad">Conflict: ${S.cx.get(o.u).map(c=>h(c.dtr.slice(-3))).join(' / ')}</span>`;
+  const isOpen=S.open===o.u;
+  return `<button class="li ${isOpen?'open':''}" data-u="${h(o.u)}" aria-expanded="${isOpen}">
+    <div class="t"><span class="mono">${h(o.s)}</span> · ${h(o.n)}</div><div class="r">${right}</div>
+    <div class="s">${phPill(o.ph)} Meter <span class="mono">${h(o.m==='0'?'—':o.m)}</span> · ${h(o.mk||'')}</div><div class="r small muted mono">${h(o.u)}</div>
+  </button>${isOpen?detailHtml(o,r):''}`;
+}
+function detailHtml(o,r){
+  return `<div class="detail">
+    <dl class="kv">
+      <div><dt>Service no</dt><dd class="mono">${h(o.s)}</dd></div><div><dt>UKSCNO</dt><dd class="mono">${h(o.u)}</dd></div>
+      <div><dt>Meter no</dt><dd class="mono">${h(o.m==='0'?'Not recorded':o.m)}</dd></div><div><dt>Make</dt><dd>${h(o.mk||'—')}</dd></div>
+      <div style="grid-column:1/-1"><dt>Address</dt><dd>${h(o.a||'—')}</dd></div>
+      <div><dt>Category · load</dt><dd>Cat ${h(o.ct)} · ${o.ld} kW</dd></div><div><dt>Seal no</dt><dd class="mono">${h(o.sl||'—')}</dd></div>
+      <div><dt>Master DTR</dt><dd class="mono">${h(dtrLabel(o.dtr))}</dd></div><div><dt>Last reading</dt><dd class="mono">${fmt(o.r)} (${h(o.rm)})</dd></div>
+    </dl>
+    ${live(r)?`<div class="small muted">Recorded: ${h({ok:'Verified',other:'Found on this DTR',conf:'Disputed, in AE review',nf:'Not found at site',na:'No access'}[r.st])} · ${h(r.src)} · ${h(tstr(r.t))} · by ${byTag(r.by)}${r.reason?' · '+h(r.reason):''}${r.raw?' · scanned '+h(r.raw.slice(0,30)):''}</div>`:''}
+    ${S.cx&&S.cx.has(o.u)?`<div class="claims"><div class="small"><b>Recorded on more than one DTR:</b></div>${S.cx.get(o.u).map(claimLine).join('')}</div>`:''}
+    ${r&&live(r)&&(r.st==='other'||r.st==='conf')?'':`<div class="btn-row3">
+      <button class="btn sm" data-mark="ok" data-mu="${h(o.u)}">Seen, OK</button>
+      <button class="btn sm" data-mark="nf" data-mu="${h(o.u)}">Not found</button>
+      <button class="btn sm" data-mark="na" data-mu="${h(o.u)}">No access</button>
+    </div>`}
+    ${live(r)?`<button class="btn sm" data-mark="clear" data-mu="${h(o.u)}">${r.st==='other'?'Remove from this DTR':'Reset to pending'}</button>`:''}
+  </div>`;
+}
+function bindVerify(d){
+  const sel=$('dtrSel');
+  sel.onchange=()=>selectDtr(sel.value);
+  const pv=$('prevD'),nx=$('nextD');
+  pv.onclick=()=>{const i=S.dtrs.indexOf(S.dtrMap.get(S.dtr));if(i>0)selectDtr(S.dtrs[i-1].code)};
+  nx.onclick=()=>{const i=S.dtrs.indexOf(S.dtrMap.get(S.dtr));if(i<S.dtrs.length-1)selectDtr(S.dtrs[i+1].code)};
+  const f=$('dtrF');
+  f.oninput=()=>{
+    const v=f.value.trim();S.dtrFilter=v;const hint=$('dtrHint');
+    if(!v){hint.hidden=true;return}
+    if(/[A-Za-z]/.test(v)){ // structure name search
+      if(v.length<2){hint.hidden=true;return}
+      const q=v.toUpperCase();const m=S.dtrs.filter(d=>d.name&&d.name.includes(q));
+      hint.hidden=false;
+      hint.innerHTML=m.length?`<div class="mchips">${m.slice(0,8).map(d=>`<button class="mchip" data-pick="${h(d.code)}"><b>${h(d.code.slice(-3))}</b> ${h(d.name)} <span>(${d.list.length})</span></button>`).join('')}</div>${m.length>8?`<div>${m.length-8} more. Type more of the name.</div>`:''}`:'No structure name matches "'+h(v)+'".';
+      hint.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>selectDtr(b.dataset.pick));
+      return}
+    const dg=v.replace(/\D/g,'');if(!dg){hint.hidden=true;return}
+    const code=dtrFromTyped(dg);
+    if(code){hint.hidden=true;if(code!==S.dtr)selectDtr(code,true)}
+    else{hint.hidden=false;hint.textContent='No structure code '+(dg.length<=3?DTR_PREFIX+dg.padStart(3,'0'):dg)+' in the list (001 to 800).'}};
+  f.onkeydown=e=>{if(e.key==='Enter')f.blur()};
+  if(!d)return;
+  const sb=$('scanBtn');if(sb)sb.onclick=()=>{S.panel=S.panel==='scan'?null:'scan';stopCam();renderVerify();if(S.panel==='scan')startLive()};
+  $('irBtn').onclick=()=>{S.panel=S.panel==='ir'?null:'ir';stopCam();renderVerify()};
+  const find=()=>{const v=$('manual').value.trim();if(v){$('manual').value='';processScan(v,'Typed')}};
+  $('findBtn').onclick=find;$('manual').onkeydown=e=>{if(e.key==='Enter')find()};
+  $('expD').onclick=()=>exportDtr(d);
+  bindPanel();bindDynamic(d);
+}
+function rerenderKeep(){const y=window.scrollY;if(cam.timer||cam.stream)refreshAfterScan();else{renderVerify();window.scrollTo(0,y)}}
+function bindDynamic(d){
+  main.querySelectorAll('.stab').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;S.open=null;S.limit=150;rerenderKeep()});
+  main.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{S.open=S.open===b.dataset.u?null:b.dataset.u;rerenderKeep()});
+  main.querySelectorAll('[data-mark]').forEach(b=>b.onclick=async()=>{
+    const u=b.dataset.mu,k=b.dataset.mark,t=Date.now();
+    if(k==='ok'){const others=claimsFor(u,S.dtr);
+      if(others.length){S.pending={type:'conflict',o:S.byU.get(u),src:'Manual',raw:'',by:'site check',others};S.last=null;S.open=null;beep('bad');rerenderKeep();const lr=$('lastRes');if(lr)lr.scrollIntoView({block:'center',behavior:'smooth'});return}}
+    await Store.put(S.dtr,'s',u,k==='clear'?{del:1,t,by:Who.id}:{st:k,src:'Manual',t,by:Who.id});
+    toast({ok:'Marked verified',nf:'Marked not found',na:'Marked no access',clear:'Removed'}[k]);
+    S.open=null;rerenderKeep()});
+  main.querySelectorAll('[data-delx]').forEach(b=>b.onclick=async()=>{await Store.put(S.dtr,'x',b.dataset.delx,{del:1,t:Date.now()});rerenderKeep()});
+  const mb=$('moreBtn');if(mb)mb.onclick=()=>{S.limit+=150;rerenderKeep()};
+  const ub=$('undoBtn');if(ub)ub.onclick=async()=>{const u=S.last.undo;await Store.put(S.dtr,u.kind,u.key,u.prev||{del:1,t:Date.now(),by:Who.id});S.last=null;toast('Scan undone');rerenderKeep();const lr=$('lastRes');if(lr)lr.innerHTML=''};
+  main.querySelectorAll('[data-pa]').forEach(b=>b.onclick=()=>decide(b.dataset.pa));
+  const tc=$('toConf');if(tc)tc.onclick=()=>{S.panel=null;S.rtab='conflicts';go('report');const c=$('conflicts');if(c)c.scrollIntoView({block:'start'})};
+  Who.fill(main);
+}
+function dtrFromTyped(dg){ // "1", "01", "001" -> 1607010001 · "596" -> 1607010596 · full 10-digit code as typed
+  let code=null;
+  if(dg.length<=3)code=DTR_PREFIX+dg.padStart(3,'0');
+  else if(dg.length===10)code=dg;
+  else{const m=S.dtrs.find(d=>d.code.endsWith(dg));code=m?m.code:null}
+  return code&&S.dtrSet.has(code)?code:null;
+}
+function selectDtr(code,keepFilter){
+  if(!code||!S.dtrMap.has(code))return;
+  S.dtr=code;S.last=null;S.pending=null;S.open=null;S.tab='pending';S.limit=150;if(!keepFilter)S.dtrFilter='';
+  try{localStorage.setItem(LSDTR,code)}catch(e){}
+  stopCam();renderVerify();if(S.panel==='scan'&&!S.liveBlocked)startLive();
+  if(keepFilter){const f=$('dtrF');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}}
+}
+
+/* ---------- camera scanning ---------- */
+const cam={stream:null,timer:null,lastText:'',lastAt:0};
+function stopCam(){if(cam.timer)clearInterval(cam.timer);cam.timer=null;if(cam.stream){cam.stream.getTracks().forEach(t=>t.stop());cam.stream=null}}
+let zx=null;
+async function decodeCanvas(cv){
+  if('BarcodeDetector' in window){try{const r=await new BarcodeDetector().detect(cv);if(r&&r.length)return{text:r[0].rawValue,format:r[0].format}}catch(e){}}
+  if(window.ZXing){try{
+    if(!zx){zx=new ZXing.MultiFormatReader();const hints=new Map(),B=ZXing.BarcodeFormat;
+      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[B.QR_CODE,B.CODE_128,B.CODE_39,B.ITF,B.EAN_13,B.DATA_MATRIX,B.CODABAR,B.CODE_93]);
+      hints.set(ZXing.DecodeHintType.TRY_HARDER,true);zx.setHints(hints)}
+    const res=zx.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(cv))));
+    const fm=res.getBarcodeFormat();return{text:res.getText(),format:ZXing.BarcodeFormat[fm]||String(fm)}}catch(e){}}
+  return null;
+}
+const fmtName=f=>/qr/i.test(f)?'QR':/matrix/i.test(f)?'Data Matrix':'Barcode';
+function scanPanel(){
+  return `<div class="card stack">
+    <div class="viewfinder" id="vf" hidden><video id="vid" playsinline muted></video><div class="aim"></div><div class="laser"></div></div>
+    <p class="hint" id="scanMsg">Starting camera…</p>
+    <div class="btn-row"><label class="btn" for="photo">${I.cam}Take photo instead</label><button class="btn" id="sampleBtn">Sample scan</button></div>
+  </div>`;
+}
+const IRMODES=[
+  {id:'ir3',label:'IR 3 PHASE',ph:3,kind:'IR'},{id:'ir1',label:'IR 1 PHASE',ph:1,kind:'IR'},
+  {id:'irda3',label:'IRDA 3 PHASE',ph:3,kind:'IRDA'},{id:'irda1',label:'IRDA 1 PHASE',ph:1,kind:'IRDA'},
+  {id:'sol3',label:'SOLAR 3 PHASE',ph:3,kind:'SOLAR'},{id:'sol1',label:'SOLAR 1 PHASE',ph:1,kind:'SOLAR'},
+  {id:'new3',label:'NEW IRDA 3 PHASE (14-DIGIT)',ph:3,kind:'IRDA',wide:true}];
+function irPanel(){
+  const M=IRMODES.find(m=>m.id===S.irMode)||IRMODES[3];
+  return `<div class="card stack">
+    <div class="row between"><h3>IR / IRDA meter read</h3><span class="pill neutral" id="probeState">Probe not connected</span></div>
+    <div class="irmodes">${IRMODES.map(m=>`<button class="irm ${m.wide?'wide':''}" data-irm="${m.id}" aria-pressed="${m.id===S.irMode}">${h(m.label)}</button>`).join('')}</div>
+    <div class="btn-row"><button class="btn" id="probeBtn">${I.plug}Connect</button><button class="btn primary" id="demoBtn">${I.play}Demo read</button></div>
+    <div class="log" id="log" aria-live="polite"><span class="dim">Place the optical probe on the meter's ${M.kind==='IR'?'IR':'IrDA'} window and connect. The meter serial number it returns is checked against this DTR, the same as a scan.\nDemo read plays the exchange using a meter from this DTR.</span></div>
+  </div>`;
+}
+function bindPanel(){
+  const sb=$('sampleBtn');
+  if(sb&&S.view==='area')sb.onclick=()=>{const a=S.aMap.get(S.adr);const p=aPending(a)[0];processAreaText((p||a.list[0]).d.code,'QR (sample)')};
+  else if(sb&&S.view==='feeder')sb.onclick=()=>{const f=S.fMap.get(S.fdr);const p=f&&fPending(f)[0];const c=p?p.code:f.list[0].code;processStructText(c,'QR (sample)')};
+  else if(sb)sb.onclick=()=>{const d=S.dtrMap.get(S.dtr);const v=vrec(S.dtr);
+    const o=pendingList(d).find(x=>x.m!=='0')||S.recs.find(x=>x.m!=='0'&&x.dtr!==S.dtr);processScan(o.m,'Barcode (sample)')};
+  main.querySelectorAll('[data-irm]').forEach(b=>b.onclick=()=>{S.irMode=b.dataset.irm;main.querySelectorAll('[data-irm]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.irm===S.irMode))});
+  const pb=$('probeBtn');if(pb)pb.onclick=connectProbe;
+  const db=$('demoBtn');if(db)db.onclick=demoRead;
+}
+$('photo').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)scanFile(f)};
+async function startLive(){
+  const msg=$('scanMsg');
+  const block=()=>{S.liveBlocked=true;stopCam();if(msg)msg.innerHTML='Live camera is blocked in this view. Tap <b>Take photo instead</b>: your camera opens, snap the QR or barcode, and the result shows below. From now on the QR / Barcode button opens the camera directly.';
+    const sb=$('scanBtn');if(sb){const l=document.createElement('label');l.className='btn primary big';l.htmlFor='photo';l.innerHTML=I.qr+'QR / Barcode';sb.replaceWith(l)}};
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return block();
+  try{cam.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},audio:false})}catch(e){return block()}
+  if(!((S.view==='verify'&&S.panel==='scan')||(S.view==='feeder'&&S.fpanel==='scan')||(S.view==='area'&&S.apanel==='scan'))){stopCam();return}
+  const vf=$('vf'),v=$('vid');vf.hidden=false;v.srcObject=cam.stream;await v.play().catch(()=>{});
+  msg.textContent='Scanning continuously. Hold the code inside the box, 10–15 cm away. Each meter beeps once.';
+  const cv=document.createElement('canvas');let busy=false;
+  cam.timer=setInterval(async()=>{
+    if(busy||!v.videoWidth||S.pending||S.fpending||S.apending)return;busy=true; // hold scanning while a decision is open
+    cv.width=v.videoWidth;cv.height=v.videoHeight;cv.getContext('2d').drawImage(v,0,0);
+    const r=await decodeCanvas(cv);busy=false;
+    if(!r)return;const now=Date.now();
+    if(r.text===cam.lastText&&now-cam.lastAt<4000)return;if(now-cam.lastAt<1200)return;
+    cam.lastText=r.text;cam.lastAt=now;
+    await routeScan(r.text,fmtName(r.format));
+  },280);
+}
+async function scanFile(file){
+  if(!['verify','feeder','area'].includes(S.view))go('verify');
+  toast('Reading code from photo…');
+  try{
+    const bmp=await createImageBitmap(file);
+    for(const max of [1600,1000,2400]){
+      const sc=Math.min(1,max/Math.max(bmp.width,bmp.height));
+      const cv=document.createElement('canvas');cv.width=Math.round(bmp.width*sc);cv.height=Math.round(bmp.height*sc);
+      cv.getContext('2d').drawImage(bmp,0,0,cv.width,cv.height);
+      const r=await decodeCanvas(cv);if(r)return routeScan(r.text,fmtName(r.format));
+    }
+    beep('bad');toast('No code found. Move closer so the code fills the photo, and avoid glare on the meter glass.');
+  }catch(e){toast('Could not open that photo')}
+}
+
+/* ---------- IR / IRDA ---------- */
+let logStarted=false;
+function logLine(cls,txt){const l=$('log');if(!l)return;if(!logStarted){l.innerHTML='';logStarted=true}const s=document.createElement('div');s.className=cls;s.textContent=txt;l.appendChild(s);l.scrollTop=l.scrollHeight}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function connectProbe(){
+  logStarted=false;
+  if('serial' in navigator){
+    logLine('dim','Requesting USB optical probe…');
+    try{
+      const port=await navigator.serial.requestPort();
+      await port.open({baudRate:300,dataBits:7,parity:'even',stopBits:1});
+      const ps=$('probeState');ps.textContent='Probe connected';ps.className='pill ok';
+      logLine('tx','→ /?!<CR><LF>   sign-on @300 baud');
+      const w=port.writable.getWriter();await w.write(new TextEncoder().encode('/?!\r\n'));w.releaseLock();
+      const rd=port.readable.getReader();let buf='';const until=Date.now()+3000;
+      while(Date.now()<until&&!buf.includes('\n')){const r=await Promise.race([rd.read(),sleep(3000).then(()=>({done:true}))]);if(r.done)break;buf+=new TextDecoder().decode(r.value)}
+      rd.releaseLock();
+      if(buf.trim()){logLine('rx','← '+buf.trim());logLine('ok','Meter answered. Reading its serial needs the DLMS session in the Android app (see Guide).')}
+      else logLine('er','Meter Reading failed: No response from meter. Check mode, alignment and shade the probe.');
+      await port.close();
+    }catch(e){logLine('er','Probe not opened: '+(e&&e.message?e.message:e)+'\nThis view blocks USB and Bluetooth. Real probe reads need the Android app (see Guide).')}
+    return;
+  }
+  logLine('er','This browser cannot talk to an optical probe.\nReal IR/IRDA reads need the Android app with a USB-OTG or Bluetooth probe. See the Guide tab.');
+}
+async function demoRead(){
+  const M=IRMODES.find(m=>m.id===S.irMode);const btn=$('demoBtn');btn.disabled=true;logStarted=false;
+  const d=S.dtrMap.get(S.dtr);const v=vrec(S.dtr);
+  const pend=pendingList(d).filter(x=>x.m!=='0');
+  const o=pend.find(x=>x.ph===M.ph)||pend[0]||S.recs.find(x=>x.m!=='0'&&x.ph===M.ph&&x.dtr!==S.dtr);
+  const kwh=(o.r+Math.max(1,Math.round(o.av||40))).toFixed(1);
+  const steps=[
+    ['dim',`${M.label} · opening optical port, 300 baud 7E1`,300],
+    ['tx','→ /?!<CR><LF>                 sign-on request',320],
+    ['rx',`← /${(o.mk||'MTR').replace(/\W/g,'').slice(0,3)}5 ${o.ph}P DLMS`,380],
+    ['tx','→ <ACK>2 5 2                  9600 baud, HDLC mode E',300],
+    ['tx','→ SNRM',200],['rx','← UA',220],
+    ['tx','→ AARQ  association request',300],['rx','← AARE  accepted',260],
+    ['tx','→ GET 0.0.96.1.0.255   meter serial number',260],['rx','← '+o.m,280],
+    ['tx','→ GET 1.0.1.8.0.255    cumulative kWh',220],['rx','← '+kwh+' kWh',220],
+    ['tx','→ DISC',160],['rx','← UA  session closed',160],['ok','Read complete (demo values). Checking serial against DTR…',200]];
+  for(const [c,t,ms] of steps){if(S.view!=='verify'||S.panel!=='ir')return;logLine(c,t);await sleep(ms)}
+  btn.disabled=false;
+  await processScan(o.m,M.label+' (demo)');
+}
+
+/* ---------- FEEDERS: feeder-wise structure check ----------
+   S.fv[feederCode] = { s:{ structureCode:{st,src,t,by,mf,reason} } }
+   st: ok = structure confirmed on its own feeder · other = found on this feeder, mapping says another feeder
+       conf = disputed, sent to AE review · nf = not on this feeder at site
+   One structure, one feeder: a second feeder claim is held and goes to the AE. */
+Object.assign(Store,{seenF:new Set(),
+  loadLocalF(){try{const j=localStorage.getItem(LSF);if(j)S.fv=JSON.parse(j)||{}}catch(e){}try{const f=localStorage.getItem(LSFS);if(f)S.fdr=f}catch(e){}},
+  saveLocalF(){try{localStorage.setItem(LSF,JSON.stringify(S.fv))}catch(e){}},
+  subscribeF(){
+    try{this.db.collection('feeder').onSnapshot(snap=>{
+      let changed=false;
+      snap.docs.forEach(d=>{this.seenF.add(d.id);const x=d.data();if(!x||!x.fc)return;const cur=S.fv[x.fc]||(S.fv[x.fc]={s:{}});
+        for(const [k,rec] of Object.entries(x.s||{})){const c=cur.s[k];if(rec&&(!c||(rec.t||0)>(c.t||0))){cur.s[k]=rec;changed=true}}});
+      if(changed){this.saveLocalF();if(S.view==='feeder'&&!cam.timer&&!S.fpending)renderFeeder();else if(S.view==='report')vReport()}
+    },()=>{})}catch(e){}
+  },
+  async putF(fc,key,rec){
+    const cur=S.fv[fc]||(S.fv[fc]={s:{}});cur.s[key]=rec;this.saveLocalF();
+    if(this.mode!=='db')return;
+    const id='f'+fc,ref=this.db.doc('feeder/'+id);
+    try{let ex=this.seenF.has(id);if(!ex){const s=await ref.get();ex=s.exists}
+      if(ex)await ref.update({s:{[key]:rec}});else await ref.set({fc,s:cur.s});this.seenF.add(id);
+    }catch(e){toast('Could not sync. Saved on this device.')}
+  }
+});
+const fvrec=fc=>S.fv[fc]||{s:{}};
+const fName=fc=>S.fNames.get(fc)||'No feeder in mapping';
+function claimsF(code,exceptFc){const out=[];for(const [fc,v] of Object.entries(S.fv)){if(fc===exceptFc)continue;const r=v.s&&v.s[code];if(isClaim(r))out.push({fc,rec:r})}return out.sort((a,b)=>a.rec.t-b.rec.t)}
+function fConflictIndex(){const m=new Map();for(const [fc,v] of Object.entries(S.fv))for(const [k,r] of Object.entries(v.s||{}))if(isClaim(r)){if(!m.has(k))m.set(k,[]);m.get(k).push({fc,rec:r})}
+  for(const [k,c] of m)if(c.length<2)m.delete(k);else c.sort((a,b)=>a.rec.t-b.rec.t);return m}
+function fElsewhere(){const m=new Map();for(const [fc,v] of Object.entries(S.fv))for(const [k,r] of Object.entries(v.s||{}))if(live(r)&&(r.st==='other'||r.st==='conf'))m.set(k,{fc,rec:r});return m}
+function fPending(f,el){const v=fvrec(f.fc);el=el||fElsewhere();return f.list.filter(d=>!live(v.s[d.code])&&!el.has(d.code))}
+function fStats(f,el){const v=fvrec(f.fc);el=el||fElsewhere();let ok=0,nf=0,e=0;
+  for(const d of f.list){const r=v.s[d.code];if(live(r)&&r.st==='ok')ok++;else if(live(r)&&r.st==='nf')nf++;else if(el.has(d.code))e++}
+  let other=0;for(const r of Object.values(v.s))if(live(r)&&(r.st==='other'||r.st==='conf'))other++;
+  return{n:f.list.length,ok,nf,el:e,other,pending:f.list.length-ok-nf-e}}
+const FLBL={ok:'Confirmed',other:'Found on this feeder',conf:'In AE review',nf:'Not on this feeder'};
+function resolveStruct(text){
+  const t=String(text||'').toUpperCase().trim();
+  const full=t.match(/1607\d{6}/);if(full&&S.dtrMap.has(full[0]))return full[0];
+  const dg=t.replace(/\D/g,'');if(!dg)return null;
+  if(dg.length<=3){const c=DTR_PREFIX+dg.padStart(3,'0');return S.dtrMap.has(c)?c:null}
+  if(dg.length===10)return S.dtrMap.has(dg)?dg:null;
+  const m=[...S.dtrMap.keys()].find(c=>c.length===10&&c.endsWith(dg));return m||null;
+}
+async function processStructText(text,src){
+  const code=resolveStruct(text);
+  if(!code){beep('bad');S.flast={kind:'unk',raw:String(text).slice(0,60),src};S.fpending=null;return showF()}
+  return processStruct(code,src);
+}
+async function processStruct(code,src){
+  if(!S.fdr)return;const d=S.dtrMap.get(code);const now=Date.now();const prev=fvrec(S.fdr).s[code];
+  const others=claimsF(code,S.fdr);
+  if(others.length){S.fpending={type:'conflict',code,src,others};S.flast=null;beep('bad');return showF()}
+  if(d.fc===S.fdr){const dup=live(prev)&&prev.st==='ok';
+    if(!dup)await Store.putF(S.fdr,code,{st:'ok',src,t:now,by:Who.id});
+    S.flast={kind:'ok',code,src,dup,dupT:dup?prev.t:0,undo:dup?null:{key:code,prev}};beep('ok');
+  }else if(isClaim(prev)){S.flast={kind:prev.st,code,src,dup:true,dupT:prev.t};beep('warn')}
+  else{S.fpending={type:'confirm',code,src};S.flast=null;beep('warn');return showF()}
+  S.fpending=null;showF();
+}
+async function decideF(action){
+  const p=S.fpending;if(!p)return;const code=p.code,d=S.dtrMap.get(code),now=Date.now();
+  const reason=($('fReason')&&$('fReason').value)||'';
+  if(action==='cancel'){S.fpending=null;S.flast=null;toast('Cancelled. Nothing saved.');return showF()}
+  if((action==='review'||action==='move')&&!reason){toast('Choose a reason first');return}
+  const prev=fvrec(S.fdr).s[code];
+  if(action==='confirm'){await Store.putF(S.fdr,code,{st:'other',src:p.src,t:now,mf:d.fc||'',by:Who.id});S.flast={kind:'other',code,src:p.src,undo:{key:code,prev}};beep('ok')}
+  else if(action==='review'){await Store.putF(S.fdr,code,{st:'conf',src:p.src,t:now,mf:d.fc||'',reason,by:Who.id});S.flast={kind:'conf',code,src:p.src,reason,undo:{key:code,prev}};toast('Sent to AE review')}
+  else if(action==='move'&&Who.sup){await Store.putF(S.fdr,code,{st:d.fc===S.fdr?'ok':'other',src:p.src,t:now,mf:d.fc||'',reason,by:Who.id,moved:1});
+    for(const c of p.others)await Store.putF(c.fc,code,{del:1,t:now,movedTo:S.fdr,reason,by:Who.id});
+    S.flast={kind:d.fc===S.fdr?'ok':'other',code,src:p.src,moved:p.others.map(c=>c.fc)};toast('Moved to this feeder. Earlier entry removed.')}
+  S.fpending=null;showF();
+}
+function showF(){if(S.view!=='feeder'){go('feeder');return}
+  if(cam.timer||cam.stream)refreshF();else{renderFeeder();const r=$('fRes');if(r)r.scrollIntoView({block:'nearest',behavior:'smooth'})}}
+function refreshF(){const f=S.fMap.get(S.fdr),el=fElsewhere();$('fRes').innerHTML=fResultBlock();$('fConf').innerHTML=fBanner(f);$('fTabs').innerHTML=fTabsHtml(fStats(f,el));$('fList').innerHTML=fListHtml(f,el);bindFDynamic()}
+const fClaimLine=c=>`<div class="claim"><b>${h(fName(c.fc))}</b><span>${h(FLBL[c.rec.st]||c.rec.st)} · ${h(c.rec.src||'')} · ${h(tstr(c.rec.t))} · by ${byTag(c.rec.by)}${c.rec.reason?' · '+h(c.rec.reason):''}</span></div>`;
+function structHead(code){const d=S.dtrMap.get(code);
+  return `<div class="ids"><div class="idbox"><span>Structure code</span><b>${h(code)}</b></div><div class="idbox"><span>Services</span><b>${d.list.length}</b></div></div>
+  <div><b>${h(d.name||'NO NAME')}</b> ${d.type?`<span class="pill neutral">${h(STYPE[d.type]||d.type)}</span>`:''}<div class="small">Mapping feeder: ${h(d.fc?fName(d.fc):'none')}</div></div>`}
+function fResultBlock(){
+  const p=S.fpending;
+  if(p&&p.type==='confirm'){const d=S.dtrMap.get(p.code);return `<div class="res other" role="alertdialog"><div class="verdict">${I.warn}Mapping puts this structure on another feeder</div>${structHead(p.code)}
+    <p class="small" style="margin:0">Mapping: <b>${h(d.fc?fName(d.fc):'no feeder')}</b><br>You are on: <b>${h(fName(S.fdr))}</b></p>
+    <p class="small" style="margin:0"><b>Is this structure really fed from this feeder?</b></p>
+    <div class="btn-row"><button class="btn" data-fa="cancel">No, cancel</button><button class="btn primary" data-fa="confirm">Yes, on this feeder</button></div></div>`}
+  if(p&&p.type==='conflict')return `<div class="res unk" role="alertdialog"><div class="verdict">${I.x}Already recorded on another feeder</div>${structHead(p.code)}
+    <div class="claims"><div class="small"><b>Already recorded on:</b></div>${p.others.map(fClaimLine).join('')}</div>
+    <p class="small" style="margin:0">One structure can be on only one feeder. Nothing has been saved.</p>
+    <div><label class="lbl" for="fReason">Reason (needed to send for review or move)</label><select class="sel" id="fReason"><option value="">Choose reason…</option>${['Structure is physically on this feeder (checked at site)','Earlier entry was on the wrong feeder','Feeder changed after load shifting','Not sure, needs joint site check'].map(x=>`<option>${h(x)}</option>`).join('')}</select></div>
+    <div class="btn-row"><button class="btn primary" data-fa="cancel">Cancel, wrong entry</button><button class="btn" data-fa="review">Send to AE review</button></div>
+    ${Who.sup?'<button class="btn block" data-fa="move">AE: move to this feeder and remove the earlier entry</button>':'<p class="hint">Only the AE can move a structure between feeders.</p>'}</div>`;
+  const r=S.flast;if(!r)return '';
+  if(r.kind==='unk')return `<div class="res unk" role="status"><div class="verdict">${I.x}Not a structure code in the mapping</div><div class="idbox"><span>Read · ${h(r.src)}</span><b>${h(r.raw)}</b></div><p class="small" style="margin:0">Type the structure code (for example 029 or 1607010029) or scan a code that contains it.</p></div>`;
+  const d=S.dtrMap.get(r.code);
+  const v=r.kind==='ok'?(r.dup?`${I.check}Already confirmed (${h(tstr(r.dupT))})`:`${I.check}Confirmed on this feeder`):r.kind==='conf'?`${I.warn}Sent to AE review`:r.dup?`${I.warn}Already recorded on this feeder`:`${I.warn}Recorded: found on this feeder`;
+  return `<div class="res ${r.kind==='ok'?'ok':r.kind==='conf'?'unk':'other'}" role="status"><div class="verdict">${v}</div>${structHead(r.code)}
+    ${r.kind==='other'&&!r.dup?`<p class="small" style="margin:0">The mapping puts it on ${h(d.fc?fName(d.fc):'no feeder')}, so its feeder may need correction.</p>`:''}
+    ${r.moved?`<p class="small" style="margin:0">Moved here by the AE. Removed from ${r.moved.map(x=>h(fName(x))).join(', ')}.</p>`:''}
+    <div class="row">${r.undo?'<button class="btn sm" id="fUndo">Undo</button>':''}${S.dtrSet.has(r.code)?`<button class="btn sm" data-svc="${h(r.code)}">Verify its services</button>`:''}</div></div>`;
+}
+function fBanner(f){const cx=fConflictIndex();let n=0;for(const [k,c] of cx){const d=S.dtrMap.get(k);if(c.some(x=>x.fc===f.fc)||(d&&d.fc===f.fc))n++}
+  return n?`<button class="cbanner" id="fToConf">${I.warn}<span><b>${n} structure${n>1?'s':''} on this feeder ${n>1?'are':'is'} also recorded on another feeder.</b> The AE must pick the correct feeder in Report.</span></button>`:''}
+const fTabsHtml=st=>[['pending','Pending',st.pending,''],['ok','Confirmed',st.ok,'t-ok'],['other','From other feeder',st.other,'t-other'],['nf','Not on feeder',st.nf+st.el,'t-nf']].map(([k,l,n,c])=>`<button class="stab ${c}" data-ft="${k}" aria-pressed="${S.ftab===k}"><b>${n}</b><span>${l}</span></button>`).join('');
+function fListHtml(f,el){
+  const v=fvrec(f.fc);const cx=fConflictIndex();let items;
+  if(S.ftab==='pending')items=fPending(f,el).map(d=>({d}));
+  else if(S.ftab==='ok')items=f.list.filter(d=>{const r=v.s[d.code];return live(r)&&r.st==='ok'}).map(d=>({d,r:v.s[d.code]}));
+  else if(S.ftab==='nf')items=f.list.filter(d=>{const r=v.s[d.code];return (live(r)&&r.st==='nf')||(!live(r)&&el.has(d.code))}).map(d=>({d,r:v.s[d.code],e:el.get(d.code)}));
+  else items=Object.entries(v.s).filter(([k,r])=>live(r)&&(r.st==='other'||r.st==='conf')).map(([k,r])=>({d:S.dtrMap.get(k),r})).filter(x=>x.d);
+  if(!items.length)return `<div class="empty">${{pending:'All structures on this feeder are accounted for.',ok:'No structures confirmed yet.',other:'No structures from other feeders found here.',nf:'Nothing marked as not on this feeder.'}[S.ftab]}</div>`;
+  return items.slice(0,S.flimit).map(({d,r,e})=>{
+    let right;
+    if(live(r)&&r.st==='ok')right='<span class="pill ok">Confirmed</span>';
+    else if(live(r)&&r.st==='other')right=`<span class="pill warn">Mapping: other feeder</span>`;
+    else if(live(r)&&r.st==='conf')right='<span class="pill bad">In AE review</span>';
+    else if(live(r)&&r.st==='nf')right='<span class="pill bad">Not on feeder</span>';
+    else if(e)right='<span class="pill warn">Seen on other feeder</span>';
+    else right='<span class="pill neutral">Pending</span>';
+    if(cx.has(d.code))right='<span class="pill bad">Conflict</span>';
+    const open=S.fopen===d.code;
+    return `<button class="li ${open?'open':''}" data-fs="${h(d.code)}" aria-expanded="${open}"><div class="t"><span class="mono">${h(d.code)}</span> · ${h(d.name||'NO NAME')}</div><div class="r">${right}</div>
+      <div class="s">${d.type?h(STYPE[d.type]||d.type)+' · ':''}${d.list.length} services${d.areas&&d.areas.length?' · '+h(d.areas[0]):''}</div><div></div></button>
+      ${open?`<div class="detail"><dl class="kv"><div><dt>Structure</dt><dd class="mono">${h(d.code)}</dd></div><div><dt>Type</dt><dd>${h(STYPE[d.type]||d.type||'—')}</dd></div>
+        <div style="grid-column:1/-1"><dt>Mapping feeder</dt><dd>${h(d.fc?fName(d.fc):'none')}</dd></div>
+        <div><dt>Services</dt><dd>${d.list.length} (${d.p1} 1Φ · ${d.p3} 3Φ)</dd></div><div><dt>Areas</dt><dd>${h((d.areas||[]).slice(0,3).join(', ')||'—')}</dd></div></dl>
+        ${live(r)?`<div class="small muted">Recorded: ${h(FLBL[r.st])} · ${h(r.src)} · ${h(tstr(r.t))} · by ${byTag(r.by)}${r.reason?' · '+h(r.reason):''}</div>`:''}
+        ${cx.has(d.code)?`<div class="claims"><div class="small"><b>Recorded on more than one feeder:</b></div>${cx.get(d.code).map(fClaimLine).join('')}</div>`:''}
+        <div class="btn-row3">${live(r)&&(r.st==='other'||r.st==='conf')?'':`<button class="btn sm" data-fm="ok" data-fk="${h(d.code)}">Confirm here</button><button class="btn sm" data-fm="nf" data-fk="${h(d.code)}">Not on feeder</button>`}${live(r)?`<button class="btn sm" data-fm="clear" data-fk="${h(d.code)}">Reset</button>`:''}${S.dtrSet.has(d.code)?`<button class="btn sm" data-svc="${h(d.code)}">Services</button>`:''}</div></div>`:''}`}).join('')
+    +(items.length>S.flimit?`<button class="li more" id="fMore">Show more (${items.length-S.flimit})</button>`:'');
+}
+function renderFeeder(){
+  if(S.view!=='feeder')return;
+  const f=S.fMap.get(S.fdr);const el=fElsewhere();const st=fStats(f,el);const idx=S.feeders.indexOf(f);
+  const types={};f.list.forEach(d=>{const t=STYPE[d.type]||d.type||'Other';types[t]=(types[t]||0)+1});
+  main.innerHTML=`
+  <section class="card stack" aria-label="Feeder">
+    <div class="row between"><label class="eyebrow" for="fSel">Feeder</label><span class="small muted">${S.feeders.length} feeders · ${fmt(S.feeders.reduce((n,x)=>n+x.list.length,0))} structures</span></div>
+    <div class="picker">
+      <button class="sq" id="fPrev" aria-label="Previous feeder" ${idx<=0?'disabled':''}>${I.prev}</button>
+      <select id="fSel">${S.feeders.map(x=>{const s=fStats(x,el);const done=s.ok+s.nf+s.el;return `<option value="${h(x.fc)}" ${x.fc===S.fdr?'selected':''}>${h(x.name)} (${x.list.length})${done?' ✓'+done:''}</option>`}).join('')}</select>
+      <button class="sq" id="fNext" aria-label="Next feeder" ${idx>=S.feeders.length-1?'disabled':''}>${I.next}</button>
+    </div>
+    <div class="dtrinfo"><b class="dname">${h(f.name)}</b><div class="small">Feeder code <span class="mono">${h(f.fc)}</span></div>
+      <div class="small muted">${f.list.length} structures (${Object.entries(types).map(([t,n])=>n+' '+t).join(', ')}) · ${fmt(f.svc)} services</div></div>
+    <div class="small muted">${st.ok+st.nf+st.el} of ${st.n} structures checked</div>
+    <div class="bar"><i class="b-ok" style="width:${st.ok*100/(st.n||1)}%"></i><i class="b-el" style="width:${st.el*100/(st.n||1)}%"></i><i class="b-nf" style="width:${st.nf*100/(st.n||1)}%"></i></div>
+  </section>
+  <div class="btn-row">
+    ${S.liveBlocked?`<label class="btn primary big" for="photo">${I.qr}Scan DTR tag</label>`:`<button class="btn primary big" id="fScanBtn">${I.qr}Scan DTR tag</button>`}
+    <button class="btn big" id="fListBtn">${I.check}Tick from list</button>
+  </div>
+  <div id="panel">${S.fpanel==='scan'?scanPanel():''}</div>
+  <div class="row"><label class="field" for="fIn">${I.search}<input id="fIn" type="search" placeholder="Code (029) or name" autocomplete="off"></label><button class="btn" id="fCheck">Check</button></div>
+  <div class="hint" id="fHint" hidden></div>
+  <div id="fRes">${fResultBlock()}</div>
+  <div id="fConf">${fBanner(f)}</div>
+  <div class="stabs four" id="fTabs" role="group" aria-label="Show structures">${fTabsHtml(st)}</div>
+  <div class="list" id="fList">${fListHtml(f,el)}</div>
+  <div class="row between"><span class="small muted">Saved ${Store.mode==='db'?'to this page, synced':'on this device'}</span><button class="btn sm" id="fExp">${I.dl}Export this feeder</button></div>`;
+  const sel=$('fSel');sel.onchange=()=>selectFeeder(sel.value);
+  $('fPrev').onclick=()=>{if(idx>0)selectFeeder(S.feeders[idx-1].fc)};$('fNext').onclick=()=>{if(idx<S.feeders.length-1)selectFeeder(S.feeders[idx+1].fc)};
+  const fs=$('fScanBtn');if(fs)fs.onclick=()=>{S.fpanel=S.fpanel==='scan'?null:'scan';stopCam();renderFeeder();if(S.fpanel==='scan')startLive()};
+  $('fListBtn').onclick=()=>{S.ftab='pending';renderFeeder();$('fList').scrollIntoView({block:'start',behavior:'smooth'})};
+  const inp=$('fIn'),hint=$('fHint');
+  const check=()=>{const v=inp.value.trim();if(!v)return;
+    if(/[A-Za-z]{2,}/.test(v)){const q=v.toUpperCase();const m=[...S.dtrMap.values()].filter(d=>d.name&&d.name.toUpperCase().includes(q)).slice(0,8);
+      hint.hidden=false;hint.innerHTML=m.length?`<div class="mchips">${m.map(d=>`<button class="mchip" data-pickf="${h(d.code)}"><b>${h(d.code.slice(-3))}</b> ${h(d.name)} <span>(${h(d.fc?fName(d.fc).replace(/^11\s?KV\s*/i,''):'no feeder')})</span></button>`).join('')}</div>`:'No structure name matches.';
+      hint.querySelectorAll('[data-pickf]').forEach(b=>b.onclick=()=>{hint.hidden=true;inp.value='';processStruct(b.dataset.pickf,'Typed')});return}
+    hint.hidden=true;inp.value='';processStructText(v,'Typed')};
+  $('fCheck').onclick=check;inp.onkeydown=e=>{if(e.key==='Enter')check()};
+  $('fExp').onclick=()=>exportFeeder(f);
+  bindPanel();bindFDynamic();
+}
+function bindFDynamic(){
+  main.querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{S.ftab=b.dataset.ft;S.fopen=null;fRerender()});
+  main.querySelectorAll('[data-fs]').forEach(b=>b.onclick=()=>{S.fopen=S.fopen===b.dataset.fs?null:b.dataset.fs;fRerender()});
+  main.querySelectorAll('[data-fm]').forEach(b=>b.onclick=async()=>{const k=b.dataset.fk,m=b.dataset.fm,t=Date.now();
+    if(m==='ok'){S.fopen=null;return processStruct(k,'Site check')}
+    await Store.putF(S.fdr,k,m==='clear'?{del:1,t,by:Who.id}:{st:'nf',src:'Site check',t,by:Who.id,mf:S.dtrMap.get(k).fc||''});
+    toast(m==='clear'?'Reset':'Marked not on this feeder');S.fopen=null;fRerender()});
+  main.querySelectorAll('[data-fa]').forEach(b=>b.onclick=()=>decideF(b.dataset.fa));
+  main.querySelectorAll('[data-svc]').forEach(b=>b.onclick=()=>{const c=b.dataset.svc;S.dtr=c;S.last=null;S.pending=null;S.open=null;S.tab='pending';S.dtrFilter='';try{localStorage.setItem(LSDTR,c)}catch(e){}S.fpanel=null;go('verify')});
+  const u=$('fUndo');if(u)u.onclick=async()=>{const x=S.flast.undo;await Store.putF(S.fdr,x.key,x.prev||{del:1,t:Date.now(),by:Who.id});S.flast=null;toast('Undone');fRerender()};
+  const fm=$('fMore');if(fm)fm.onclick=()=>{S.flimit+=200;fRerender()};
+  const tc=$('fToConf');if(tc)tc.onclick=()=>{S.fpanel=null;S.rtab='conflicts';go('report');const c=$('fconflicts');if(c)c.scrollIntoView({block:'start'})};
+  Who.fill(main);
+}
+function fRerender(){const y=window.scrollY;if(cam.timer||cam.stream)refreshF();else{renderFeeder();window.scrollTo(0,y)}}
+function selectFeeder(fc){if(!S.fMap.has(fc))return;S.fdr=fc;S.flast=null;S.fpending=null;S.fopen=null;S.ftab='pending';S.flimit=200;try{localStorage.setItem(LSFS,fc)}catch(e){}stopCam();renderFeeder();if(S.fpanel==='scan'&&!S.liveBlocked)startLive()}
+async function resolveFConflict(code,keep){
+  if(!Who.sup){toast('Only the AE can resolve conflicts');return}
+  const d=S.dtrMap.get(code);const c=claimsF(code,null);const now=Date.now();const w=c.find(x=>x.fc===keep);if(!w)return;
+  await Store.putF(keep,code,{...w.rec,st:keep===d.fc?'ok':'other',mf:d.fc||'',t:now,resolved:1,resolvedBy:Who.id});
+  for(const x of c)if(x.fc!==keep)await Store.putF(x.fc,code,{del:1,t:now,movedTo:keep,by:Who.id,reason:'AE resolved conflict'});
+  toast('Structure '+code.slice(-3)+' kept on '+fName(keep));vReport();
+}
+function exportFeeder(f){
+  const v=fvrec(f.fc),el=fElsewhere(),rows=[['FEEDER','FEEDER_CODE','STRUCTURE_CODE','STRUCTURE_NAME','TYPE','SERVICES','RESULT','MAPPING_FEEDER','SOURCE','TIME','REASON']];
+  for(const d of f.list){const r=v.s[d.code],e=el.get(d.code);
+    rows.push([f.name,f.fc,d.code,d.name||'NO NAME',STYPE[d.type]||d.type,d.list.length,live(r)?FLBL[r.st].toUpperCase():e?'SEEN ON '+fName(e.fc):'PENDING',fName(d.fc),live(r)?r.src:'',live(r)?tstr(r.t):'',live(r)?r.reason||'':''])}
+  for(const [k,r] of Object.entries(v.s))if(live(r)&&(r.st==='other'||r.st==='conf')){const d=S.dtrMap.get(k);if(d)rows.push([f.name,f.fc,k,d.name||'NO NAME',STYPE[d.type]||d.type,d.list.length,FLBL[r.st].toUpperCase(),d.fc?fName(d.fc):'none',r.src,tstr(r.t),r.reason||''])}
+  saveRaw('Feeder_'+f.fc+'_structures.csv',rows.map(csvRow).join('\n'));
+}
+
+/* ---------- AREAS: area-code-wise structure check ----------
+   S.av[areaCode] = { s:{ structureCode:{st,src,t,by,reason} } }
+   st: ok = confirmed in this area (mapping links it) · other = found in this area, mapping does not link it · nf = not in this area at site
+   A structure may be in several areas, so there is no one-area rule; a structure outside the mapping asks before it is recorded. */
+function routeScan(text,src){return S.view==='feeder'?processStructText(text,src):S.view==='area'?processAreaText(text,src):processScan(text,src)}
+Object.assign(Store,{seenA:new Set(),
+  loadLocalA(){try{const j=localStorage.getItem(LSA);if(j)S.av=JSON.parse(j)||{}}catch(e){}try{const a=localStorage.getItem(LSAS);if(a)S.adr=a}catch(e){}},
+  saveLocalA(){try{localStorage.setItem(LSA,JSON.stringify(S.av))}catch(e){}},
+  subscribeA(){
+    try{this.db.collection('area').onSnapshot(snap=>{let changed=false;
+      snap.docs.forEach(d=>{this.seenA.add(d.id);const x=d.data();if(!x||!x.ac)return;const cur=S.av[x.ac]||(S.av[x.ac]={s:{}});
+        for(const [k,rec] of Object.entries(x.s||{})){const c=cur.s[k];if(rec&&(!c||(rec.t||0)>(c.t||0))){cur.s[k]=rec;changed=true}}});
+      if(changed){this.saveLocalA();if(S.view==='area'&&!cam.timer&&!S.apending)renderArea();else if(S.view==='report')vReport()}
+    },()=>{})}catch(e){}
+  },
+  async putA(ac,key,rec){
+    const cur=S.av[ac]||(S.av[ac]={s:{}});cur.s[key]=rec;this.saveLocalA();
+    if(this.mode!=='db')return;
+    const id='a'+ac,ref=this.db.doc('area/'+id);
+    try{let ex=this.seenA.has(id);if(!ex){const s=await ref.get();ex=s.exists}
+      if(ex)await ref.update({s:{[key]:rec}});else await ref.set({ac,s:cur.s});this.seenA.add(id);
+    }catch(e){toast('Could not sync. Saved on this device.')}
+  }
+});
+const avrec=ac=>S.av[ac]||{s:{}};
+const aName=ac=>{const a=S.aMap.get(ac);return a?a.ac+' '+a.name:ac};
+const ALBL={ok:'Confirmed',other:'Found, not in mapping',nf:'Not in area'};
+function aPending(a){const v=avrec(a.ac);return a.list.filter(x=>!live(v.s[x.d.code]))}
+function aStats(a){const v=avrec(a.ac);let ok=0,nf=0,other=0;
+  for(const x of a.list){const r=v.s[x.d.code];if(live(r)&&r.st==='ok')ok++;else if(live(r)&&r.st==='nf')nf++}
+  for(const r of Object.values(v.s))if(live(r)&&r.st==='other')other++;
+  return{n:a.list.length,ok,nf,other,pending:a.list.length-ok-nf}}
+function confirmedAreas(code,except){const out=[];for(const [ac,v] of Object.entries(S.av)){if(ac===except)continue;const r=v.s&&v.s[code];if(live(r)&&(r.st==='ok'||r.st==='other'))out.push(ac)}return out}
+async function processAreaText(text,src){const code=resolveStruct(text);
+  if(!code){beep('bad');S.alast={kind:'unk',raw:String(text).slice(0,60),src};S.apending=null;return showA()}
+  return processArea(code,src)}
+async function processArea(code,src){
+  const d=S.dtrMap.get(code);const now=Date.now();const prev=avrec(S.adr).s[code];
+  const inMap=!!(d.acs&&d.acs[S.adr]);
+  if(inMap){const dup=live(prev)&&prev.st==='ok';if(!dup)await Store.putA(S.adr,code,{st:'ok',src,t:now,by:Who.id});
+    S.alast={kind:'ok',code,src,dup,dupT:dup?prev.t:0,undo:dup?null:{key:code,prev}};beep('ok')}
+  else if(live(prev)&&prev.st==='other'){S.alast={kind:'other',code,src,dup:true,dupT:prev.t};beep('warn')}
+  else{S.apending={type:'confirm',code,src};S.alast=null;beep('warn');return showA()}
+  S.apending=null;showA();
+}
+async function decideA(action){const p=S.apending;if(!p)return;const now=Date.now();
+  if(action==='cancel'){S.apending=null;S.alast=null;toast('Cancelled. Nothing saved.');return showA()}
+  const prev=avrec(S.adr).s[p.code];
+  await Store.putA(S.adr,p.code,{st:'other',src:p.src,t:now,by:Who.id});S.alast={kind:'other',code:p.code,src:p.src,undo:{key:p.code,prev}};beep('ok');
+  S.apending=null;showA()}
+function showA(){if(S.view!=='area'){go('area');return}
+  if(cam.timer||cam.stream)refreshA();else{renderArea();const r=$('aRes');if(r)r.scrollIntoView({block:'nearest',behavior:'smooth'})}}
+function refreshA(){const a=S.aMap.get(S.adr);$('aRes').innerHTML=aResultBlock();$('aTabs').innerHTML=aTabsHtml(aStats(a));$('aList').innerHTML=aListHtml(a);bindADynamic()}
+function areaShares(d){return Object.entries(d.acs||{}).sort((x,y)=>y[1]-x[1]).map(([ac,n])=>`${h(ac)} ${h((S.aMap.get(ac)||{}).name||'')} (${n})`).join(', ')||'none'}
+function aStructHead(code){const d=S.dtrMap.get(code);const here=(d.acs&&d.acs[S.adr])||0;
+  return `<div class="ids"><div class="idbox"><span>Structure code</span><b>${h(code)}</b></div><div class="idbox"><span>Services in this area</span><b>${here} of ${d.list.length}</b></div></div>
+  <div><b>${h(d.name||'NO NAME')}</b> ${d.type?`<span class="pill neutral">${h(STYPE[d.type]||d.type)}</span>`:''}<div class="small">Mapping areas: ${areaShares(d)}</div></div>`}
+function aResultBlock(){
+  const p=S.apending;
+  if(p)return `<div class="res other" role="alertdialog"><div class="verdict">${I.warn}Mapping has no services of this structure in this area</div>${aStructHead(p.code)}
+    <p class="small" style="margin:0">You are on area <b>${h(aName(S.adr))}</b>.<br><b>Is this structure really in this area?</b></p>
+    <div class="btn-row"><button class="btn" data-aa="cancel">No, cancel</button><button class="btn primary" data-aa="confirm">Yes, in this area</button></div></div>`;
+  const r=S.alast;if(!r)return '';
+  if(r.kind==='unk')return `<div class="res unk" role="status"><div class="verdict">${I.x}Not a structure code in the mapping</div><div class="idbox"><span>Read · ${h(r.src)}</span><b>${h(r.raw)}</b></div></div>`;
+  const also=confirmedAreas(r.code,S.adr);
+  const v=r.kind==='ok'?(r.dup?`${I.check}Already confirmed (${h(tstr(r.dupT))})`:`${I.check}Confirmed in this area`):r.dup?`${I.warn}Already recorded in this area`:`${I.warn}Recorded: found in this area`;
+  return `<div class="res ${r.kind==='ok'?'ok':'other'}" role="status"><div class="verdict">${v}</div>${aStructHead(r.code)}
+    ${r.kind==='other'&&!r.dup?'<p class="small" style="margin:0">The mapping does not link this structure to this area, so its services may need their area code corrected.</p>':''}
+    ${also.length?`<p class="small" style="margin:0">Also confirmed in: ${also.map(x=>h(aName(x))).join(', ')}</p>`:''}
+    <div class="row">${r.undo?'<button class="btn sm" id="aUndo">Undo</button>':''}${S.dtrSet.has(r.code)?`<button class="btn sm" data-svc="${h(r.code)}">Verify its services</button>`:''}</div></div>`;
+}
+const aTabsHtml=st=>[['pending','Pending',st.pending,''],['ok','Confirmed',st.ok,'t-ok'],['other','Found, not in mapping',st.other,'t-other'],['nf','Not in area',st.nf,'t-nf']].map(([k,l,n,c])=>`<button class="stab ${c}" data-at="${k}" aria-pressed="${S.atab===k}"><b>${n}</b><span>${l}</span></button>`).join('');
+function aListHtml(a){
+  const v=avrec(a.ac);let items;
+  if(S.atab==='pending')items=aPending(a);
+  else if(S.atab==='ok')items=a.list.filter(x=>{const r=v.s[x.d.code];return live(r)&&r.st==='ok'});
+  else if(S.atab==='nf')items=a.list.filter(x=>{const r=v.s[x.d.code];return live(r)&&r.st==='nf'});
+  else items=Object.entries(v.s).filter(([k,r])=>live(r)&&r.st==='other').map(([k])=>({d:S.dtrMap.get(k),n:0})).filter(x=>x.d);
+  if(!items.length)return `<div class="empty">${{pending:'All structures in this area are accounted for.',ok:'No structures confirmed yet.',other:'No structures outside the mapping found here.',nf:'Nothing marked as not in this area.'}[S.atab]}</div>`;
+  return items.slice(0,S.alimit).map(({d,n})=>{const r=v.s[d.code];
+    const right=live(r)?`<span class="pill ${r.st==='ok'?'ok':r.st==='nf'?'bad':'warn'}">${h(ALBL[r.st])}</span>`:'<span class="pill neutral">Pending</span>';
+    const nAreas=Object.keys(d.acs||{}).length;const open=S.aopen===d.code;
+    return `<button class="li ${open?'open':''}" data-as="${h(d.code)}" aria-expanded="${open}"><div class="t"><span class="mono">${h(d.code)}</span> · ${h(d.name||'NO NAME')}</div><div class="r">${right}</div>
+      <div class="s">${n?`${n} of ${d.list.length} services here`:'Not in mapping for this area'}${nAreas>1?` · in ${nAreas} areas`:''}</div><div></div></button>
+      ${open?`<div class="detail"><dl class="kv"><div><dt>Structure</dt><dd class="mono">${h(d.code)}</dd></div><div><dt>Type</dt><dd>${h(STYPE[d.type]||d.type||'—')}</dd></div>
+        <div style="grid-column:1/-1"><dt>Mapping areas (services)</dt><dd>${areaShares(d)}</dd></div>
+        <div style="grid-column:1/-1"><dt>Feeder</dt><dd>${h(d.fc?fName(d.fc):'none')}</dd></div></dl>
+        ${live(r)?`<div class="small muted">Recorded: ${h(ALBL[r.st])} · ${h(r.src)} · ${h(tstr(r.t))} · by ${byTag(r.by)}</div>`:''}
+        <div class="btn-row3">${live(r)&&r.st==='other'?'':`<button class="btn sm" data-am="ok" data-ak="${h(d.code)}">Confirm here</button><button class="btn sm" data-am="nf" data-ak="${h(d.code)}">Not in area</button>`}${live(r)?`<button class="btn sm" data-am="clear" data-ak="${h(d.code)}">Reset</button>`:''}${S.dtrSet.has(d.code)?`<button class="btn sm" data-svc="${h(d.code)}">Services</button>`:''}</div></div>`:''}`}).join('')
+    +(items.length>S.alimit?`<button class="li more" id="aMore">Show more (${items.length-S.alimit})</button>`:'');
+}
+function renderArea(){
+  if(S.view!=='area')return;
+  const a=S.aMap.get(S.adr);const st=aStats(a);const idx=S.areas.indexOf(a);
+  const multi=a.list.filter(x=>Object.keys(x.d.acs||{}).length>1).length;
+  main.innerHTML=`
+  <section class="card stack" aria-label="Area">
+    <div class="row between"><label class="eyebrow" for="aSel">Area code</label><span class="small muted">${S.areas.length} area codes</span></div>
+    <div class="picker">
+      <button class="sq" id="aPrev" aria-label="Previous area" ${idx<=0?'disabled':''}>${I.prev}</button>
+      <select id="aSel">${S.areas.map(x=>{const s=aStats(x);const done=s.ok+s.nf;return `<option value="${h(x.ac)}" ${x.ac===S.adr?'selected':''}>${h(x.ac)} · ${h(x.name)} (${x.list.length})${done?' ✓'+done:''}</option>`}).join('')}</select>
+      <button class="sq" id="aNext" aria-label="Next area" ${idx>=S.areas.length-1?'disabled':''}>${I.next}</button>
+    </div>
+    <div class="dtrinfo"><b class="dname">${h(a.ac)} · ${h(a.name)}</b>
+      <div class="small muted">${a.list.length} structures · ${fmt(a.svc)} services in this area${multi?` · ${multi} of these structures also serve other areas`:''}</div></div>
+    <div class="small muted">${st.ok+st.nf} of ${st.n} structures checked</div>
+    <div class="bar"><i class="b-ok" style="width:${st.ok*100/(st.n||1)}%"></i><i class="b-nf" style="width:${st.nf*100/(st.n||1)}%"></i></div>
+  </section>
+  <div class="btn-row">
+    ${S.liveBlocked?`<label class="btn primary big" for="photo">${I.qr}Scan DTR tag</label>`:`<button class="btn primary big" id="aScanBtn">${I.qr}Scan DTR tag</button>`}
+    <button class="btn big" id="aListBtn">${I.check}Tick from list</button>
+  </div>
+  <div id="panel">${S.apanel==='scan'?scanPanel():''}</div>
+  <div class="row"><label class="field" for="aIn">${I.search}<input id="aIn" type="search" placeholder="Code (029) or name" autocomplete="off"></label><button class="btn" id="aCheck">Check</button></div>
+  <div class="hint" id="aHint" hidden></div>
+  <div id="aRes">${aResultBlock()}</div>
+  <div class="stabs four" id="aTabs" role="group" aria-label="Show structures">${aTabsHtml(st)}</div>
+  <div class="list" id="aList">${aListHtml(a)}</div>
+  <div class="row between"><span class="small muted">Saved ${Store.mode==='db'?'to this page, synced':'on this device'}</span><button class="btn sm" id="aExp">${I.dl}Export this area</button></div>`;
+  const sel=$('aSel');sel.onchange=()=>selectArea(sel.value);
+  $('aPrev').onclick=()=>{if(idx>0)selectArea(S.areas[idx-1].ac)};$('aNext').onclick=()=>{if(idx<S.areas.length-1)selectArea(S.areas[idx+1].ac)};
+  const sb=$('aScanBtn');if(sb)sb.onclick=()=>{S.apanel=S.apanel==='scan'?null:'scan';stopCam();renderArea();if(S.apanel==='scan')startLive()};
+  $('aListBtn').onclick=()=>{S.atab='pending';renderArea();$('aList').scrollIntoView({block:'start',behavior:'smooth'})};
+  const inp=$('aIn'),hint=$('aHint');
+  const check=()=>{const v=inp.value.trim();if(!v)return;
+    if(/[A-Za-z]{2,}/.test(v)){const q=v.toUpperCase();const m=[...S.dtrMap.values()].filter(d=>d.name&&d.name.toUpperCase().includes(q)).slice(0,8);
+      hint.hidden=false;hint.innerHTML=m.length?`<div class="mchips">${m.map(d=>`<button class="mchip" data-picka="${h(d.code)}"><b>${h(d.code.slice(-3))}</b> ${h(d.name)} <span>(${d.acs&&d.acs[S.adr]?'in this area':'other area'})</span></button>`).join('')}</div>`:'No structure name matches.';
+      hint.querySelectorAll('[data-picka]').forEach(b=>b.onclick=()=>{hint.hidden=true;inp.value='';processArea(b.dataset.picka,'Typed')});return}
+    hint.hidden=true;inp.value='';processAreaText(v,'Typed')};
+  $('aCheck').onclick=check;inp.onkeydown=e=>{if(e.key==='Enter')check()};
+  $('aExp').onclick=()=>exportArea(a);
+  bindPanel();bindADynamic();
+}
+function bindADynamic(){
+  main.querySelectorAll('[data-at]').forEach(b=>b.onclick=()=>{S.atab=b.dataset.at;S.aopen=null;aRerender()});
+  main.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>{S.aopen=S.aopen===b.dataset.as?null:b.dataset.as;aRerender()});
+  main.querySelectorAll('[data-am]').forEach(b=>b.onclick=async()=>{const k=b.dataset.ak,m=b.dataset.am,t=Date.now();
+    if(m==='ok'){S.aopen=null;return processArea(k,'Site check')}
+    await Store.putA(S.adr,k,m==='clear'?{del:1,t,by:Who.id}:{st:'nf',src:'Site check',t,by:Who.id});
+    toast(m==='clear'?'Reset':'Marked not in this area');S.aopen=null;aRerender()});
+  main.querySelectorAll('[data-aa]').forEach(b=>b.onclick=()=>decideA(b.dataset.aa));
+  main.querySelectorAll('[data-svc]').forEach(b=>b.onclick=()=>{const c=b.dataset.svc;S.dtr=c;S.last=null;S.pending=null;S.open=null;S.tab='pending';S.dtrFilter='';try{localStorage.setItem(LSDTR,c)}catch(e){}S.apanel=null;go('verify')});
+  const u=$('aUndo');if(u)u.onclick=async()=>{const x=S.alast.undo;await Store.putA(S.adr,x.key,x.prev||{del:1,t:Date.now(),by:Who.id});S.alast=null;toast('Undone');aRerender()};
+  const am=$('aMore');if(am)am.onclick=()=>{S.alimit+=200;aRerender()};
+  Who.fill(main);
+}
+function aRerender(){const y=window.scrollY;if(cam.timer||cam.stream)refreshA();else{renderArea();window.scrollTo(0,y)}}
+function selectArea(ac){if(!S.aMap.has(ac))return;S.adr=ac;S.alast=null;S.apending=null;S.aopen=null;S.atab='pending';S.alimit=200;try{localStorage.setItem(LSAS,ac)}catch(e){}stopCam();renderArea();if(S.apanel==='scan'&&!S.liveBlocked)startLive()}
+function exportArea(a){
+  const v=avrec(a.ac),rows=[['AREA_CODE','AREA_NAME','STRUCTURE_CODE','STRUCTURE_NAME','TYPE','SERVICES_IN_AREA','TOTAL_SERVICES','ALL_MAPPING_AREAS','RESULT','SOURCE','TIME']];
+  for(const {d,n} of a.list){const r=v.s[d.code];rows.push([a.ac,a.name,d.code,d.name||'NO NAME',STYPE[d.type]||d.type,n,d.list.length,Object.keys(d.acs||{}).join(' '),live(r)?ALBL[r.st].toUpperCase():'PENDING',live(r)?r.src:'',live(r)?tstr(r.t):''])}
+  for(const [k,r] of Object.entries(v.s))if(live(r)&&r.st==='other'){const d=S.dtrMap.get(k);if(d)rows.push([a.ac,a.name,k,d.name||'NO NAME',STYPE[d.type]||d.type,0,d.list.length,Object.keys(d.acs||{}).join(' '),ALBL.other.toUpperCase(),r.src,tstr(r.t)])}
+  saveRaw('Area_'+a.ac+'_structures.csv',rows.map(csvRow).join('\n'));
+}
+
+/* ---------- SEARCH ---------- */
+function vSearch(){
+  main.innerHTML=`<label class="field" for="q">${I.search}<input id="q" autocomplete="off" placeholder="Service no, UKSCNO, meter no or name" value="${h(S.q)}"></label><div id="res"></div>`;
+  const q=$('q');q.focus();
+  const run=()=>{S.q=q.value;const r=searchAll(q.value);const elsew=elsewhereIndex();
+    $('res').innerHTML=!q.value.trim()?`<p class="hint">Find any of the ${fmt(S.live.length)} services and see which DTR it is mapped to and whether it has been verified.</p>`:
+      r.length?`<div class="list">${r.map(o=>{const rr=vrec(o.dtr).s[o.u];const el=elsew.get(o.u);
+        const st=o.x?'<span class="pill bad">Not in mapping</span>':live(rr)?({ok:'<span class="pill ok">Verified</span>',nf:'<span class="pill bad">Not found</span>',na:'<span class="pill warn">No access</span>'}[rr.st]||''):el?`<span class="pill warn">Seen on ${h(el.dtr.slice(-4))}</span>`:'<span class="pill neutral">Pending</span>';
+        return `<button class="li" data-go="${h(o.u)}"><div class="t"><span class="mono">${h(o.s)}</span> · ${h(o.n)}</div><div class="r">${st}</div><div class="s">UKSCNO <span class="mono">${h(o.u)}</span> · meter <span class="mono">${h(o.m)}</span></div><div class="r small mono">DTR ${h(o.dtr.slice(-3))}</div>${S.dtrMap.get(o.dtr)?.name?`<div class="s" style="grid-column:1/-1">${h(S.dtrMap.get(o.dtr).name)}</div>`:''}</button>`}).join('')}</div>`:'<div class="card empty">No service matches that.</div>';
+    $('res').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const o=S.byU.get(b.dataset.go);
+      if(o.x){toast('This service is not in the current service mapping');return}
+      if(!S.dtrSet.has(o.dtr)){toast('Structure '+o.dtr+' is outside the 001–800 list');return}
+      S.dtr=o.dtr;S.open=o.u;S.dtrFilter='';
+      try{localStorage.setItem(LSDTR,o.dtr)}catch(e){}
+      const r=vrec(o.dtr).s[o.u];S.tab=live(r)?(r.st==='ok'?'ok':'nf'):elsewhereIndex().has(o.u)?'nf':'pending';S.limit=100000;S.last=null;go('verify');S.limit=150;
+      const el=main.querySelector('[data-u="'+o.u+'"]');if(el)el.scrollIntoView({block:'center'})})};
+  let t;q.oninput=()=>{clearTimeout(t);t=setTimeout(run,140)};run();
+}
+function searchAll(raw){
+  const q=raw.trim().toUpperCase();if(q.length<3)return[];
+  const out=[],seen=new Set();const add=o=>{if(o&&!seen.has(o.u)&&out.length<60){seen.add(o.u);out.push(o)}};
+  add(S.byU.get(q));add(S.byS.get(q));(S.byM.get(normM(q))||[]).forEach(add);const nq=normM(q);
+  for(const o of S.recs){if(out.length>=60)break;if(o.s.includes(q)||o.u.startsWith(q)||(nq.length>=4&&normM(o.m).includes(nq))||o.n.toUpperCase().includes(q))add(o)}
+  return out;
+}
+
+/* ---------- REPORT ---------- */
+/* service status per UKSCNO from the DTR verification: ok · nf (not found / no access) · el (seen on another DTR) · p (pending) */
+function svcStatusIndex(){const elsew=elsewhereIndex();const m=new Map();
+  for(const o of S.live){const r=vrec(o.dtr).s[o.u];m.set(o.u,live(r)&&r.st==='ok'?'ok':live(r)&&(r.st==='nf'||r.st==='na')?'nf':elsew.has(o.u)?'el':'p')}return m}
+function aggBy(keyFn,ss){const g=new Map();
+  for(const o of S.live){const k=keyFn(o);if(k==null)continue;let a=g.get(k);if(!a){a={svc:0,p1:0,p3:0,ld:0,ok:0,nf:0,el:0,p:0};g.set(k,a)}
+    a.svc++;o.ph===3?a.p3++:a.p1++;a.ld+=o.ld;a[ss.get(o.u)]++}
+  return g}
+const pct=(a,b)=>b?Math.round(a*1000/b)/10:0;
+const kw=n=>fmt(Math.round(n*100)/100);
+const meter=(v,n)=>`<span class="mtr"><i style="width:${n?Math.min(100,v*100/n):0}%"></i></span>`;
+const zero=()=>({svc:0,p1:0,p3:0,ld:0,ok:0,nf:0,el:0,p:0});
+function reportData(){
+  const ss=svcStatusIndex();
+  const byF=aggBy(o=>{const d=S.dtrMap.get(o.dtr);return d&&d.fc?d.fc:null},ss);
+  const byA=aggBy(o=>S.areaByName.get(o.an)||null,ss);
+  const byD=aggBy(o=>o.dtr,ss);
+  return{ss,byF,byA,byD};
+}
+function vReport(){
+  const R=reportData();const cx=conflictIndex();const fcx=fConflictIndex();const nC=cx.size+fcx.size;
+  const tabs=[['summary','Summary'],['dtr','DTR-wise'],['feeder','Feeder-wise'],['area','Area-wise'],['conflicts','Conflicts'+(nC?' ('+nC+')':'')]];
+  main.innerHTML=`<div class="rtabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" class="rtab ${k==='conflicts'&&nC?'hot':''}" data-rt="${k}" aria-selected="${S.rtab===k}">${h(l)}</button>`).join('')}</div>
+  <div id="rBody" class="stack">${({summary:rSummary,dtr:rDtr,feeder:rFeeder,area:rArea,conflicts:rConflicts})[S.rtab](R,cx,fcx)}</div>`;
+  main.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>{S.rtab=b.dataset.rt;S.ropen=null;vReport()});
+  bindReport();
+}
+function rSummary(R){
+  const t=zero();for(const a of R.byD.values())for(const k in t)t[k]+=a[k];
+  const elsew=elsewhereIndex();const started=S.dtrs.filter(d=>{const s=dtrStats(d,elsew);return s.ok+s.nf+s.el+s.other+s.unk>0});
+  const complete=started.filter(d=>dtrStats(d,elsew).pending===0&&d.list.length).length;
+  const fel=fElsewhere();let fOk=0,fN=0;S.feeders.forEach(f=>{const s=fStats(f,fel);fOk+=s.ok+s.nf+s.el;fN+=s.n});
+  let aOk=0,aN=0;S.areas.forEach(a=>{const s=aStats(a);aOk+=s.ok+s.nf;aN+=s.n});
+  let other=0,unk=0;for(const v of Object.values(S.ver)){for(const r of Object.values(v.s||{}))if(live(r)&&(r.st==='other'||r.st==='conf'))other++;for(const r of Object.values(v.x||{}))if(live(r))unk++}
+  return `<div class="sum">
+    <div><b>${pct(t.ok,t.svc)}%</b><span>Services verified (${fmt(t.ok)} of ${fmt(t.svc)})</span></div>
+    <div><b>${fmt(started.length)}</b><span>DTRs started · ${complete} complete</span></div>
+    <div><b>${fmt(fOk)}/${fmt(fN)}</b><span>Structures checked on feeders</span></div>
+    <div><b>${fmt(aOk)}/${fmt(aN)}</b><span>Structure-area links checked</span></div>
+    <div><b>${fmt(other)}</b><span>Meters on wrong DTR</span></div>
+    <div><b>${fmt(unk)}</b><span>Meters not in master</span></div>
+  </div>
+  <div class="card stack"><h3>Section totals (service mapping)</h3>
+    <dl class="kv"><div><dt>Services</dt><dd>${fmt(t.svc)}</dd></div><div><dt>Single / three phase</dt><dd>${fmt(t.p1)} / ${fmt(t.p3)}</dd></div>
+    <div><dt>Connected load</dt><dd>${kw(t.ld)} kW</dd></div><div><dt>Structures</dt><dd>${fmt(S.feeders.reduce((n,f)=>n+f.list.length,0))}</dd></div>
+    <div><dt>Feeders</dt><dd>${S.feeders.length}</dd></div><div><dt>Area codes</dt><dd>${S.areas.length}</dd></div>
+    <div><dt>Not found / no access</dt><dd>${fmt(t.nf)}</dd></div><div><dt>Seen on another DTR</dt><dd>${fmt(t.el)}</dd></div></dl></div>
+  <div class="card stack"><h3>Downloads</h3>
+    <div class="dlgrid"><button class="btn sm" data-x="feeders">${I.dl}Feeder-wise report</button><button class="btn sm" data-x="areas">${I.dl}Area-wise report</button>
+    <button class="btn sm" data-x="dtrs">${I.dl}DTR details (800)</button><button class="btn sm" data-x="all">${I.dl}All service findings</button></div></div>`;
+}
+function rDtr(R){
+  const elsew=elsewhereIndex();
+  const rows=S.dtrs.map(d=>({d,st:dtrStats(d,elsew)})).filter(x=>S.rall?true:x.st.ok+x.st.nf+x.st.other+x.st.unk+x.st.el>0);
+  const shown=rows.slice(0,S.rlimit||150);
+  return `<div class="row between"><div class="chips2"><button class="chip2" data-rall="0" aria-pressed="${!S.rall}">Started</button><button class="chip2" data-rall="1" aria-pressed="${!!S.rall}">All 800</button></div>
+    <div class="row"><button class="btn sm" data-x="dtrs">${I.dl}DTR details</button><button class="btn sm" data-x="all">${I.dl}Findings</button></div></div>
+  ${rows.length?`<div class="list">${shown.map(({d,st})=>`<button class="li" data-d="${h(d.code)}">
+      <div class="t"><span class="mono">${h(d.code)}</span> · ${h(d.name||'NO NAME')}</div><div class="r"><b>${st.ok}</b>/${st.n} ${meter(st.ok+st.nf+st.el,st.n)}</div>
+      <div class="s">${h(d.feeder?shortF(d.feeder):'No feeder')} · pending ${st.pending}${st.other?` · wrong DTR ${st.other}`:''}${st.unk?` · unknown ${st.unk}`:''}${st.nf+st.el?` · not found ${st.nf+st.el}`:''}</div><div></div></button>`).join('')}
+    ${rows.length>shown.length?`<button class="li more" id="rMore">Show more (${rows.length-shown.length})</button>`:''}</div>`:'<div class="card empty">No DTR started yet. Pick a DTR on the Services tab and scan its meters.</div>'}
+  <p class="hint">Verified / services on each DTR. Tap a row to open that DTR.</p>`;
+}
+const shortF=n=>String(n).replace(/^11\s?KV\s*/i,'').replace(/\s*FEEDER\s*/i,' ').replace(/\s+/g,' ').trim();
+const totCard=(label,T,sN,sC)=>`<div class="card stack rtot"><div class="row between"><b>${label}</b><b>${pct(T.ok,T.svc)}% verified</b></div>${meter(T.ok,T.svc).replace('mtr','mtr wide')}
+  <div class="small">${fmt(sN)} structure links · ${fmt(sC)} checked</div>
+  <div class="small">${fmt(T.svc)} services (${fmt(T.p1)} 1Φ / ${fmt(T.p3)} 3Φ) · ${kw(T.ld)} kW · ${fmt(T.ok)} verified · ${fmt(T.p)} pending${T.nf?` · ${fmt(T.nf)} not found`:''}</div></div>`;
+function rFeeder(R){
+  const fel=fElsewhere();const T=zero();let TS=0,TC=0;
+  const rows=S.feeders.map(f=>{const a=R.byF.get(f.fc)||zero();const st=fStats(f,fel);for(const k in T)T[k]+=a[k];TS+=st.n;TC+=st.ok+st.nf+st.el;
+    const ty={};f.list.forEach(d=>{const t=STYPE[d.type]||d.type||'Other';ty[t]=(ty[t]||0)+1});const open=S.ropen===f.fc;
+    return `<button class="li rrow ${open?'open':''}" data-ro="${h(f.fc)}" aria-expanded="${open}">
+      <div class="t">${h(shortF(f.name))} <span class="tsub mono">${h(f.fc)}</span></div><div class="r"><b>${pct(a.ok,a.svc)}%</b> ${meter(a.ok,a.svc)}</div>
+      <div class="s wide">Structures: ${st.n} (${Object.entries(ty).map(([t,n])=>n+' '+t).join(', ')}) · confirmed ${st.ok}${st.other?` · from other ${st.other}`:''}${st.nf+st.el?` · not on feeder ${st.nf+st.el}`:''}</div>
+      <div class="s wide">Services: ${fmt(a.svc)} (${fmt(a.p1)} 1Φ / ${fmt(a.p3)} 3Φ) · ${kw(a.ld)} kW · verified ${fmt(a.ok)} · pending ${fmt(a.p)}</div></button>
+      ${open?feederDetail(f,R):''}`}).join('');
+  return `<div class="row between"><h3>Feeder-wise report</h3><button class="btn sm" data-x="feeders">${I.dl}Download</button></div>
+  ${totCard('All '+S.feeders.length+' feeders',T,TS,TC)}
+  <div class="list">${rows}</div>
+  <p class="hint">Structure counts come from the feeder check (Feeders tab). Service counts come from meter verification (Services tab). Tap a feeder for its structures.</p>`;
+}
+function feederDetail(f,R){
+  const v=fvrec(f.fc),fel=fElsewhere();
+  return `<div class="detail"><div class="row between"><b>${h(f.name)}</b><div class="row"><button class="btn sm" data-gofeeder="${h(f.fc)}">Open in Feeders</button><button class="btn sm" data-xf="${h(f.fc)}">${I.dl}Download</button></div></div>
+  <div class="drows">${f.list.map(d=>{const r=v.s[d.code],e=fel.get(d.code);const a=R.byD.get(d.code)||zero();
+    const chk=live(r)?FLBL[r.st]:e?'Seen on other feeder':'Pending';const cls=live(r)?(r.st==='ok'?'ok':r.st==='nf'?'bad':'warn'):e?'warn':'neutral';
+    return `<div class="drow"><div><span class="mono">${h(d.code)}</span> ${h(d.name||'NO NAME')}</div><span class="pill ${cls}">${h(chk)}</span>
+      <div class="tsub">${h(STYPE[d.type]||d.type||'')} · ${d.list.length} services · verified ${a.ok} · pending ${a.p}</div></div>`}).join('')}</div></div>`;
+}
+function rArea(R){
+  const T=zero();let TS=0,TC=0;
+  const rows=S.areas.map(ar=>{const a=R.byA.get(ar.ac)||zero();const st=aStats(ar);for(const k in T)T[k]+=a[k];TS+=st.n;TC+=st.ok+st.nf;const open=S.ropen===ar.ac;
+    return `<button class="li rrow ${open?'open':''}" data-ro="${h(ar.ac)}" aria-expanded="${open}">
+      <div class="t"><span class="mono">${h(ar.ac)}</span> · ${h(ar.name)}</div><div class="r"><b>${pct(a.ok,a.svc)}%</b> ${meter(a.ok,a.svc)}</div>
+      <div class="s wide">Structures: ${st.n} · confirmed ${st.ok}${st.other?` · found, not mapped ${st.other}`:''}${st.nf?` · not in area ${st.nf}`:''}</div>
+      <div class="s wide">Services: ${fmt(a.svc)} (${fmt(a.p1)} 1Φ / ${fmt(a.p3)} 3Φ) · ${kw(a.ld)} kW · verified ${fmt(a.ok)} · pending ${fmt(a.p)}</div></button>
+      ${open?areaDetail(ar,R):''}`}).join('');
+  return `<div class="row between"><h3>Area-wise report</h3><button class="btn sm" data-x="areas">${I.dl}Download</button></div>
+  ${totCard('All '+S.areas.length+' area codes',T,TS,TC)}
+  <div class="list">${rows}</div>
+  <p class="hint">A structure can be linked to several areas, so structure links add up to more than 625. Codes 1017, 1018, 1018A and 1019 are billing groups. Tap an area for its structures.</p>`;
+}
+function areaDetail(ar,R){
+  const v=avrec(ar.ac);
+  return `<div class="detail"><div class="row between"><b>${h(ar.ac)} · ${h(ar.name)}</b><div class="row"><button class="btn sm" data-goarea="${h(ar.ac)}">Open in Areas</button><button class="btn sm" data-xa="${h(ar.ac)}">${I.dl}Download</button></div></div>
+  <div class="drows">${ar.list.map(({d,n})=>{const r=v.s[d.code];let ok=0,p=0;for(const o of d.list)if(S.areaByName.get(o.an)===ar.ac){const s=R.ss.get(o.u);if(s==='ok')ok++;else if(s==='p')p++}
+    const cls=live(r)?(r.st==='ok'?'ok':r.st==='nf'?'bad':'warn'):'neutral';
+    return `<div class="drow"><div><span class="mono">${h(d.code)}</span> ${h(d.name||'NO NAME')}</div><span class="pill ${cls}">${h(live(r)?ALBL[r.st]:'Pending')}</span>
+      <div class="tsub">${n} of ${d.list.length} services in this area · verified here ${ok} · pending here ${p}</div></div>`}).join('')}</div></div>`;
+}
+function rConflicts(R,cx,fcx){
+  return `<section id="conflicts" class="stack">
+    <div class="row between"><h3>One service on two DTRs</h3><span class="pill ${cx.size?'bad':'ok'}">${cx.size?cx.size+' open':'None'}</span></div>
+    ${cx.size?[...cx].map(([u,c])=>{const o=S.byU.get(u);if(!o)return'';return `<div class="card stack cfl">
+      <div class="row between"><div><span class="mono" style="font-weight:600">${h(o.s)}</span> · UKSCNO <span class="mono">${h(o.u)}</span></div>${phPill(o.ph)}</div>
+      <div class="small"><b>${h(o.n)}</b> · meter <span class="mono">${h(o.m)}</span> · master DTR <span class="mono">${h(o.dtr)}</span></div>
+      ${c.map(x=>`<div class="claimrow">${claimLine(x)}${Who.sup?`<button class="btn sm" data-keep="${h(u)}" data-kd="${h(x.dtr)}">Keep ${h(x.dtr.slice(-3))}</button>`:''}</div>`).join('')}
+      ${Who.sup?'':'<p class="hint">Waiting for the AE to pick the correct DTR.</p>'}
+    </div>`}).join(''):'<p class="hint" style="margin:0">No service is recorded on more than one DTR.</p>'}
+  </section>
+  <section id="fconflicts" class="stack">
+    <div class="row between"><h3>One structure on two feeders</h3><span class="pill ${fcx.size?'bad':'ok'}">${fcx.size?fcx.size+' open':'None'}</span></div>
+    ${fcx.size?[...fcx].map(([k,c])=>{const d=S.dtrMap.get(k);return `<div class="card stack cfl">
+      <div><span class="mono" style="font-weight:600">${h(k)}</span> · ${h(d&&d.name||'NO NAME')}</div>
+      <div class="small">${d?d.list.length:0} services · mapping feeder: ${h(d&&d.fc?fName(d.fc):'none')}</div>
+      ${c.map(x=>`<div class="claimrow">${fClaimLine(x)}${Who.sup?`<button class="btn sm" data-fkeep="${h(k)}" data-fkf="${h(x.fc)}">Keep</button>`:''}</div>`).join('')}
+      ${Who.sup?'':'<p class="hint">Waiting for the AE to pick the correct feeder.</p>'}</div>`}).join(''):'<p class="hint" style="margin:0">No structure is recorded on more than one feeder.</p>'}
+  </section>`;
+}
+function bindReport(){
+  main.querySelectorAll('#rBody [data-d]').forEach(tr=>tr.onclick=()=>{const c=tr.dataset.d;S.dtr=c;S.last=null;S.pending=null;S.open=null;S.tab='pending';S.dtrFilter='';try{localStorage.setItem(LSDTR,c)}catch(e){}go('verify')});
+  main.querySelectorAll('[data-ro]').forEach(tr=>tr.onclick=()=>{S.ropen=S.ropen===tr.dataset.ro?null:tr.dataset.ro;const y=window.scrollY;vReport();window.scrollTo(0,y)});
+  main.querySelectorAll('[data-rall]').forEach(b=>b.onclick=()=>{S.rall=b.dataset.rall==='1';S.rlimit=150;vReport()});
+  const rm=$('rMore');if(rm)rm.onclick=()=>{S.rlimit=(S.rlimit||150)+150;const y=window.scrollY;vReport();window.scrollTo(0,y)};
+  main.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>({feeders:exportFeederReport,areas:exportAreaReport,dtrs:exportDtrDetails,all:exportAll})[b.dataset.x]());
+  main.querySelectorAll('[data-xf]').forEach(b=>b.onclick=e=>{e.stopPropagation();exportFeederDetail(b.dataset.xf)});
+  main.querySelectorAll('[data-xa]').forEach(b=>b.onclick=e=>{e.stopPropagation();exportAreaDetail(b.dataset.xa)});
+  main.querySelectorAll('[data-gofeeder]').forEach(b=>b.onclick=e=>{e.stopPropagation();S.fdr=b.dataset.gofeeder;S.flast=null;S.fpending=null;S.ftab='pending';try{localStorage.setItem(LSFS,S.fdr)}catch(e){}go('feeder')});
+  main.querySelectorAll('[data-goarea]').forEach(b=>b.onclick=e=>{e.stopPropagation();S.adr=b.dataset.goarea;S.alast=null;S.apending=null;S.atab='pending';try{localStorage.setItem(LSAS,S.adr)}catch(e){}go('area')});
+  main.querySelectorAll('[data-keep]').forEach(b=>b.onclick=()=>resolveConflict(b.dataset.keep,b.dataset.kd));
+  main.querySelectorAll('[data-fkeep]').forEach(b=>b.onclick=()=>resolveFConflict(b.dataset.fkeep,b.dataset.fkf));
+  Who.fill(main);
+}
+/* report downloads */
+function exportFeederReport(){
+  const R=reportData(),fel=fElsewhere();
+  const rows=[['FEEDER_CODE','FEEDER','STRUCTURES_MAPPED','PUBLIC','APARTMENT','INDUSTRIAL','STRUCTURES_CONFIRMED','STRUCTURES_FROM_OTHER_FEEDER','STRUCTURES_NOT_ON_FEEDER','STRUCTURES_PENDING','SERVICES','SINGLE_PHASE','THREE_PHASE','LOAD_KW','SERVICES_VERIFIED','SERVICES_NOT_FOUND','SERVICES_SEEN_OTHER_DTR','SERVICES_PENDING','PERCENT_VERIFIED']];
+  for(const f of S.feeders){const a=R.byF.get(f.fc)||zero(),st=fStats(f,fel);const ty={PUBLIC:0,APRMT:0,INDUSTRIAL:0};f.list.forEach(d=>{if(d.type in ty)ty[d.type]++});
+    rows.push([f.fc,f.name,st.n,ty.PUBLIC,ty.APRMT,ty.INDUSTRIAL,st.ok,st.other,st.nf+st.el,st.pending,a.svc,a.p1,a.p3,Math.round(a.ld*100)/100,a.ok,a.nf,a.el,a.p,pct(a.ok,a.svc)])}
+  saveRaw('YRGuda_feeder_wise_report.csv',rows.map(csvRow).join('\n'));
+}
+function exportFeederDetail(fc){
+  const f=S.fMap.get(fc),R=reportData(),v=fvrec(fc),fel=fElsewhere();
+  const rows=[['FEEDER','STRUCTURE_CODE','STRUCTURE_NAME','TYPE','AREAS','SERVICES','SINGLE_PHASE','THREE_PHASE','LOAD_KW','FEEDER_CHECK','SERVICES_VERIFIED','SERVICES_PENDING']];
+  for(const d of f.list){const a=R.byD.get(d.code)||zero(),r=v.s[d.code],e=fel.get(d.code);
+    rows.push([f.name,d.code,d.name||'NO NAME',STYPE[d.type]||d.type,(d.areas||[]).join('; '),a.svc,a.p1,a.p3,Math.round(a.ld*100)/100,live(r)?FLBL[r.st]:e?'Seen on other feeder':'Pending',a.ok,a.p])}
+  saveRaw('Feeder_'+fc+'_report.csv',rows.map(csvRow).join('\n'));
+}
+function exportAreaReport(){
+  const R=reportData();
+  const rows=[['AREA_CODE','AREA_NAME','STRUCTURES_LINKED','STRUCTURES_CONFIRMED','STRUCTURES_FOUND_NOT_MAPPED','STRUCTURES_NOT_IN_AREA','STRUCTURES_PENDING','SERVICES','SINGLE_PHASE','THREE_PHASE','LOAD_KW','SERVICES_VERIFIED','SERVICES_NOT_FOUND','SERVICES_SEEN_OTHER_DTR','SERVICES_PENDING','PERCENT_VERIFIED']];
+  for(const ar of S.areas){const a=R.byA.get(ar.ac)||zero(),st=aStats(ar);
+    rows.push([ar.ac,ar.name,st.n,st.ok,st.other,st.nf,st.pending,a.svc,a.p1,a.p3,Math.round(a.ld*100)/100,a.ok,a.nf,a.el,a.p,pct(a.ok,a.svc)])}
+  saveRaw('YRGuda_area_wise_report.csv',rows.map(csvRow).join('\n'));
+}
+function exportAreaDetail(ac){
+  const ar=S.aMap.get(ac),R=reportData(),v=avrec(ac);
+  const rows=[['AREA_CODE','AREA_NAME','STRUCTURE_CODE','STRUCTURE_NAME','TYPE','FEEDER','SERVICES_IN_AREA','TOTAL_SERVICES','AREA_CHECK','VERIFIED_IN_AREA','PENDING_IN_AREA']];
+  for(const {d,n} of ar.list){const r=v.s[d.code];let ok=0,p=0;for(const o of d.list)if(S.areaByName.get(o.an)===ac){const s=R.ss.get(o.u);if(s==='ok')ok++;else if(s==='p')p++}
+    rows.push([ac,ar.name,d.code,d.name||'NO NAME',STYPE[d.type]||d.type,d.feeder||'',n,d.list.length,live(r)?ALBL[r.st]:'Pending',ok,p])}
+  saveRaw('Area_'+ac+'_report.csv',rows.map(csvRow).join('\n'));
+}
+async function resolveConflict(u,keep){
+  if(!Who.sup){toast('Only the AE can resolve conflicts');return}
+  const o=S.byU.get(u);const c=claimsFor(u,null);const now=Date.now();
+  const w=c.find(x=>x.dtr===keep);if(!w)return;
+  await Store.put(keep,'s',u,{...w.rec,st:keep===o.dtr?'ok':'other',mdtr:o.dtr,t:now,resolved:1,resolvedBy:Who.id});
+  for(const x of c)if(x.dtr!==keep)await Store.put(x.dtr,'s',u,{del:1,t:now,movedTo:keep,by:Who.id,reason:'AE resolved conflict'});
+  toast(o.s+' kept on DTR '+keep.slice(-3));vReport();
+}
+
+/* ---------- export ---------- */
+const csvRow=r=>r.map(c=>{c=String(c==null?'':c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',');
+const HEAD=['DTR_VERIFIED','STRUCTURE_NAME','FEEDER','RESULT','SERVICE_NO','UKSCNO','METER_NO','MASTER_DTR','NAME','PHASE','SOURCE','SCANNED_TEXT','TIME'];
+const LBL={ok:'VERIFIED',other:'FOUND HERE - MASTER DTR DIFFERS',conf:'DISPUTED - IN AE REVIEW',nf:'NOT FOUND AT SITE',na:'NO ACCESS'};
+function dtrRows(d,withPending,elsew){
+  const v=vrec(d.code),rows=[];elsew=elsew||elsewhereIndex();
+  for(const o of d.list){const r=v.s[o.u];
+    if(live(r))rows.push([d.code,d.name||'NO NAME',d.feeder||'',LBL[r.st],o.s,o.u,o.m,o.dtr,o.n,o.ph,r.src,r.raw||'',tstr(r.t)]);
+    else if(elsew.has(o.u)){const e=elsew.get(o.u);rows.push([d.code,d.name||'NO NAME',d.feeder||'','SEEN ON DTR '+e.dtr,o.s,o.u,o.m,o.dtr,o.n,o.ph,e.rec.src,e.rec.raw||'',tstr(e.rec.t)])}
+    else if(withPending)rows.push([d.code,d.name||'NO NAME',d.feeder||'','PENDING',o.s,o.u,o.m,o.dtr,o.n,o.ph,'','',''])}
+  for(const [u,r] of Object.entries(v.s))if(live(r)&&(r.st==='other'||r.st==='conf')){const o=S.byU.get(u);if(o)rows.push([d.code,d.name||'NO NAME',d.feeder||'',LBL[r.st]+(r.reason?' ('+r.reason+')':''),o.s,o.u,o.m,o.dtr,o.n,o.ph,r.src,r.raw||'',tstr(r.t)])}
+  for(const r of Object.values(v.x))if(live(r)){const o=r.u?S.byU.get(r.u):null;rows.push([d.code,d.name||'NO NAME',d.feeder||'',o?'NOT IN CURRENT MAPPING':'METER NOT IN MASTER',o?o.s:'',o?o.u:'',o?o.m:r.raw,o?o.dtr:'',o?o.n:'',o?o.ph:'',r.src,r.raw,tstr(r.t)])}
+  return rows;
+}
+async function saveCsv(name,rows){
+  const csv=[HEAD,...rows].map(csvRow).join('\n');
+  try{if(window.claude&&window.claude.use){const dl=await window.claude.use('downloads');if(dl){await dl.save({filename:name,data:csv});toast('Saved '+name);return}}}catch(e){if(e&&e.code==='declined')return}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;document.body.appendChild(a);a.click();a.remove()}catch(e){toast('Download is not available here')}
+}
+function exportDtr(d){saveCsv('DTR_'+d.code+'_verification.csv',dtrRows(d,true))}
+function exportDtrDetails(){ // all 800 structure codes with name (NO NAME when the mapping has none)
+  const elsew=elsewhereIndex();
+  const rows=[['STRUCTURE_CODE','STRUCTURE_NAME','STRUCTURE_TYPE','FEEDER','AREAS','SERVICES','SINGLE_PHASE','THREE_PHASE','VERIFIED','PENDING']];
+  for(const d of S.dtrs){const st=dtrStats(d,elsew);rows.push([d.code,d.name||'NO NAME',d.type?(STYPE[d.type]||d.type):'',d.feeder,(d.areas||[]).join('; '),d.list.length,d.p1,d.p3,st.ok,st.pending])}
+  const csv=rows.map(csvRow).join('\n');saveRaw('YRGuda_DTR_details.csv',csv);
+}
+async function saveRaw(name,csv){
+  try{if(window.claude&&window.claude.use){const dl=await window.claude.use('downloads');if(dl){await dl.save({filename:name,data:csv});toast('Saved '+name);return}}}catch(e){if(e&&e.code==='declined')return}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;document.body.appendChild(a);a.click();a.remove()}catch(e){toast('Download is not available here')}
+}
+function exportAll(){const rows=[],elsew=elsewhereIndex();for(const d of S.dtrs)if(S.ver[d.code])rows.push(...dtrRows(d,false,elsew));if(!rows.length){toast('Nothing verified yet');return}saveCsv('YRGuda_DTR_verification.csv',rows)}
+
+/* ---------- GUIDE ---------- */
+function vGuide(){
+  main.innerHTML=`<div class="plan stack">${dataCard()}
+  <div class="card stack">
+    <p class="eyebrow">How to verify a DTR</p>
+    <ol>
+      <li>Pick the <b>DTR structure code</b> from the dropdown, or type part of the code to filter it. The list shows every service the EBS master maps to that DTR.</li>
+      <li>At each meter, tap <b>QR / Barcode</b> and scan the meter's QR code or name-plate barcode, or use <b>IR / IRDA</b> with an optical probe. You can also type the meter number.</li>
+      <li>The app shows the <b>Service No and UKSCNO</b> with a verdict: <span class="pill ok">Verified</span> belongs to this DTR, <span class="pill warn">Other DTR</span> meter is here but mapped elsewhere, <span class="pill bad">Not in master</span> unknown meter.</li>
+      <li>For services you cannot scan, open the row and mark <b>Seen, OK</b>, <b>Not found</b> or <b>No access</b>.</li>
+      <li>When <b>Pending</b> reaches 0 the DTR is done. Export the DTR or all findings as CSV for the ERO.</li>
+    </ol>
+  </div>
+  <div class="card stack">
+    <p class="eyebrow">Areas: area-code-wise structure check</p>
+    <ol>
+      <li>Open <b>Areas</b> and pick an area code. The list shows every structure that has services in that area in the mapping, with how many of its services are in the area.</li>
+      <li>The area code is on each service, so one structure can be in several areas (222 structures are). Confirming a structure in one area does not remove it from the others.</li>
+      <li>Confirm a structure by scanning its tag, typing its code or name, or tapping <b>Confirm here</b> in its row. Mark <b>Not in area</b> if it is not in this area at site.</li>
+      <li>A structure the mapping does not link to this area asks "Is this structure really in this area?" before it is recorded as <b>Found, not in mapping</b>.</li>
+      <li>Area codes 1017, 1018, 1018A and 1019 are billing groups (street lights, GRC, temporary supply), not places.</li>
+    </ol>
+  </div>
+  <div class="card stack">
+    <p class="eyebrow">Feeders: feeder-wise structure check</p>
+    <ol>
+      <li>Open <b>Feeders</b> and pick a feeder. The list shows every structure the service mapping puts on that feeder.</li>
+      <li>At each DTR, confirm it: scan a tag that carries the structure code, type the code (029 or 1607010029) or name, or open its row and tap <b>Confirm here</b>.</li>
+      <li>A structure the mapping puts on another feeder asks "Is this structure really fed from this feeder?" before it is recorded as <b>From other feeder</b>.</li>
+      <li>One structure can be on only one feeder. A second feeder claim is held, and only the AE can move it. Conflicts appear in Report.</li>
+      <li>Tap <b>Services</b> on a structure to jump to its DTR and verify the meters on it.</li>
+    </ol>
+  </div>
+  <div class="card stack">
+    <p class="eyebrow">One service, one DTR</p>
+    <ul>
+      <li><b>Scan on its own DTR</b>: saved as Verified straight away.</li>
+      <li><b>Scan on a different DTR</b>: nothing is saved until you confirm "Yes, found here". This catches the common mistake of having the wrong DTR selected in the dropdown.</li>
+      <li><b>Scan of a service already placed on another DTR</b>: the scan is held and the app shows where it is already recorded, by whom and when. The person can cancel, or send it to AE review with a reason. Staff cannot overwrite an earlier entry.</li>
+      <li><b>AE decides</b>: open conflicts appear on both DTRs and under Conflicts in Report. The AE (page owner or editor) taps <b>Keep</b> on the correct DTR, and the other entry is removed with a note of who moved it and why.</li>
+      <li>Every entry stores who recorded it, when, and how (scan, IRDA, typed or manual), so repeated wrong mappings can be traced to a person.</li>
+    </ul>
+  </div>
+  <div class="card stack">
+    <p class="eyebrow">Your data</p>
+    <p style="margin:0">Service-to-structure mapping of Section ${h(SECTION.name)} (${h(S.meta.mapOn||'—')}): ${fmt(S.live.length)} services on ${fmt(S.structCount)} structures, with structure name, type, feeder and area. Meter number, phase and make come from the EBS consumer master (${h(S.meta.masterOn||'—')}), matched by UKSCNO. The dropdown lists ${DTR_PREFIX}001 to ${DTR_PREFIX}800; ${fmt(S.dtrs.filter(d=>d.list.length).length)} of them have services. ${fmt(S.outside)} services sit on structure codes outside that range; find them with Search. ${fmt(S.legacy)} services in the old consumer master are not in the new mapping (mostly status 99); scanning one of their meters shows "Not in current service mapping". ${fmt(S.live.filter(r=>r.m==='0'||!r.m).length)} mapped service has no meter number and must be marked by hand.</p>
+  </div>
+  <div class="card stack">
+    <p class="eyebrow">Scanning in the field</p>
+    <ul>
+      <li>Inside this page the camera opens as a photo: snap the code and the result appears. Hosted on your own HTTPS site, or as an Android app, the camera scans continuously and beeps on each meter.</li>
+      <li>Meter QR codes differ by maker. The app tries every 5–16 character token in the code against meter no, UKSCNO and service no, and ignores leading zeros.</li>
+      <li>Wipe the meter cover and avoid glare. For small QR codes on the name plate, get within 10 cm.</li>
+    </ul>
+  </div>
+  <div class="card stack">
+    <p class="eyebrow">IR / IRDA scanning: what is needed</p>
+    <p style="margin:0">A phone cannot read the meter's optical port by itself. The camera can't receive the data and a phone IR blaster only transmits. You need an <b>optical probe</b> and an Android app that talks to it.</p>
+    <div class="tbl-wrap wrap"><table><tbody>
+      <tr><td><b>Probe</b></td><td>IEC 62056-21 magnetic optical head, USB with OTG cable or Bluetooth. Use the model your spot-billing staff already use with these meters.</td></tr>
+      <tr><td><b>Protocol</b></td><td>DLMS/COSEM per IS 15959: optical sign-on at 300 baud, switch to 9600 baud HDLC, open an association, read by OBIS code.</td></tr>
+      <tr><td><b>For verification</b></td><td>Only the meter serial number is needed: OBIS <span class="mono">0.0.96.1.0.255</span>. On many DLMS meters it can be read through the public (no-password) association. Test this on each make before relying on it.</td></tr>
+      <tr><td><b>Library</b></td><td>Gurux DLMS for Android (open source) handles framing, association and decoding. usb-serial-for-android handles the USB probe.</td></tr>
+      <tr><td><b>IR vs IRDA</b></td><td>IrDA-window meters speak standard DLMS. Older "IR" meters use each maker's own protocol, which is why the TGSPDCL app has separate buttons and each make needs its own driver.</td></tr>
+      <tr><td><b>Approval</b></td><td>Billing registers need TGSPDCL's meter-reader password. Get written approval from the DE/SE (Operation) or IT wing before reading meters with your own app.</td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="card stack">
+    <p class="eyebrow">Build order for the real app</p>
+    <ol>
+      <li><b>Now:</b> use this page for DTR verification with QR / barcode scan and manual marks.</li>
+      <li><b>Android app:</b> same screens in Kotlin or Flutter, with offline storage and ML Kit continuous scanning. Add GPS and a photo per meter as proof.</li>
+      <li><b>Sync and office view:</b> several staff verifying different DTRs, with the AE seeing progress and the wrong-DTR list.</li>
+      <li><b>IRDA:</b> one probe and one make (HPL single-phase) reading the serial, then 3-phase and the other makes.</li>
+    </ol>
+  </div>
+  <div class="card small muted">This page holds consumer names and addresses for your section. Keep the link private and share it only with section staff who need it.</div>
+  </div>`;
+  bindDataCard();
+}
+
+/* ---------- section data: built in, saved on this phone, or loaded from a file ----------
+   Public copies of this app carry no consumer data. Staff load the section data file (or the Service Mapping Excel) once per phone;
+   it is kept in this browser's storage (IndexedDB) and never uploaded. */
+const IDB={db:null,
+  open(){return this.db||(this.db=new Promise((res,rej)=>{const r=indexedDB.open('yrguda-dtr',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
+  async get(k){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('kv').objectStore('kv').get(k);t.onsuccess=()=>res(t.result||null);t.onerror=()=>rej(t.error)})},
+  async set(k,v){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})},
+  async del(k){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').delete(k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+};
+async function gunzipB64(b64){const raw=atob(b64);const bin=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bin[i]=raw.charCodeAt(i);
+  return new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).text()}
+async function gzipB64(txt){const buf=new Uint8Array(await new Response(new Blob([txt]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+  let s='';for(let i=0;i<buf.length;i+=0x8000)s+=String.fromCharCode.apply(null,buf.subarray(i,i+0x8000));return btoa(s)}
+async function embeddedParts(){
+  const b=$('masterdata').textContent.trim();if(!b||b.startsWith('__'))return null;
+  return{txt:await gunzipB64(b),STR:JSON.parse($('structdata').textContent),AR:JSON.parse($('areadata').textContent),meta:{mapOn:'17-Oct-2026',masterOn:'16-Oct-2026',src:'Built into this page'}};
+}
+async function importDataFile(file){
+  try{const j=JSON.parse(await file.text());
+    if(j.app!=='yrguda-dtr'||!j.records||!j.structs||!j.areas)throw new Error('not a section data file');
+    const P={txt:await gunzipB64(j.records),STR:j.structs,AR:j.areas,meta:Object.assign({},j.meta,{src:'File: '+file.name,loaded:Date.now()})};
+    await IDB.set('section',P);toast('Section data loaded');setTimeout(()=>location.reload(),600);
+  }catch(e){toast('That file is not a section data file. Use the .json file you were given.')}
+}
+let xlsxLoading=null;
+function loadXlsxLib(){return xlsxLoading||(xlsxLoading=new Promise((res,rej)=>{if(window.XLSX)return res();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=()=>{xlsxLoading=null;rej(new Error('Could not load the Excel reader. Check the internet connection.'))};document.head.appendChild(s)}))}
+async function importExcel(file){
+  toast('Reading Excel…');
+  try{
+    await loadXlsxLib();
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true}).map(r=>{const o={};for(const k in r)o[k.trim().toUpperCase()]=r[k];return o});
+    const need=['STRUCTURE CODE','UKSCNO','SERVICE NO'];
+    if(!rows.length||need.some(k=>!(k in rows[0])))throw new Error('This is not the Service Mapping Excel (needs Structure Code, UKSCNO and Service No columns).');
+    const cl=v=>String(v==null?'':v).replace(/[\t\n\r]+/g,' ').trim();
+    const STR={},AR={},out=[],seen=new Set();
+    for(const r of rows){
+      const u=cl(r['UKSCNO']).replace(/\.0+$/,'');if(!u||seen.has(u))continue;seen.add(u);
+      const code=cl(r['STRUCTURE CODE']).replace(/\.0+$/,'');const o=S.byU.get(u)||{};
+      if(!STR[code])STR[code]=[cl(r['STRUCTURE NAME']),cl(r['STRUCTURE TYPE']),cl(r['FEEDER NAME']),cl(r['FEEDER CODE']).replace(/\.0+$/,'')];
+      const ac=cl(r['AREA CODE']).replace(/\.0+$/,''),an=cl(r['AREA NAME']);
+      if(ac){if(!AR[ac])AR[ac]=[an,{}];AR[ac][1][code]=(AR[ac][1][code]||0)+1}
+      let addr=cl(r['ADDRESS']);if(!addr.replace(/[\W_]+/g,''))addr=o.a||'';
+      out.push([cl(r['SERVICE NO']),u,o.m||'0',code,cl(r['CONSUMER NAME'])||o.n||'',addr,o.ph||1,o.ct||'',o.ld||0,o.mk||'',o.r||0,o.rm||'',o.sl||'',o.st||'',o.mf||1,an,0]);
+    }
+    let kept=0;for(const o of S.recs)if(!seen.has(o.u)){kept++;out.push(F.map(k=>k==='x'?1:o[k]))}
+    const missing=out.filter(r=>!r[16]&&r[2]==='0').length;
+    const today=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'-');
+    const P={txt:out.map(r=>r.join('\t')).join('\n'),STR,AR,meta:{mapOn:today,masterOn:(S.meta&&S.meta.masterOn)||'not loaded',src:'Excel: '+file.name,loaded:Date.now(),noMeter:missing}};
+    await IDB.set('section',P);
+    toast(`Loaded ${fmt(seen.size)} services${missing?`, ${fmt(missing)} without meter number`:''}`);setTimeout(()=>location.reload(),900);
+  }catch(e){toast(e.message||'Could not read that Excel file')}
+}
+async function exportDataFile(){
+  if(!S.P){toast('No data loaded');return}
+  const j={app:'yrguda-dtr',v:1,meta:Object.assign({},S.meta,{src:undefined,loaded:undefined}),records:await gzipB64(S.P.txt),structs:S.P.STR,areas:S.P.AR};
+  saveRaw('YRGuda_section_data.json',JSON.stringify(j));
+}
+$('dataFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importDataFile(f)};
+$('xlsFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importExcel(f)};
+function dataCard(){
+  const m=S.meta||{};
+  return `<div class="card stack" id="dataCard"><p class="eyebrow">Data on this phone</p>
+    <dl class="kv"><div style="grid-column:1/-1"><dt>Source</dt><dd>${h(m.src||'—')}</dd></div><div><dt>Service mapping</dt><dd>${h(m.mapOn||'—')}</dd></div><div><dt>Meter details from</dt><dd>${h(m.masterOn||'—')}</dd></div>
+    <div><dt>Services</dt><dd>${fmt(S.live.length)}</dd></div><div><dt>Structures</dt><dd>${fmt(S.structCount||0)}</dd></div></dl>
+    <div class="dlgrid"><label class="btn sm" for="xlsFile">Load new mapping Excel</label><label class="btn sm" for="dataFile">Load section data file</label>
+    <button class="btn sm" id="expData">${I.dl}Save data file</button>${m.loaded?'<button class="btn sm" id="clrData">Remove from this phone</button>':''}</div>
+    <p class="hint">A new Service Mapping Excel replaces the structure mapping and keeps the meter numbers already on this phone. "Save data file" makes a file you can load on other staff phones. Data stays in this browser and is never uploaded.</p></div>`;
+}
+function bindDataCard(){
+  const e=$('expData');if(e)e.onclick=exportDataFile;
+  const c=$('clrData');if(c)c.onclick=async()=>{if(c.dataset.sure!=='1'){c.dataset.sure='1';c.textContent='Tap again to remove';return}await IDB.del('section');toast('Removed');setTimeout(()=>location.reload(),500)};
+}
+function showSetup(msg){
+  document.querySelectorAll('.tab').forEach(b=>b.disabled=true);
+  $('storeBadge').textContent='No data';
+  main.innerHTML=`<section class="card stack">
+    <p class="eyebrow">First time on this phone</p>
+    <h2>Load your section data</h2>
+    ${msg?`<p class="small" style="color:var(--bad);margin:0">${h(msg)}</p>`:''}
+    <p style="margin:0">This app does not carry consumer data. Load it once on this phone and it stays here, in this browser only.</p>
+    <label class="btn primary big" for="dataFile">${I.dl}Load section data file (.json)</label>
+    <p class="hint">The file your AE shares, e.g. YRGuda_section_data.json. It has services, meter numbers, structures, feeders and areas.</p>
+    <label class="btn big" for="xlsFile">Load Service Mapping Excel (.xlsx)</label>
+    <p class="hint">The Service Mapping export from EBS. Without the data file there are no meter numbers, so scanning works by service number or UKSCNO only.</p>
+  </section>`;
+}
+
+/* ---------- start ---------- */
+(async()=>{
+  let P=null;
+  try{P=await IDB.get('section')}catch(e){}
+  if(!P){try{P=await embeddedParts()}catch(e){}}
+  if(!P){showSetup();return}
+  try{await loadData(P)}catch(e){showSetup('The saved data could not be read. Load the section data file again.');return}
+  S.P=P;S.meta=P.meta||{};S.ready=true;
+  Store.loadLocal();Store.loadLocalF();if(!S.fdr||!S.fMap.has(S.fdr))S.fdr=S.feeders[0].fc;
+  Store.loadLocalA();if(!S.adr||!S.aMap.has(S.adr))S.adr=S.areas[0].ac;
+  if(!S.dtr&&S.dtrMap.has('1607010596'))S.dtr='1607010596';
+  go('verify');
+  Store.init();
+  Who.init().then(()=>{if(!S.pending&&!cam.stream){if(S.view==='verify')renderVerify();else if(S.view==='report')vReport()}});
+})();
+})();
+</script>
+
+</body></html>

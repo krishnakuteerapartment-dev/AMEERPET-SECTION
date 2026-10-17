@@ -1,0 +1,6 @@
+# Consumer data stays private. Never commit these.
+*.json
+*.xlsx
+*.xls
+*.pdf
+*.csv
