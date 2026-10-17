@@ -1415,6 +1415,7 @@ function dtrRows(d,withPending,elsew){
 }
 async function saveCsv(name,rows){
   const csv=[HEAD,...rows].map(csvRow).join('\n');
+  if(await nativeSave(name,csv))return;
   try{if(window.claude&&window.claude.use){const dl=await window.claude.use('downloads');if(dl){await dl.save({filename:name,data:csv});toast('Saved '+name);return}}}catch(e){if(e&&e.code==='declined')return}
   try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;document.body.appendChild(a);a.click();a.remove()}catch(e){toast('Download is not available here')}
 }
@@ -1425,7 +1426,22 @@ function exportDtrDetails(){ // all 800 structure codes with name (NO NAME when 
   for(const d of S.dtrs){const st=dtrStats(d,elsew);rows.push([d.code,d.name||'NO NAME',d.type?(STYPE[d.type]||d.type):'',d.feeder,(d.areas||[]).join('; '),d.list.length,d.p1,d.p3,st.ok,st.pending])}
   const csv=rows.map(csvRow).join('\n');saveRaw('YRGuda_DTR_details.csv',csv);
 }
+/* Android app (Capacitor): files are written to the app cache and handed to the share sheet (WhatsApp, Drive, Files) */
+const isNative=()=>!!(window.Capacitor&&typeof Capacitor.isNativePlatform==='function'&&Capacitor.isNativePlatform());
+const capPlugin=n=>isNative()?((Capacitor.Plugins&&Capacitor.Plugins[n])||(Capacitor.registerPlugin?Capacitor.registerPlugin(n):null)):null;
+async function nativeSave(name,text){
+  if(!isNative())return false;
+  const FS=capPlugin('Filesystem'),SH=capPlugin('Share');
+  if(!FS){toast('File saving is not available in this build');return true}
+  try{
+    const r=await FS.writeFile({path:name,data:text,directory:'CACHE',encoding:'utf8'});
+    if(SH){try{await SH.share({title:name,files:[r.uri],dialogTitle:'Save or send '+name})}catch(e){if(!/cancel/i.test(String(e&&e.message)))await SH.share({title:name,url:r.uri}).catch(()=>{})}}
+    else toast('Saved '+name+' in the app');
+  }catch(e){toast('Could not save '+name)}
+  return true;
+}
 async function saveRaw(name,csv){
+  if(await nativeSave(name,csv))return;
   try{if(window.claude&&window.claude.use){const dl=await window.claude.use('downloads');if(dl){await dl.save({filename:name,data:csv});toast('Saved '+name);return}}}catch(e){if(e&&e.code==='declined')return}
   try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;document.body.appendChild(a);a.click();a.remove()}catch(e){toast('Download is not available here')}
 }
@@ -1600,6 +1616,19 @@ function showSetup(msg){
   </section>`;
 }
 
+/* Android back button: close an open panel or decision first, then go back to Services, then leave the app */
+function bindBackButton(){
+  const App=capPlugin('App');if(!App||!App.addListener)return;
+  App.addListener('backButton',()=>{
+    if(S.pending){S.pending=null;return showResult()}
+    if(S.fpending){S.fpending=null;return showF()}
+    if(S.apending){S.apending=null;return showA()}
+    if(cam.stream||cam.timer){stopCam();S.panel=null;S.fpanel=null;S.apanel=null;return go(S.view)}
+    if(S.view!=='verify'&&S.ready)return go('verify');
+    App.exitApp();
+  });
+}
+
 /* ---------- start ---------- */
 (async()=>{
   let P=null;
@@ -1607,7 +1636,7 @@ function showSetup(msg){
   if(!P){try{P=await embeddedParts()}catch(e){}}
   if(!P){showSetup();return}
   try{await loadData(P)}catch(e){showSetup('The saved data could not be read. Load the section data file again.');return}
-  S.P=P;S.meta=P.meta||{};S.ready=true;
+  S.P=P;S.meta=P.meta||{};S.ready=true;bindBackButton();
   Store.loadLocal();Store.loadLocalF();if(!S.fdr||!S.fMap.has(S.fdr))S.fdr=S.feeders[0].fc;
   Store.loadLocalA();if(!S.adr||!S.aMap.has(S.adr))S.adr=S.areas[0].ac;
   if(!S.dtr&&S.dtrMap.has('1607010596'))S.dtr='1607010596';

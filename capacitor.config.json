@@ -1,0 +1,9 @@
+{
+  "appId": "com.ameerpetsection.dtrverify",
+  "appName": "YRG DTR Verify",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "adjustMarginsForEdgeToEdge": "auto"
+  }
+}
