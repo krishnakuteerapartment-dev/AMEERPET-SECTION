@@ -11,20 +11,49 @@
  *      Deploy, allow access when Google asks, and copy the Web app URL (ends in /exec).
  *   5. In the app: Guide > Google Sheet backup > paste the URL and the same key > Save and test.
  *
+ * Check: choose testSetup in the function list at the top and click Run. The log should say
+ *   "Key OK" and show your Sheet's name. To change the code later: Deploy > Manage deployments >
+ *   Edit (pencil) > Version: New version > Deploy (the web app URL stays the same).
+ *
  * The app sends entries as JSON. Each tab is keyed on its first column (KEY);
  * an incoming row replaces the stored one only if its T_MS (time in ms) is newer or equal.
  * Removed entries arrive with STATUS_CODE "del", so removals reach the other phones too.
  */
-const BACKUP_KEY = 'CHANGE-THIS-KEY';
+const BACKUP_KEY = 'CHANGE-THIS-KEY';   // <-- put your own secret here (8+ characters), the same one you type in the app
+
+// Leave empty when this script was opened from the Sheet (Extensions > Apps Script).
+// If you created the script on script.google.com instead, paste the Sheet's ID here:
+// it is the long part of the Sheet's address between /d/ and /edit.
+const SHEET_ID = '';
+
+function book_() {
+  const ss = SHEET_ID ? SpreadsheetApp.openById(SHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('No Sheet found: open this script from your Sheet (Extensions > Apps Script) or set SHEET_ID');
+  return ss;
+}
+
+function testSetup() {
+  Logger.log(keySet_() ? 'Key OK' : 'Set BACKUP_KEY to your own secret (8+ characters) first');
+  Logger.log('Sheet: ' + book_().getName());
+}
+
+function keySet_() {
+  return BACKUP_KEY !== 'CHANGE-THIS-KEY' && String(BACKUP_KEY).length >= 8;
+}
 
 function doPost(e) {
+  try { return handlePost_(e); } catch (err) { return json_({ ok: false, error: String(err && err.message || err) }); }
+}
+
+function handlePost_(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, error: 'Request was not valid JSON' }); }
+  if (!keySet_()) return json_({ ok: false, error: 'BACKUP_KEY is not set in the script yet' });
   if (!keyOk_(body && body.key)) return json_({ ok: false, error: 'Wrong backup key' });
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = book_();
     const result = {};
     Object.keys(body.sheets || {}).forEach(function (name) {
       const part = body.sheets[name];
@@ -38,9 +67,14 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  try { return handleGet_(e); } catch (err) { return json_({ ok: false, error: String(err && err.message || err) }); }
+}
+
+function handleGet_(e) {
   const p = (e && e.parameter) || {};
+  if (!keySet_()) return json_({ ok: false, error: 'BACKUP_KEY is not set in the script yet' });
   if (!keyOk_(p.key)) return json_({ ok: false, error: 'Wrong backup key' });
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = book_();
   if (p.ping) return json_({ ok: true, sheet: ss.getName() });
   const names = String(p.sheets || 'Services,Unknown meters,Feeder checks,Area checks').split(',');
   const sheets = {};
@@ -54,7 +88,7 @@ function doGet(e) {
 }
 
 function keyOk_(k) {
-  return BACKUP_KEY !== 'CHANGE-THIS-KEY' && String(k || '') === BACKUP_KEY;
+  return keySet_() && String(k || '') === String(BACKUP_KEY);
 }
 
 function json_(o) {
