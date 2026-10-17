@@ -1635,6 +1635,9 @@ function showSetup(msg){
    attached to the admin's Google Sheet (tools/google-sheet-backup.gs). Rows are keyed, newest time wins,
    so several phones can back up into the same Sheet and pull each other's entries back. */
 const BK_KEY='yrg_backup_v1';
+// Built-in Sheet link (the admin's Apps Script web app). The key is never built in: the admin types it once,
+// and "Save data file" passes it to staff phones. The admin can change the link in Guide.
+const DEFAULT_BACKUP_URL='https://script.google.com/macros/s/AKfycbwscgjcOgNcTe38j1Ft1RhGEEZK3p0N0IiGtYqtypT7Y7mGswLpCT_MBAPa8Eo2bXSNJQ/exec';
 const SHEET_HEAD={
   'Services':['KEY','DTR_VERIFIED','STRUCTURE_NAME','FEEDER','SERVICE_NO','UKSCNO','METER_NO','CONSUMER_NAME','MASTER_DTR','RESULT','STATUS_CODE','SOURCE','SCANNED_TEXT','REASON','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE'],
   'Unknown meters':['KEY','DTR','STRUCTURE_NAME','SCANNED_TEXT','SERVICE_NO','UKSCNO','NOTE','STATUS_CODE','SOURCE','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE'],
@@ -1642,7 +1645,7 @@ const SHEET_HEAD={
   'Area checks':['KEY','AREA_CODE','AREA_NAME','STRUCTURE_CODE','STRUCTURE_NAME','RESULT','STATUS_CODE','SOURCE','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE']
 };
 const Backup={timer:null,busy:false,
-  cfg(){try{return JSON.parse(localStorage.getItem(BK_KEY)||'{}')||{}}catch(e){return{}}},
+  cfg(){let c={};try{c=JSON.parse(localStorage.getItem(BK_KEY)||'{}')||{}}catch(e){}if(!c.url)c.url=DEFAULT_BACKUP_URL;return c},
   setCfg(c){try{localStorage.setItem(BK_KEY,JSON.stringify(c))}catch(e){}},
   ready(){const c=this.cfg();return !!(c.url&&c.key)},
   device(){let d='';try{d=localStorage.getItem('yrg_device')||'';if(!d){d='phone-'+Math.random().toString(36).slice(2,7);localStorage.setItem('yrg_device',d)}}catch(e){d='phone'}return d},
@@ -1667,7 +1670,7 @@ const Backup={timer:null,busy:false,
     const j=await res.json();if(!j.ok)throw new Error(j.error||'Backup refused');return j},
   status(msg,ok){const c=this.cfg();c.last={t:Date.now(),ok,msg};this.setCfg(c);if(ok)$('storeBadge').textContent='Sheet '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
     const el=$('bkStatus');if(el)el.innerHTML=this.statusHtml()},
-  statusHtml(){const c=this.cfg();if(!this.ready())return 'Not set up on this phone.';const l=c.last;
+  statusHtml(){const c=this.cfg();if(!this.ready())return c.url?(Who.sup?'Sheet link is set. Type the backup key below and tap Save and test to start backups.':'Waiting for the admin to set the backup key on this phone (or load the data file from the admin).'):'Not set up on this phone.';const l=c.last;
     return l?`${l.ok?'✓':'✕'} ${h(l.msg)} <span class="muted">· ${h(tstr(l.t))}</span>`:'Set up. No backup yet.'},
   async run(full){
     if(!this.ready()||this.busy)return;if(!navigator.onLine){this.status('Offline. Will back up when online.',false);return}
@@ -1718,9 +1721,11 @@ function backupCard(){
     ${Backup.ready()?`<div class="dlgrid"><button class="btn sm" id="bkNow">Back up now</button><button class="btn sm" id="bkPull">Get entries from Sheet</button>
       ${Who.sup?`<button class="btn sm" id="bkFull">Full backup again</button><button class="btn sm" id="bkMaster">Copy section master to Sheet</button>`:''}</div>
       <p class="hint" style="margin:0">Every change backs up automatically within a minute when the phone is online. "Get entries from Sheet" brings in what other phones have backed up.</p>`:''}
-    ${Who.sup?`<details ${Backup.ready()?'':'open'}><summary class="sumry">${Backup.ready()?'Change Sheet settings':'Set up backup'}</summary>
+    ${Who.sup?`<details ${Backup.ready()?'':'open'}><summary class="sumry">${Backup.ready()?'Change Sheet settings':'Set up backup: type the key'}</summary>
       <form id="bkForm" class="stack" style="margin-top:8px">
+        <label class="lbl" for="bkUrl">Web app URL${c.url===DEFAULT_BACKUP_URL?' (built in)':''}</label>
         <input class="inp" id="bkUrl" inputmode="url" autocapitalize="none" spellcheck="false" placeholder="Web app URL (https://script.google.com/macros/s/…/exec)" value="${h(c.url||'')}">
+        <label class="lbl" for="bkKey">Backup key</label>
         <input class="inp" id="bkKey" type="password" autocomplete="off" placeholder="Backup key (same as BACKUP_KEY in the script)" value="${h(c.key||'')}">
         <button class="btn primary" type="submit">Save and test</button></form>
       <ol class="small" style="padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;gap:4px">
