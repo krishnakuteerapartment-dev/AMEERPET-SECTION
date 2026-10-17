@@ -206,12 +206,21 @@ table.inner th,table.inner td{padding:5px 8px;font-size:12px}
 .drow:first-child{border-top:0}
 .drow .tsub{grid-column:1/-1}
 .drow>div{min-width:0;overflow-wrap:anywhere}
+.inp{display:block;width:100%;min-height:46px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:0 12px;color:var(--ink);font-size:16px}
+.upill{background:rgba(255,255,255,.18);color:inherit;border:0;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;max-width:40vw;overflow:hidden;text-overflow:ellipsis}
+.login{max-width:420px;width:100%;margin:6vh auto 0}
+.brand{display:flex;gap:12px;align-items:center}
+.brand svg{width:44px;height:44px;color:var(--accent);flex:none}
+.brand b{display:block;font-family:var(--f-head);font-size:20px}
+.brand span{font-size:13px;color:var(--muted)}
+.sumry{cursor:pointer;font-weight:600;padding:6px 0}
 .loading{display:grid;place-items:center;min-height:50vh;color:var(--muted);text-align:center}
 </style>
 </head><body>
 
 <header class="top"><div class="top-in">
   <h1 id="hdr">DTR Verification<small>Sec 10 Yella Reddy Guda · ERO 11</small></h1>
+  <button class="upill" id="userPill" hidden></button>
   <span class="store" id="storeBadge">Loading</span>
 </div></header>
 
@@ -355,8 +364,8 @@ const Store={mode:'device',db:null,seen:new Set(),
 function vrec(dtr){return S.ver[dtr]||{s:{},x:{}}}
 function pendingList(d){const v=vrec(d.code),el=elsewhereIndex();return d.list.filter(o=>!live(v.s[o.u])&&!el.has(o.u))}
 /* One service, one DTR.
-   A "location claim" is any live record saying the meter was found on a DTR: ok (its own DTR), other (a different DTR), conf (sent to AE review).
-   Two or more claims for the same UKSCNO = a conflict that only the AE (page owner / editor) can resolve. */
+   A "location claim" is any live record saying the meter was found on a DTR: ok (its own DTR), other (a different DTR), conf (sent to admin review).
+   Two or more claims for the same UKSCNO = a conflict that only the admin (page owner / editor) can resolve. */
 const CLAIM=new Set(['ok','other','conf']);
 const isClaim=r=>live(r)&&CLAIM.has(r.st);
 function claimsFor(u,exceptDtr){
@@ -388,24 +397,23 @@ function dtrConflicts(code,cx){ // conflicts that touch this DTR: a claim here, 
 }
 
 /* ---------- who is recording ----------
-   Inside the page: the viewer's id from the user capability; the owner and editors act as AE (supervisor).
+   Inside the page: the viewer's id from the user capability; the signed-in admin acts as supervisor.
    Hosted on its own: a random id per device, and that device is the supervisor. Only ids are stored, never names. */
-const Who={id:null,sup:false,u:null,ready:false,
-  async init(){
-    try{if(window.claude&&typeof window.claude.use==='function'){const u=await window.claude.use('user');
-      if(u){this.u=u;const me=await u.me();this.id=me.id;this.sup=!!(me.isOwner||me.canEdit)}else this.sup=true}else this.sup=true}catch(e){this.sup=true}
-    if(!this.id){try{let d=localStorage.getItem('dtrverify_dev');if(!d){d='dev-'+Math.random().toString(36).slice(2,10);localStorage.setItem('dtrverify_dev',d)}this.id=d}catch(e){this.id='dev-local'}}
+const Who={id:null,sup:false,u:null,ready:false,name:'',
+  fromSession(){const s=Auth.session();if(s){this.id='user:'+s.name;this.name=s.name;this.sup=s.role==='admin'}else{this.id=null;this.name='';this.sup=false}},
+  async init(){ // older entries made on claude.ai carry account ids; this resolves their names there
+    try{if(window.claude&&typeof window.claude.use==='function'){const u=await window.claude.use('user');if(u)this.u=u}}catch(e){}
     this.ready=true;
   },
   async fill(root){ // put display names into [data-uid] spans
     const els=[...(root||main).querySelectorAll('[data-uid]')];if(!els.length)return;
     const ids=[...new Set(els.map(e=>e.dataset.uid).filter(i=>i&&i.startsWith('u_')))];
     let ps={};if(this.u&&ids.length){try{ps=await this.u.profiles(ids)}catch(e){}}
-    els.forEach(e=>{const id=e.dataset.uid;e.textContent=!id?'unknown':id===this.id?'you':(ps[id]&&ps[id].name)||(id.startsWith('dev-')?'another device':'another user')});
+    els.forEach(e=>{const id=e.dataset.uid;e.textContent=!id?'unknown':id===this.id?'you':id.startsWith('user:')?id.slice(5):(ps[id]&&ps[id].name)||(id.startsWith('dev-')?'another device':'another user')});
   }
 };
 const byTag=id=>`<span data-uid="${h(id||'')}">…</span>`;
-const ST_LABEL={ok:'Verified',other:'Found here',conf:'In AE review',nf:'Not found',na:'No access'};
+const ST_LABEL={ok:'Verified',other:'Found here',conf:'In admin review',nf:'Not found',na:'No access'};
 
 /* ---------- scan matching ---------- */
 function resolveScan(text){
@@ -478,7 +486,7 @@ async function decide(action){
     S.last={kind:'other',o,src:p.src,by:p.by,multi:p.multi,undo:{kind:'s',key:o.u,prev}};beep('ok');
   }else if(action==='review'){
     await Store.put(S.dtr,'s',o.u,{st:'conf',src:p.src,raw:p.raw,t:now,mdtr:o.dtr,reason,by:Who.id});
-    S.last={kind:'conf',o,src:p.src,by:p.by,others:p.others,reason,undo:{kind:'s',key:o.u,prev}};toast('Sent to AE review');
+    S.last={kind:'conf',o,src:p.src,by:p.by,others:p.others,reason,undo:{kind:'s',key:o.u,prev}};toast('Sent to admin review');
   }else if(action==='move'&&Who.sup){
     await Store.put(S.dtr,'s',o.u,{st:o.dtr===S.dtr?'ok':'other',src:p.src,raw:p.raw,t:now,mdtr:o.dtr,reason,by:Who.id,moved:1});
     for(const c of p.others)await Store.put(c.dtr,'s',o.u,{del:1,t:now,movedTo:S.dtr,reason,by:Who.id});
@@ -559,18 +567,18 @@ function pendingHtml(p){
     <div class="claims"><div class="small"><b>Already recorded on:</b></div>${p.others.map(claimLine).join('')}</div>
     <p class="small" style="margin:0">One service can be on only one DTR. Master DTR is <b>${h(o.dtr)}</b>${md&&md.name?' ('+h(md.name)+')':''}. Nothing has been saved for this scan.</p>
     <div><label class="lbl" for="pReason">Reason (needed to send for review or move)</label><select class="sel" id="pReason"><option value="">Choose reason…</option>${REASONS.map(x=>`<option>${h(x)}</option>`).join('')}</select></div>
-    <div class="btn-row"><button class="btn primary" data-pa="cancel">Cancel, wrong scan</button><button class="btn" data-pa="review">Send to AE review</button></div>
-    ${Who.sup?`<button class="btn block" data-pa="move">AE: move to this DTR and remove the earlier entry</button>`:'<p class="hint">Only the AE (page owner or editor) can move a service between DTRs.</p>'}
+    <div class="btn-row"><button class="btn primary" data-pa="cancel">Cancel, wrong scan</button><button class="btn" data-pa="review">Send to admin review</button></div>
+    ${Who.sup?`<button class="btn block" data-pa="move">Admin: move to this DTR and remove the earlier entry</button>`:'<p class="hint">Only the admin can move a service between DTRs.</p>'}
   </div>`;
 }
 function confBanner(d){
   if(!d)return '';const n=dtrConflicts(d.code).length;
-  return n?`<button class="cbanner" id="toConf">${I.warn}<span><b>${n} service${n>1?'s':''} on this DTR ${n>1?'are':'is'} also recorded on another DTR.</b> The AE must pick the correct DTR in Report.</span></button>`:'';
+  return n?`<button class="cbanner" id="toConf">${I.warn}<span><b>${n} service${n>1?'s':''} on this DTR ${n>1?'are':'is'} also recorded on another DTR.</b> The admin must pick the correct DTR in Report.</span></button>`:'';
 }
 function resultHtml(r){
-  if(r.kind==='conf')return `<div class="res unk" role="status"><div class="verdict">${I.warn}Sent to AE review</div>
+  if(r.kind==='conf')return `<div class="res unk" role="status"><div class="verdict">${I.warn}Sent to admin review</div>
     <div class="ids"><div class="idbox"><span>Service no</span><b>${h(r.o.s)}</b></div><div class="idbox"><span>UKSCNO</span><b>${h(r.o.u)}</b></div></div>
-    <p class="small" style="margin:0">${r.dup?'Already in review on this DTR. ':''}Recorded on DTR ${h(S.dtr.slice(-3))} as a disputed claim${r.reason?' ('+h(r.reason)+')':''}. It shows under Conflicts in Report until the AE picks one DTR.</p>
+    <p class="small" style="margin:0">${r.dup?'Already in review on this DTR. ':''}Recorded on DTR ${h(S.dtr.slice(-3))} as a disputed claim${r.reason?' ('+h(r.reason)+')':''}. It shows under Conflicts in Report until the admin picks one DTR.</p>
     ${r.undo?'<div class="row"><button class="btn sm" id="undoBtn">Undo</button></div>':''}</div>`;
   if(r.kind==='legacy')return `<div class="res unk" role="status"><div class="verdict">${I.x}Not in current service mapping</div>
     <div class="ids"><div class="idbox"><span>Service no</span><b>${h(r.o.s)}</b></div><div class="idbox"><span>UKSCNO</span><b>${h(r.o.u)}</b></div></div>
@@ -589,7 +597,7 @@ function resultHtml(r){
     <div><b>${h(o.n)}</b> ${phPill(o.ph)}<div class="small">${h(o.a)}</div></div>
     <div class="small">Meter <b class="mono">${h(o.m)}</b> · ${h(o.mk||'')} · matched by ${h(r.by)} · ${h(r.src)}</div>
     ${r.kind==='other'?`<p class="small" style="margin:0">Recorded as <b>found on DTR ${h(dtrLabel(S.dtr))}</b>. The EBS master maps it to ${h(dtrLabel(o.dtr))}, so its structure code may need correction.</p>`:''}
-    ${r.moved?`<p class="small" style="margin:0">Moved here by the AE. Removed from DTR ${r.moved.map(x=>h(x.slice(-3))).join(', ')}.</p>`:''}
+    ${r.moved?`<p class="small" style="margin:0">Moved here by the admin. Removed from DTR ${r.moved.map(x=>h(x.slice(-3))).join(', ')}.</p>`:''}
     ${r.multi?`<p class="small" style="margin:0">This meter number is on ${r.multi.length} services in the master: ${r.multi.map(x=>h(x.s)+' (DTR '+h(x.dtr)+')').join(', ')}.</p>`:''}
     ${r.undo?'<div class="row"><button class="btn sm" id="undoBtn">Undo</button></div>':''}
   </div>`;
@@ -613,7 +621,7 @@ function rowHtml({o,r,el}){
   else if(live(r)&&r.st==='na')right='<span class="pill warn">No access</span>';
   else if(el)right=`<span class="pill warn">Seen on DTR ${h(el.dtr.slice(-4))}</span>`;
   else right=o.m==='0'?'<span class="pill neutral">No meter no</span>':'<span class="pill neutral">Pending</span>';
-  if(live(r)&&r.st==='conf')right='<span class="pill bad">In AE review</span>';
+  if(live(r)&&r.st==='conf')right='<span class="pill bad">In admin review</span>';
   if(S.cx&&S.cx.has(o.u))right=`<span class="pill bad">Conflict: ${S.cx.get(o.u).map(c=>h(c.dtr.slice(-3))).join(' / ')}</span>`;
   const isOpen=S.open===o.u;
   return `<button class="li ${isOpen?'open':''}" data-u="${h(o.u)}" aria-expanded="${isOpen}">
@@ -630,7 +638,7 @@ function detailHtml(o,r){
       <div><dt>Category · load</dt><dd>Cat ${h(o.ct)} · ${o.ld} kW</dd></div><div><dt>Seal no</dt><dd class="mono">${h(o.sl||'—')}</dd></div>
       <div><dt>Master DTR</dt><dd class="mono">${h(dtrLabel(o.dtr))}</dd></div><div><dt>Last reading</dt><dd class="mono">${fmt(o.r)} (${h(o.rm)})</dd></div>
     </dl>
-    ${live(r)?`<div class="small muted">Recorded: ${h({ok:'Verified',other:'Found on this DTR',conf:'Disputed, in AE review',nf:'Not found at site',na:'No access'}[r.st])} · ${h(r.src)} · ${h(tstr(r.t))} · by ${byTag(r.by)}${r.reason?' · '+h(r.reason):''}${r.raw?' · scanned '+h(r.raw.slice(0,30)):''}</div>`:''}
+    ${live(r)?`<div class="small muted">Recorded: ${h({ok:'Verified',other:'Found on this DTR',conf:'Disputed, in admin review',nf:'Not found at site',na:'No access'}[r.st])} · ${h(r.src)} · ${h(tstr(r.t))} · by ${byTag(r.by)}${r.reason?' · '+h(r.reason):''}${r.raw?' · scanned '+h(r.raw.slice(0,30)):''}</div>`:''}
     ${S.cx&&S.cx.has(o.u)?`<div class="claims"><div class="small"><b>Recorded on more than one DTR:</b></div>${S.cx.get(o.u).map(claimLine).join('')}</div>`:''}
     ${r&&live(r)&&(r.st==='other'||r.st==='conf')?'':`<div class="btn-row3">
       <button class="btn sm" data-mark="ok" data-mu="${h(o.u)}">Seen, OK</button>
@@ -834,8 +842,8 @@ async function demoRead(){
 /* ---------- FEEDERS: feeder-wise structure check ----------
    S.fv[feederCode] = { s:{ structureCode:{st,src,t,by,mf,reason} } }
    st: ok = structure confirmed on its own feeder · other = found on this feeder, mapping says another feeder
-       conf = disputed, sent to AE review · nf = not on this feeder at site
-   One structure, one feeder: a second feeder claim is held and goes to the AE. */
+       conf = disputed, sent to admin review · nf = not on this feeder at site
+   One structure, one feeder: a second feeder claim is held and goes to the admin. */
 Object.assign(Store,{seenF:new Set(),
   loadLocalF(){try{const j=localStorage.getItem(LSF);if(j)S.fv=JSON.parse(j)||{}}catch(e){}try{const f=localStorage.getItem(LSFS);if(f)S.fdr=f}catch(e){}},
   saveLocalF(){try{localStorage.setItem(LSF,JSON.stringify(S.fv))}catch(e){}},
@@ -867,7 +875,7 @@ function fStats(f,el){const v=fvrec(f.fc);el=el||fElsewhere();let ok=0,nf=0,e=0;
   for(const d of f.list){const r=v.s[d.code];if(live(r)&&r.st==='ok')ok++;else if(live(r)&&r.st==='nf')nf++;else if(el.has(d.code))e++}
   let other=0;for(const r of Object.values(v.s))if(live(r)&&(r.st==='other'||r.st==='conf'))other++;
   return{n:f.list.length,ok,nf,el:e,other,pending:f.list.length-ok-nf-e}}
-const FLBL={ok:'Confirmed',other:'Found on this feeder',conf:'In AE review',nf:'Not on this feeder'};
+const FLBL={ok:'Confirmed',other:'Found on this feeder',conf:'In admin review',nf:'Not on this feeder'};
 function resolveStruct(text){
   const t=String(text||'').toUpperCase().trim();
   const full=t.match(/1607\d{6}/);if(full&&S.dtrMap.has(full[0]))return full[0];
@@ -899,7 +907,7 @@ async function decideF(action){
   if((action==='review'||action==='move')&&!reason){toast('Choose a reason first');return}
   const prev=fvrec(S.fdr).s[code];
   if(action==='confirm'){await Store.putF(S.fdr,code,{st:'other',src:p.src,t:now,mf:d.fc||'',by:Who.id});S.flast={kind:'other',code,src:p.src,undo:{key:code,prev}};beep('ok')}
-  else if(action==='review'){await Store.putF(S.fdr,code,{st:'conf',src:p.src,t:now,mf:d.fc||'',reason,by:Who.id});S.flast={kind:'conf',code,src:p.src,reason,undo:{key:code,prev}};toast('Sent to AE review')}
+  else if(action==='review'){await Store.putF(S.fdr,code,{st:'conf',src:p.src,t:now,mf:d.fc||'',reason,by:Who.id});S.flast={kind:'conf',code,src:p.src,reason,undo:{key:code,prev}};toast('Sent to admin review')}
   else if(action==='move'&&Who.sup){await Store.putF(S.fdr,code,{st:d.fc===S.fdr?'ok':'other',src:p.src,t:now,mf:d.fc||'',reason,by:Who.id,moved:1});
     for(const c of p.others)await Store.putF(c.fc,code,{del:1,t:now,movedTo:S.fdr,reason,by:Who.id});
     S.flast={kind:d.fc===S.fdr?'ok':'other',code,src:p.src,moved:p.others.map(c=>c.fc)};toast('Moved to this feeder. Earlier entry removed.')}
@@ -922,19 +930,19 @@ function fResultBlock(){
     <div class="claims"><div class="small"><b>Already recorded on:</b></div>${p.others.map(fClaimLine).join('')}</div>
     <p class="small" style="margin:0">One structure can be on only one feeder. Nothing has been saved.</p>
     <div><label class="lbl" for="fReason">Reason (needed to send for review or move)</label><select class="sel" id="fReason"><option value="">Choose reason…</option>${['Structure is physically on this feeder (checked at site)','Earlier entry was on the wrong feeder','Feeder changed after load shifting','Not sure, needs joint site check'].map(x=>`<option>${h(x)}</option>`).join('')}</select></div>
-    <div class="btn-row"><button class="btn primary" data-fa="cancel">Cancel, wrong entry</button><button class="btn" data-fa="review">Send to AE review</button></div>
-    ${Who.sup?'<button class="btn block" data-fa="move">AE: move to this feeder and remove the earlier entry</button>':'<p class="hint">Only the AE can move a structure between feeders.</p>'}</div>`;
+    <div class="btn-row"><button class="btn primary" data-fa="cancel">Cancel, wrong entry</button><button class="btn" data-fa="review">Send to admin review</button></div>
+    ${Who.sup?'<button class="btn block" data-fa="move">Admin: move to this feeder and remove the earlier entry</button>':'<p class="hint">Only the admin can move a structure between feeders.</p>'}</div>`;
   const r=S.flast;if(!r)return '';
   if(r.kind==='unk')return `<div class="res unk" role="status"><div class="verdict">${I.x}Not a structure code in the mapping</div><div class="idbox"><span>Read · ${h(r.src)}</span><b>${h(r.raw)}</b></div><p class="small" style="margin:0">Type the structure code (for example 029 or 1607010029) or scan a code that contains it.</p></div>`;
   const d=S.dtrMap.get(r.code);
-  const v=r.kind==='ok'?(r.dup?`${I.check}Already confirmed (${h(tstr(r.dupT))})`:`${I.check}Confirmed on this feeder`):r.kind==='conf'?`${I.warn}Sent to AE review`:r.dup?`${I.warn}Already recorded on this feeder`:`${I.warn}Recorded: found on this feeder`;
+  const v=r.kind==='ok'?(r.dup?`${I.check}Already confirmed (${h(tstr(r.dupT))})`:`${I.check}Confirmed on this feeder`):r.kind==='conf'?`${I.warn}Sent to admin review`:r.dup?`${I.warn}Already recorded on this feeder`:`${I.warn}Recorded: found on this feeder`;
   return `<div class="res ${r.kind==='ok'?'ok':r.kind==='conf'?'unk':'other'}" role="status"><div class="verdict">${v}</div>${structHead(r.code)}
     ${r.kind==='other'&&!r.dup?`<p class="small" style="margin:0">The mapping puts it on ${h(d.fc?fName(d.fc):'no feeder')}, so its feeder may need correction.</p>`:''}
-    ${r.moved?`<p class="small" style="margin:0">Moved here by the AE. Removed from ${r.moved.map(x=>h(fName(x))).join(', ')}.</p>`:''}
+    ${r.moved?`<p class="small" style="margin:0">Moved here by the admin. Removed from ${r.moved.map(x=>h(fName(x))).join(', ')}.</p>`:''}
     <div class="row">${r.undo?'<button class="btn sm" id="fUndo">Undo</button>':''}${S.dtrSet.has(r.code)?`<button class="btn sm" data-svc="${h(r.code)}">Verify its services</button>`:''}</div></div>`;
 }
 function fBanner(f){const cx=fConflictIndex();let n=0;for(const [k,c] of cx){const d=S.dtrMap.get(k);if(c.some(x=>x.fc===f.fc)||(d&&d.fc===f.fc))n++}
-  return n?`<button class="cbanner" id="fToConf">${I.warn}<span><b>${n} structure${n>1?'s':''} on this feeder ${n>1?'are':'is'} also recorded on another feeder.</b> The AE must pick the correct feeder in Report.</span></button>`:''}
+  return n?`<button class="cbanner" id="fToConf">${I.warn}<span><b>${n} structure${n>1?'s':''} on this feeder ${n>1?'are':'is'} also recorded on another feeder.</b> The admin must pick the correct feeder in Report.</span></button>`:''}
 const fTabsHtml=st=>[['pending','Pending',st.pending,''],['ok','Confirmed',st.ok,'t-ok'],['other','From other feeder',st.other,'t-other'],['nf','Not on feeder',st.nf+st.el,'t-nf']].map(([k,l,n,c])=>`<button class="stab ${c}" data-ft="${k}" aria-pressed="${S.ftab===k}"><b>${n}</b><span>${l}</span></button>`).join('');
 function fListHtml(f,el){
   const v=fvrec(f.fc);const cx=fConflictIndex();let items;
@@ -947,7 +955,7 @@ function fListHtml(f,el){
     let right;
     if(live(r)&&r.st==='ok')right='<span class="pill ok">Confirmed</span>';
     else if(live(r)&&r.st==='other')right=`<span class="pill warn">Mapping: other feeder</span>`;
-    else if(live(r)&&r.st==='conf')right='<span class="pill bad">In AE review</span>';
+    else if(live(r)&&r.st==='conf')right='<span class="pill bad">In admin review</span>';
     else if(live(r)&&r.st==='nf')right='<span class="pill bad">Not on feeder</span>';
     else if(e)right='<span class="pill warn">Seen on other feeder</span>';
     else right='<span class="pill neutral">Pending</span>';
@@ -1023,10 +1031,10 @@ function bindFDynamic(){
 function fRerender(){const y=window.scrollY;if(cam.timer||cam.stream)refreshF();else{renderFeeder();window.scrollTo(0,y)}}
 function selectFeeder(fc){if(!S.fMap.has(fc))return;S.fdr=fc;S.flast=null;S.fpending=null;S.fopen=null;S.ftab='pending';S.flimit=200;try{localStorage.setItem(LSFS,fc)}catch(e){}stopCam();renderFeeder();if(S.fpanel==='scan'&&!S.liveBlocked)startLive()}
 async function resolveFConflict(code,keep){
-  if(!Who.sup){toast('Only the AE can resolve conflicts');return}
+  if(!Who.sup){toast('Only the admin can resolve conflicts');return}
   const d=S.dtrMap.get(code);const c=claimsF(code,null);const now=Date.now();const w=c.find(x=>x.fc===keep);if(!w)return;
   await Store.putF(keep,code,{...w.rec,st:keep===d.fc?'ok':'other',mf:d.fc||'',t:now,resolved:1,resolvedBy:Who.id});
-  for(const x of c)if(x.fc!==keep)await Store.putF(x.fc,code,{del:1,t:now,movedTo:keep,by:Who.id,reason:'AE resolved conflict'});
+  for(const x of c)if(x.fc!==keep)await Store.putF(x.fc,code,{del:1,t:now,movedTo:keep,by:Who.id,reason:'Admin resolved conflict'});
   toast('Structure '+code.slice(-3)+' kept on '+fName(keep));vReport();
 }
 function exportFeeder(f){
@@ -1335,7 +1343,7 @@ function rConflicts(R,cx,fcx){
       <div class="row between"><div><span class="mono" style="font-weight:600">${h(o.s)}</span> · UKSCNO <span class="mono">${h(o.u)}</span></div>${phPill(o.ph)}</div>
       <div class="small"><b>${h(o.n)}</b> · meter <span class="mono">${h(o.m)}</span> · master DTR <span class="mono">${h(o.dtr)}</span></div>
       ${c.map(x=>`<div class="claimrow">${claimLine(x)}${Who.sup?`<button class="btn sm" data-keep="${h(u)}" data-kd="${h(x.dtr)}">Keep ${h(x.dtr.slice(-3))}</button>`:''}</div>`).join('')}
-      ${Who.sup?'':'<p class="hint">Waiting for the AE to pick the correct DTR.</p>'}
+      ${Who.sup?'':'<p class="hint">Waiting for the admin to pick the correct DTR.</p>'}
     </div>`}).join(''):'<p class="hint" style="margin:0">No service is recorded on more than one DTR.</p>'}
   </section>
   <section id="fconflicts" class="stack">
@@ -1344,7 +1352,7 @@ function rConflicts(R,cx,fcx){
       <div><span class="mono" style="font-weight:600">${h(k)}</span> · ${h(d&&d.name||'NO NAME')}</div>
       <div class="small">${d?d.list.length:0} services · mapping feeder: ${h(d&&d.fc?fName(d.fc):'none')}</div>
       ${c.map(x=>`<div class="claimrow">${fClaimLine(x)}${Who.sup?`<button class="btn sm" data-fkeep="${h(k)}" data-fkf="${h(x.fc)}">Keep</button>`:''}</div>`).join('')}
-      ${Who.sup?'':'<p class="hint">Waiting for the AE to pick the correct feeder.</p>'}</div>`}).join(''):'<p class="hint" style="margin:0">No structure is recorded on more than one feeder.</p>'}
+      ${Who.sup?'':'<p class="hint">Waiting for the admin to pick the correct feeder.</p>'}</div>`}).join(''):'<p class="hint" style="margin:0">No structure is recorded on more than one feeder.</p>'}
   </section>`;
 }
 function bindReport(){
@@ -1391,18 +1399,18 @@ function exportAreaDetail(ac){
   saveRaw('Area_'+ac+'_report.csv',rows.map(csvRow).join('\n'));
 }
 async function resolveConflict(u,keep){
-  if(!Who.sup){toast('Only the AE can resolve conflicts');return}
+  if(!Who.sup){toast('Only the admin can resolve conflicts');return}
   const o=S.byU.get(u);const c=claimsFor(u,null);const now=Date.now();
   const w=c.find(x=>x.dtr===keep);if(!w)return;
   await Store.put(keep,'s',u,{...w.rec,st:keep===o.dtr?'ok':'other',mdtr:o.dtr,t:now,resolved:1,resolvedBy:Who.id});
-  for(const x of c)if(x.dtr!==keep)await Store.put(x.dtr,'s',u,{del:1,t:now,movedTo:keep,by:Who.id,reason:'AE resolved conflict'});
+  for(const x of c)if(x.dtr!==keep)await Store.put(x.dtr,'s',u,{del:1,t:now,movedTo:keep,by:Who.id,reason:'Admin resolved conflict'});
   toast(o.s+' kept on DTR '+keep.slice(-3));vReport();
 }
 
 /* ---------- export ---------- */
 const csvRow=r=>r.map(c=>{c=String(c==null?'':c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',');
 const HEAD=['DTR_VERIFIED','STRUCTURE_NAME','FEEDER','RESULT','SERVICE_NO','UKSCNO','METER_NO','MASTER_DTR','NAME','PHASE','SOURCE','SCANNED_TEXT','TIME'];
-const LBL={ok:'VERIFIED',other:'FOUND HERE - MASTER DTR DIFFERS',conf:'DISPUTED - IN AE REVIEW',nf:'NOT FOUND AT SITE',na:'NO ACCESS'};
+const LBL={ok:'VERIFIED',other:'FOUND HERE - MASTER DTR DIFFERS',conf:'DISPUTED - IN ADMIN REVIEW',nf:'NOT FOUND AT SITE',na:'NO ACCESS'};
 function dtrRows(d,withPending,elsew){
   const v=vrec(d.code),rows=[];elsew=elsew||elsewhereIndex();
   for(const o of d.list){const r=v.s[o.u];
@@ -1449,7 +1457,7 @@ function exportAll(){const rows=[],elsew=elsewhereIndex();for(const d of S.dtrs)
 
 /* ---------- GUIDE ---------- */
 function vGuide(){
-  main.innerHTML=`<div class="plan stack">${dataCard()}
+  main.innerHTML=`<div class="plan stack">${accountCard()}${dataCard()}
   <div class="card stack">
     <p class="eyebrow">How to verify a DTR</p>
     <ol>
@@ -1476,7 +1484,7 @@ function vGuide(){
       <li>Open <b>Feeders</b> and pick a feeder. The list shows every structure the service mapping puts on that feeder.</li>
       <li>At each DTR, confirm it: scan a tag that carries the structure code, type the code (029 or 1607010029) or name, or open its row and tap <b>Confirm here</b>.</li>
       <li>A structure the mapping puts on another feeder asks "Is this structure really fed from this feeder?" before it is recorded as <b>From other feeder</b>.</li>
-      <li>One structure can be on only one feeder. A second feeder claim is held, and only the AE can move it. Conflicts appear in Report.</li>
+      <li>One structure can be on only one feeder. A second feeder claim is held, and only the admin can move it. Conflicts appear in Report.</li>
       <li>Tap <b>Services</b> on a structure to jump to its DTR and verify the meters on it.</li>
     </ol>
   </div>
@@ -1485,8 +1493,8 @@ function vGuide(){
     <ul>
       <li><b>Scan on its own DTR</b>: saved as Verified straight away.</li>
       <li><b>Scan on a different DTR</b>: nothing is saved until you confirm "Yes, found here". This catches the common mistake of having the wrong DTR selected in the dropdown.</li>
-      <li><b>Scan of a service already placed on another DTR</b>: the scan is held and the app shows where it is already recorded, by whom and when. The person can cancel, or send it to AE review with a reason. Staff cannot overwrite an earlier entry.</li>
-      <li><b>AE decides</b>: open conflicts appear on both DTRs and under Conflicts in Report. The AE (page owner or editor) taps <b>Keep</b> on the correct DTR, and the other entry is removed with a note of who moved it and why.</li>
+      <li><b>Scan of a service already placed on another DTR</b>: the scan is held and the app shows where it is already recorded, by whom and when. The person can cancel, or send it to admin review with a reason. Staff cannot overwrite an earlier entry.</li>
+      <li><b>Admin decides</b>: open conflicts appear on both DTRs and under Conflicts in Report. The admin taps <b>Keep</b> on the correct DTR, and the other entry is removed with a note of who moved it and why.</li>
       <li>Every entry stores who recorded it, when, and how (scan, IRDA, typed or manual), so repeated wrong mappings can be traced to a person.</li>
     </ul>
   </div>
@@ -1519,13 +1527,13 @@ function vGuide(){
     <ol>
       <li><b>Now:</b> use this page for DTR verification with QR / barcode scan and manual marks.</li>
       <li><b>Android app:</b> same screens in Kotlin or Flutter, with offline storage and ML Kit continuous scanning. Add GPS and a photo per meter as proof.</li>
-      <li><b>Sync and office view:</b> several staff verifying different DTRs, with the AE seeing progress and the wrong-DTR list.</li>
+      <li><b>Sync and office view:</b> several staff verifying different DTRs, with the admin seeing progress and the wrong-DTR list.</li>
       <li><b>IRDA:</b> one probe and one make (HPL single-phase) reading the serial, then 3-phase and the other makes.</li>
     </ol>
   </div>
   <div class="card small muted">This page holds consumer names and addresses for your section. Keep the link private and share it only with section staff who need it.</div>
   </div>`;
-  bindDataCard();
+  bindDataCard();bindAccount();
 }
 
 /* ---------- section data: built in, saved on this phone, or loaded from a file ----------
@@ -1593,8 +1601,8 @@ function dataCard(){
   return `<div class="card stack" id="dataCard"><p class="eyebrow">Data on this phone</p>
     <dl class="kv"><div style="grid-column:1/-1"><dt>Source</dt><dd>${h(m.src||'—')}</dd></div><div><dt>Service mapping</dt><dd>${h(m.mapOn||'—')}</dd></div><div><dt>Meter details from</dt><dd>${h(m.masterOn||'—')}</dd></div>
     <div><dt>Services</dt><dd>${fmt(S.live.length)}</dd></div><div><dt>Structures</dt><dd>${fmt(S.structCount||0)}</dd></div></dl>
-    <div class="dlgrid"><label class="btn sm" for="xlsFile">Load new mapping Excel</label><label class="btn sm" for="dataFile">Load section data file</label>
-    <button class="btn sm" id="expData">${I.dl}Save data file</button>${m.loaded?'<button class="btn sm" id="clrData">Remove from this phone</button>':''}</div>
+    ${Who.sup?`<div class="dlgrid"><label class="btn sm" for="xlsFile">Load new mapping Excel</label><label class="btn sm" for="dataFile">Load section data file</label>
+    <button class="btn sm" id="expData">${I.dl}Save data file</button>${m.loaded?'<button class="btn sm" id="clrData">Remove from this phone</button>':''}</div>`:'<p class="hint" style="margin:0">Only the admin can load, save or remove the section data.</p>'}
     <p class="hint">A new Service Mapping Excel replaces the structure mapping and keeps the meter numbers already on this phone. "Save data file" makes a file you can load on other staff phones. Data stays in this browser and is never uploaded.</p></div>`;
 }
 function bindDataCard(){
@@ -1604,16 +1612,127 @@ function bindDataCard(){
 function showSetup(msg){
   document.querySelectorAll('.tab').forEach(b=>b.disabled=true);
   $('storeBadge').textContent='No data';
+  if(!Who.sup){main.innerHTML=`<section class="card stack"><p class="eyebrow">No data on this phone</p><h2>Ask the admin to load the section data</h2>
+    <p style="margin:0">Only the admin can load the section data file on this phone. Ask the admin to sign in here and load it.</p>
+    <button class="btn" id="soBtn">Sign out</button></section>`;$('soBtn').onclick=signOut;return}
   main.innerHTML=`<section class="card stack">
     <p class="eyebrow">First time on this phone</p>
     <h2>Load your section data</h2>
     ${msg?`<p class="small" style="color:var(--bad);margin:0">${h(msg)}</p>`:''}
     <p style="margin:0">This app does not carry consumer data. Load it once on this phone and it stays here, in this browser only.</p>
     <label class="btn primary big" for="dataFile">${I.dl}Load section data file (.json)</label>
-    <p class="hint">The file your AE shares, e.g. YRGuda_section_data.json. It has services, meter numbers, structures, feeders and areas.</p>
+    <p class="hint">The file your admin shares, e.g. YRGuda_section_data.json. It has services, meter numbers, structures, feeders and areas.</p>
     <label class="btn big" for="xlsFile">Load Service Mapping Excel (.xlsx)</label>
     <p class="hint">The Service Mapping export from EBS. Without the data file there are no meter numbers, so scanning works by service number or UKSCNO only.</p>
   </section>`;
+}
+
+/* ---------- sign in ----------
+   Logins are kept on this phone. Passwords are stored only as salted SHA-256 hashes.
+   Default: user "admin", password 123456 (change it after the first sign-in). The admin adds staff logins.
+   This locks the app on a shared phone; it is not server security, because the code runs on the phone. */
+function sha256(ascii){ // compact SHA-256 over a byte string (works without crypto.subtle)
+  function rr(v,a){return(v>>>a)|(v<<(32-a))}
+  const mw=Math.pow(2,32);let res='',i,j;const words=[],bl=ascii.length*8;
+  let hash=sha256.h=sha256.h||[];const k=sha256.k=sha256.k||[];let pc=k.length;const comp={};
+  for(let c=2;pc<64;c++){if(!comp[c]){for(i=0;i<313;i+=c)comp[i]=c;hash[pc]=(Math.pow(c,.5)*mw)|0;k[pc++]=(Math.pow(c,1/3)*mw)|0}}
+  ascii+='\x80';while(ascii.length%64-56)ascii+='\x00';
+  for(i=0;i<ascii.length;i++){j=ascii.charCodeAt(i);words[i>>2]|=j<<((3-i)%4)*8}
+  words[words.length]=((bl/mw)|0);words[words.length]=bl;
+  for(j=0;j<words.length;){const w=words.slice(j,j+=16),old=hash;hash=hash.slice(0,8);
+    for(i=0;i<64;i++){const w15=w[i-15],w2=w[i-2],a=hash[0],e=hash[4];
+      const t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]+(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      const t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash);hash[4]=(hash[4]+t1)|0}
+    for(i=0;i<8;i++)hash[i]=(hash[i]+old[i])|0}
+  for(i=0;i<8;i++)for(j=3;j+1;j--){const b=(hash[i]>>(j*8))&255;res+=((b<16)?0:'')+b.toString(16)}
+  return res;
+}
+const utf8=s=>unescape(encodeURIComponent(s));
+const AUTH_KEY='yrg_users_v1',SESS_KEY='yrg_session_v1',LOCK_KEY='yrg_lock_v1';
+const DEFAULT_ADMIN={role:'admin',salt:'yrg-dtr',hash:'3097cb6ae9ac91b38f739bd3f503240f0678e1e86a83ae11144de5e36032d02c',def:1}; // admin / 123456
+const Auth={
+  users(){try{const u=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');if(u&&u.admin)return u}catch(e){}return{admin:Object.assign({},DEFAULT_ADMIN)}},
+  save(u){try{localStorage.setItem(AUTH_KEY,JSON.stringify(u));return true}catch(e){toast('Could not save on this phone');return false}},
+  hash(salt,name,pw){return sha256(utf8(salt+':'+name+':'+pw))},
+  check(name,pw){const u=this.users()[name];return u&&this.hash(u.salt,name,pw)===u.hash?u:null},
+  session(){try{const s=JSON.parse(localStorage.getItem(SESS_KEY)||'null');const u=s&&this.users()[s.name];
+    if(u&&Date.now()-s.t<12*3600e3)return{name:s.name,role:u.role,t:s.t}}catch(e){}return null},
+  begin(name){try{localStorage.setItem(SESS_KEY,JSON.stringify({name,t:Date.now()}));localStorage.setItem('yrg_last_user',name)}catch(e){}},
+  end(){try{localStorage.removeItem(SESS_KEY)}catch(e){}},
+  setPassword(name,pw,role){const u=this.users();const salt=Math.random().toString(36).slice(2,12);
+    u[name]={role:role||(u[name]&&u[name].role)||'staff',salt,hash:this.hash(salt,name,pw)};return this.save(u)},
+  remove(name){const u=this.users();if(name==='admin')return false;delete u[name];return this.save(u)},
+  lock(){try{return JSON.parse(localStorage.getItem(LOCK_KEY)||'{"n":0,"until":0}')}catch(e){return{n:0,until:0}}},
+  setLock(l){try{localStorage.setItem(LOCK_KEY,JSON.stringify(l))}catch(e){}}
+};
+const validName=n=>/^[a-z0-9._-]{2,20}$/.test(n);
+function showLogin(msg){
+  document.querySelector('.tabs').hidden=true;$('userPill').hidden=true;$('storeBadge').textContent='Signed out';
+  $('hdr').innerHTML='YRG DTR Verify<small>Sec 10 Yella Reddy Guda · ERO 11</small>';
+  let last='';try{last=localStorage.getItem('yrg_last_user')||''}catch(e){}
+  main.innerHTML=`<section class="card stack login" aria-label="Sign in">
+    <div class="brand">${I.qr}<div><b>YRG DTR Verify</b><span>DTR, feeder and area verification</span></div></div>
+    <h2>Sign in</h2>
+    <form id="lgForm" class="stack" autocomplete="on">
+      <div><label class="lbl" for="lgUser">User name</label><input class="inp" id="lgUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" value="${h(last)}" placeholder="admin"></div>
+      <div><label class="lbl" for="lgPw">Password</label><input class="inp" id="lgPw" name="password" type="password" autocomplete="current-password"></div>
+      <p class="small" id="lgErr" role="alert" style="color:var(--bad);margin:0" ${msg?'':'hidden'}>${h(msg||'')}</p>
+      <button class="btn primary big" id="lgBtn" type="submit">Sign in</button>
+    </form>
+    <p class="hint">Staff logins are created by the admin on this phone.</p>
+  </section>`;
+  const f=$('lgForm'),err=$('lgErr');
+  (last?$('lgPw'):$('lgUser')).focus();
+  f.onsubmit=e=>{e.preventDefault();
+    const L=Auth.lock();if(L.until>Date.now()){err.hidden=false;err.textContent=`Too many wrong tries. Wait ${Math.ceil((L.until-Date.now())/1000)} seconds.`;return}
+    const name=$('lgUser').value.trim().toLowerCase(),pw=$('lgPw').value;
+    if(!name||!pw){err.hidden=false;err.textContent='Enter your user name and password.';return}
+    const u=Auth.check(name,pw);
+    if(!u){const n=L.n+1;Auth.setLock({n:n>=5?0:n,until:n>=5?Date.now()+30000:0});err.hidden=false;err.textContent=n>=5?'Too many wrong tries. Wait 30 seconds.':'Wrong user name or password.';$('lgPw').value='';$('lgPw').focus();return}
+    Auth.setLock({n:0,until:0});Auth.begin(name);startApp();
+    if(u.def)setTimeout(()=>toast('You are using the default admin password. Change it in Guide → Account.'),1200);
+  };
+}
+function signOut(){Auth.end();stopCam();location.reload()}
+function accountCard(){
+  const users=Auth.users(),me=Who.name,def=me==='admin'&&users.admin.def;
+  return `<div class="card stack" id="acct"><p class="eyebrow">Account</p>
+    <div class="row between"><div>Signed in as <b>${h(me)}</b> <span class="pill ${Who.sup?'ok':'neutral'}">${Who.sup?'Admin':'Staff'}</span></div><button class="btn sm" id="soBtn">Sign out</button></div>
+    ${def?'<p class="small" style="color:var(--bad);margin:0"><b>You are still using the default admin password.</b> Change it below so others cannot sign in as admin.</p>':''}
+    <details ${def?'open':''}><summary class="sumry">Change my password</summary>
+      <form id="pwForm" class="stack" style="margin-top:8px">
+        <input class="inp" id="pwOld" type="password" autocomplete="current-password" placeholder="Current password">
+        <input class="inp" id="pwNew" type="password" autocomplete="new-password" placeholder="New password (at least 6 characters)">
+        <input class="inp" id="pwNew2" type="password" autocomplete="new-password" placeholder="New password again">
+        <button class="btn primary" type="submit">Save new password</button></form></details>
+    ${Who.sup?`<details><summary class="sumry">Staff logins on this phone (${Object.keys(users).length})</summary>
+      <div class="drows" style="margin-top:8px">${Object.entries(users).sort().map(([n,u])=>`<div class="drow"><div><b>${h(n)}</b> <span class="pill ${u.role==='admin'?'ok':'neutral'}">${u.role==='admin'?'Admin':'Staff'}</span></div>
+        <div class="row">${n!==me?`<button class="btn sm" data-ureset="${h(n)}">Reset password</button>`:''}${n!=='admin'&&n!==me?`<button class="btn sm" data-udel="${h(n)}">Remove</button>`:''}</div></div>`).join('')}</div>
+      <form id="addForm" class="stack" style="margin-top:8px"><div class="row"><input class="inp" id="nuName" style="flex:1;min-width:0" autocapitalize="none" placeholder="New user name, e.g. ravi"><select class="sel" id="nuRole" style="width:auto"><option value="staff">Staff</option><option value="admin">Admin</option></select></div>
+        <input class="inp" id="nuPw" type="password" autocomplete="new-password" placeholder="Password for this user (at least 6)">
+        <button class="btn" type="submit">Add login</button></form>
+      <p class="hint">Logins are saved on this phone only. Add the same logins on each staff phone. Lowercase letters, numbers, dot, dash or underscore.</p></details>`:''}
+  </div>`;
+}
+function bindAccount(){
+  const so=$('soBtn');if(so)so.onclick=signOut;
+  const pf=$('pwForm');if(pf)pf.onsubmit=e=>{e.preventDefault();const o=$('pwOld').value,n=$('pwNew').value,n2=$('pwNew2').value;
+    if(!Auth.check(Who.name,o)){toast('Current password is wrong');return}
+    if(n.length<6){toast('New password must be at least 6 characters');return}
+    if(n!==n2){toast('The two new passwords do not match');return}
+    if(n==='123456'){toast('Choose a password other than 123456');return}
+    if(Auth.setPassword(Who.name,n)){toast('Password changed');vGuide()}};
+  const af=$('addForm');if(af)af.onsubmit=e=>{e.preventDefault();const n=$('nuName').value.trim().toLowerCase(),pw=$('nuPw').value,r=$('nuRole').value;
+    if(!validName(n)){toast('User name: 2–20 lowercase letters, numbers, dot, dash or underscore');return}
+    if(Auth.users()[n]){toast('That user name already exists');return}
+    if(pw.length<6){toast('Password must be at least 6 characters');return}
+    if(Auth.setPassword(n,pw,r)){toast('Login added for '+n);vGuide();const d=$('acct');if(d)d.scrollIntoView({block:'start'})}};
+  main.querySelectorAll('[data-udel]').forEach(b=>b.onclick=()=>{if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again';return}if(Auth.remove(b.dataset.udel)){toast('Removed');vGuide()}});
+  main.querySelectorAll('[data-ureset]').forEach(b=>b.onclick=()=>{const n=b.dataset.ureset;const box=document.createElement('form');box.className='row';box.style.gridColumn='1/-1';
+    box.innerHTML=`<input class="inp" type="password" autocomplete="new-password" placeholder="New password for ${h(n)}" style="flex:1;min-width:0"><button class="btn sm" type="submit">Save</button>`;
+    b.closest('.drow').appendChild(box);b.remove();box.querySelector('input').focus();
+    box.onsubmit=e=>{e.preventDefault();const pw=box.querySelector('input').value;if(pw.length<6){toast('At least 6 characters');return}if(Auth.setPassword(n,pw)){toast('Password reset for '+n);vGuide()}}});
 }
 
 /* Android back button: close an open panel or decision first, then go back to Services, then leave the app */
@@ -1630,7 +1749,9 @@ function bindBackButton(){
 }
 
 /* ---------- start ---------- */
-(async()=>{
+async function startApp(){
+  document.querySelector('.tabs').hidden=false;document.querySelectorAll('.tab').forEach(b=>b.disabled=false);
+  Who.fromSession();const up=$('userPill');up.hidden=false;up.textContent=Who.name+(Who.sup&&Who.name!=='admin'?' · admin':'');up.title=Who.sup?'Admin':'Staff';up.onclick=()=>{if(S.ready)go('guide')};
   let P=null;
   try{P=await IDB.get('section')}catch(e){}
   if(!P){try{P=await embeddedParts()}catch(e){}}
@@ -1642,8 +1763,9 @@ function bindBackButton(){
   if(!S.dtr&&S.dtrMap.has('1607010596'))S.dtr='1607010596';
   go('verify');
   Store.init();
-  Who.init().then(()=>{if(!S.pending&&!cam.stream){if(S.view==='verify')renderVerify();else if(S.view==='report')vReport()}});
-})();
+  Who.init();
+}
+(async()=>{if(Auth.session())await startApp();else showLogin()})();
 })();
 </script>
 
