@@ -1457,7 +1457,7 @@ function exportAll(){const rows=[],elsew=elsewhereIndex();for(const d of S.dtrs)
 
 /* ---------- GUIDE ---------- */
 function vGuide(){
-  main.innerHTML=`<div class="plan stack">${accountCard()}${dataCard()}
+  main.innerHTML=`<div class="plan stack">${accountCard()}${backupCard()}${dataCard()}
   <div class="card stack">
     <p class="eyebrow">How to verify a DTR</p>
     <ol>
@@ -1533,7 +1533,7 @@ function vGuide(){
   </div>
   <div class="card small muted">This page holds consumer names and addresses for your section. Keep the link private and share it only with section staff who need it.</div>
   </div>`;
-  bindDataCard();bindAccount();
+  bindDataCard();bindAccount();bindBackupCard();
 }
 
 /* ---------- section data: built in, saved on this phone, or loaded from a file ----------
@@ -1557,7 +1557,9 @@ async function importDataFile(file){
   try{const j=JSON.parse(await file.text());
     if(j.app!=='yrguda-dtr'||!j.records||!j.structs||!j.areas)throw new Error('not a section data file');
     const P={txt:await gunzipB64(j.records),STR:j.structs,AR:j.areas,meta:Object.assign({},j.meta,{src:'File: '+file.name,loaded:Date.now()})};
-    await IDB.set('section',P);toast('Section data loaded');setTimeout(()=>location.reload(),600);
+    await IDB.set('section',P);
+    if(j.backup&&j.backup.url&&j.backup.key){const c=Backup.cfg();if(c.url!==j.backup.url)c.sentT=0;Object.assign(c,{url:j.backup.url,key:j.backup.key});Backup.setCfg(c)}
+    toast('Section data loaded'+(j.backup?' with Sheet backup settings':''));setTimeout(()=>location.reload(),600);
   }catch(e){toast('That file is not a section data file. Use the .json file you were given.')}
 }
 let xlsxLoading=null;
@@ -1592,6 +1594,7 @@ async function importExcel(file){
 async function exportDataFile(){
   if(!S.P){toast('No data loaded');return}
   const j={app:'yrguda-dtr',v:1,meta:Object.assign({},S.meta,{src:undefined,loaded:undefined}),records:await gzipB64(S.P.txt),structs:S.P.STR,areas:S.P.AR};
+  const bc=Backup.cfg();if(Who.sup&&bc.url&&bc.key)j.backup={url:bc.url,key:bc.key};
   saveRaw('YRGuda_section_data.json',JSON.stringify(j));
 }
 $('dataFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importDataFile(f)};
@@ -1625,6 +1628,119 @@ function showSetup(msg){
     <label class="btn big" for="xlsFile">Load Service Mapping Excel (.xlsx)</label>
     <p class="hint">The Service Mapping export from EBS. Without the data file there are no meter numbers, so scanning works by service number or UKSCNO only.</p>
   </section>`;
+}
+
+/* ---------- Google Sheet backup ----------
+   Sends every entry (services, unknown meters, feeder checks, area checks) to a Google Apps Script web app
+   attached to the admin's Google Sheet (tools/google-sheet-backup.gs). Rows are keyed, newest time wins,
+   so several phones can back up into the same Sheet and pull each other's entries back. */
+const BK_KEY='yrg_backup_v1';
+const SHEET_HEAD={
+  'Services':['KEY','DTR_VERIFIED','STRUCTURE_NAME','FEEDER','SERVICE_NO','UKSCNO','METER_NO','CONSUMER_NAME','MASTER_DTR','RESULT','STATUS_CODE','SOURCE','SCANNED_TEXT','REASON','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE'],
+  'Unknown meters':['KEY','DTR','STRUCTURE_NAME','SCANNED_TEXT','SERVICE_NO','UKSCNO','NOTE','STATUS_CODE','SOURCE','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE'],
+  'Feeder checks':['KEY','FEEDER_CODE','FEEDER','STRUCTURE_CODE','STRUCTURE_NAME','MAPPING_FEEDER_CODE','RESULT','STATUS_CODE','SOURCE','REASON','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE'],
+  'Area checks':['KEY','AREA_CODE','AREA_NAME','STRUCTURE_CODE','STRUCTURE_NAME','RESULT','STATUS_CODE','SOURCE','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE']
+};
+const Backup={timer:null,busy:false,
+  cfg(){try{return JSON.parse(localStorage.getItem(BK_KEY)||'{}')||{}}catch(e){return{}}},
+  setCfg(c){try{localStorage.setItem(BK_KEY,JSON.stringify(c))}catch(e){}},
+  ready(){const c=this.cfg();return !!(c.url&&c.key)},
+  device(){let d='';try{d=localStorage.getItem('yrg_device')||'';if(!d){d='phone-'+Math.random().toString(36).slice(2,7);localStorage.setItem('yrg_device',d)}}catch(e){d='phone'}return d},
+  byName(id){return !id?'':id.startsWith('user:')?id.slice(5):id.startsWith('dev-')?'device':'claude.ai user'},
+  rows(since){
+    since=since||0;const dev=this.device(),out={'Services':[],'Unknown meters':[],'Feeder checks':[],'Area checks':[]};
+    const T=t=>t?new Date(t).toLocaleString('en-IN'):'';
+    for(const [dtr,v] of Object.entries(S.ver)){const d=S.dtrMap.get(dtr)||{};
+      for(const [u,r] of Object.entries(v.s||{})){if(!r||(r.t||0)<=since)continue;const o=S.byU.get(u)||{};
+        out['Services'].push([dtr+'|'+u,dtr,d.name||'NO NAME',d.feeder||'',o.s||'',u,o.m||'',o.n||'',o.dtr||r.mdtr||'',r.del?'REMOVED':(LBL[r.st]||r.st),r.del?'del':r.st,r.src||'',r.raw||'',r.reason||'',this.byName(r.by),r.by||'',T(r.t),r.t||0,dev])}
+      for(const [k,r] of Object.entries(v.x||{})){if(!r||(r.t||0)<=since)continue;const o=r.u?S.byU.get(r.u)||{}:{};
+        out['Unknown meters'].push([dtr+'|'+k,dtr,d.name||'NO NAME',r.raw||'',r.svc||o.s||'',r.u||'',r.u?'Not in current mapping':'Meter not in master',r.del?'del':'unk',r.src||'',this.byName(r.by),r.by||'',T(r.t),r.t||0,dev])}}
+    for(const [fc,v] of Object.entries(S.fv))for(const [code,r] of Object.entries(v.s||{})){if(!r||(r.t||0)<=since)continue;const d=S.dtrMap.get(code)||{};
+      out['Feeder checks'].push([fc+'|'+code,fc,fName(fc),code,d.name||'NO NAME',r.mf||d.fc||'',r.del?'REMOVED':(FLBL[r.st]||r.st),r.del?'del':r.st,r.src||'',r.reason||'',this.byName(r.by),r.by||'',T(r.t),r.t||0,dev])}
+    for(const [ac,v] of Object.entries(S.av))for(const [code,r] of Object.entries(v.s||{})){if(!r||(r.t||0)<=since)continue;const d=S.dtrMap.get(code)||{};
+      out['Area checks'].push([ac+'|'+code,ac,(S.aMap.get(ac)||{}).name||'',code,d.name||'NO NAME',r.del?'REMOVED':(ALBL[r.st]||r.st),r.del?'del':r.st,r.src||'',this.byName(r.by),r.by||'',T(r.t),r.t||0,dev])}
+    return out;
+  },
+  maxT(rows){let m=0;for(const k in rows)for(const r of rows[k]){const t=Number(r[SHEET_HEAD[k].indexOf('T_MS')]);if(t>m)m=t}return m},
+  async post(sheets){const c=this.cfg();
+    const res=await fetch(c.url,{method:'POST',body:JSON.stringify({key:c.key,device:this.device(),user:Who.name,app:'yrg-dtr-1',sheets})});
+    const j=await res.json();if(!j.ok)throw new Error(j.error||'Backup refused');return j},
+  status(msg,ok){const c=this.cfg();c.last={t:Date.now(),ok,msg};this.setCfg(c);if(ok)$('storeBadge').textContent='Sheet '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const el=$('bkStatus');if(el)el.innerHTML=this.statusHtml()},
+  statusHtml(){const c=this.cfg();if(!this.ready())return 'Not set up on this phone.';const l=c.last;
+    return l?`${l.ok?'✓':'✕'} ${h(l.msg)} <span class="muted">· ${h(tstr(l.t))}</span>`:'Set up. No backup yet.'},
+  async run(full){
+    if(!this.ready()||this.busy)return;if(!navigator.onLine){this.status('Offline. Will back up when online.',false);return}
+    this.busy=true;const c=this.cfg();const since=full?0:(c.sentT||0);
+    try{const rows=this.rows(since);const n=Object.values(rows).reduce((a,r)=>a+r.length,0);
+      if(!n){this.status('Up to date',true);return}
+      const sheets={};for(const k in rows)if(rows[k].length)sheets[k]={header:SHEET_HEAD[k],rows:rows[k]};
+      await this.post(sheets);const c2=this.cfg();c2.sentT=Math.max(c2.sentT||0,this.maxT(rows));this.setCfg(c2);
+      this.status(`Backed up ${fmt(n)} entr${n===1?'y':'ies'}`,true);
+    }catch(e){this.status(this.why(e),false)}finally{this.busy=false}
+  },
+  why(e){const m=String(e&&e.message||e);return /Failed to fetch|NetworkError|Load failed/i.test(m)?(window.claude?'Blocked inside claude.ai. Use the Android app or the GitHub Pages link to back up.':'Could not reach the Sheet. Check the internet and the web app URL.'):m},
+  soon(){if(!this.ready())return;clearTimeout(this.timer);this.timer=setTimeout(()=>this.run(false),45000)},
+  async pull(){
+    if(!this.ready())return;const c=this.cfg();
+    try{const r=await fetch(c.url+(c.url.includes('?')?'&':'?')+'key='+encodeURIComponent(c.key));const j=await r.json();if(!j.ok)throw new Error(j.error||'Refused');
+      let n=0;const col=(sh,name)=>sh.header.indexOf(name);
+      const take=(sh,fn)=>{if(!sh||!sh.rows)return;for(const row of sh.rows){const t=Number(row[col(sh,'T_MS')])||0;if(!t)continue;if(fn(row,t,c2=>row[col(sh,c2)]||''))n++}};
+      const newer=(cur,t)=>!cur||(cur.t||0)<t;
+      take(j.sheets['Services'],(row,t,g)=>{const dtr=g('DTR_VERIFIED'),u=g('UKSCNO'),st=g('STATUS_CODE');const v=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});if(!newer(v.s[u],t))return false;
+        v.s[u]=st==='del'?{del:1,t,by:g('BY_ID')}:{st,src:g('SOURCE'),raw:g('SCANNED_TEXT'),reason:g('REASON')||undefined,t,by:g('BY_ID'),mdtr:(st==='other'||st==='conf')?g('MASTER_DTR'):undefined};return true});
+      take(j.sheets['Unknown meters'],(row,t,g)=>{const [dtr,k]=g('KEY').split('|');const v=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});if(!newer(v.x[k],t))return false;
+        v.x[k]=g('STATUS_CODE')==='del'?{del:1,t,by:g('BY_ID')}:{raw:g('SCANNED_TEXT'),src:g('SOURCE'),t,by:g('BY_ID'),svc:g('SERVICE_NO')||undefined,u:g('UKSCNO')||undefined};return true});
+      take(j.sheets['Feeder checks'],(row,t,g)=>{const fc=g('FEEDER_CODE'),code=g('STRUCTURE_CODE'),st=g('STATUS_CODE');const v=S.fv[fc]||(S.fv[fc]={s:{}});if(!newer(v.s[code],t))return false;
+        v.s[code]=st==='del'?{del:1,t,by:g('BY_ID')}:{st,src:g('SOURCE'),reason:g('REASON')||undefined,t,by:g('BY_ID'),mf:g('MAPPING_FEEDER_CODE')};return true});
+      take(j.sheets['Area checks'],(row,t,g)=>{const ac=g('AREA_CODE'),code=g('STRUCTURE_CODE'),st=g('STATUS_CODE');const v=S.av[ac]||(S.av[ac]={s:{}});if(!newer(v.s[code],t))return false;
+        v.s[code]=st==='del'?{del:1,t,by:g('BY_ID')}:{st,src:g('SOURCE'),t,by:g('BY_ID')};return true});
+      Store.saveLocal();Store.saveLocalF();Store.saveLocalA();
+      this.status(n?`Got ${fmt(n)} entr${n===1?'y':'ies'} from the Sheet`:'Sheet has nothing newer',true);return n;
+    }catch(e){this.status(this.why(e),false);return -1}
+  },
+  async copyMaster(){
+    if(!this.ready())return;const head=['UKSCNO','SERVICE_NO','CONSUMER_NAME','ADDRESS','METER_NO','MAKE','PHASE','CATEGORY','LOAD_KW','STRUCTURE_CODE','STRUCTURE_NAME','STRUCTURE_TYPE','FEEDER','AREA_NAME','LAST_READING','READING_MONTH','SEAL_NO','STATUS','IN_CURRENT_MAPPING'];
+    const all=S.recs.map(o=>{const d=S.dtrMap.get(o.dtr)||{};return[o.u,o.s,o.n,o.a,o.m,o.mk,o.ph,o.ct,o.ld,o.dtr,d.name||'',STYPE[d.type]||d.type||'',d.feeder||'',o.an||'',o.r,o.rm,o.sl,o.st,o.x?'NO':'YES']});
+    const size=4000;
+    try{for(let i=0;i<all.length;i+=size){this.status(`Copying master ${fmt(Math.min(i+size,all.length))} of ${fmt(all.length)}…`,true);
+        await this.post({'Section master':{mode:i===0?'replace':'append',header:head,rows:all.slice(i,i+size)}})}
+      this.status(`Copied section master (${fmt(all.length)} services)`,true);
+    }catch(e){this.status(this.why(e),false)}
+  }
+};
+// back up shortly after every change
+for(const m of ['put','putF','putA']){const f=Store[m].bind(Store);Store[m]=async(...a)=>{const r=await f(...a);Backup.soon();return r}}
+function backupCard(){
+  const c=Backup.cfg();
+  return `<div class="card stack" id="bkCard"><p class="eyebrow">Google Sheet backup</p>
+    <div class="small" id="bkStatus">${Backup.statusHtml()}</div>
+    ${Backup.ready()?`<div class="dlgrid"><button class="btn sm" id="bkNow">Back up now</button><button class="btn sm" id="bkPull">Get entries from Sheet</button>
+      ${Who.sup?`<button class="btn sm" id="bkFull">Full backup again</button><button class="btn sm" id="bkMaster">Copy section master to Sheet</button>`:''}</div>
+      <p class="hint" style="margin:0">Every change backs up automatically within a minute when the phone is online. "Get entries from Sheet" brings in what other phones have backed up.</p>`:''}
+    ${Who.sup?`<details ${Backup.ready()?'':'open'}><summary class="sumry">${Backup.ready()?'Change Sheet settings':'Set up backup'}</summary>
+      <form id="bkForm" class="stack" style="margin-top:8px">
+        <input class="inp" id="bkUrl" inputmode="url" autocapitalize="none" spellcheck="false" placeholder="Web app URL (https://script.google.com/macros/s/…/exec)" value="${h(c.url||'')}">
+        <input class="inp" id="bkKey" type="password" autocomplete="off" placeholder="Backup key (same as BACKUP_KEY in the script)" value="${h(c.key||'')}">
+        <button class="btn primary" type="submit">Save and test</button></form>
+      <ol class="small" style="padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;gap:4px">
+        <li>On a computer, create a Google Sheet (sheets.new).</li>
+        <li>Extensions → Apps Script. Paste the script from <b>tools/google-sheet-backup.gs</b> in the GitHub repo and set your own BACKUP_KEY.</li>
+        <li>Deploy → New deployment → Web app. Execute as <b>Me</b>, access <b>Anyone</b>. Copy the URL ending in /exec.</li>
+        <li>Paste the URL and key here and tap Save and test. "Save data file" then carries these settings to the other phones.</li></ol></details>`:'<p class="hint" style="margin:0">The admin sets up the Sheet link.</p>'}
+  </div>`;
+}
+function bindBackupCard(){
+  const f=$('bkForm');if(f)f.onsubmit=async e=>{e.preventDefault();const url=$('bkUrl').value.trim(),key=$('bkKey').value.trim();
+    if(!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(url)){toast('Paste the Apps Script web app URL (it starts with https://script.google.com/)');return}
+    if(key.length<8){toast('Backup key must be at least 8 characters');return}
+    const c=Backup.cfg();const changed=c.url!==url;Object.assign(c,{url,key});if(changed)c.sentT=0;Backup.setCfg(c);
+    toast('Testing…');try{const r=await fetch(url+(url.includes('?')?'&':'?')+'ping=1&key='+encodeURIComponent(key));const j=await r.json();
+      if(!j.ok)throw new Error(j.error||'Refused');Backup.status('Connected to "'+(j.sheet||'Sheet')+'"',true);vGuide();Backup.run(false)}catch(err){Backup.status(Backup.why(err),false);vGuide()}};
+  const n=$('bkNow');if(n)n.onclick=()=>Backup.run(false);
+  const fu=$('bkFull');if(fu)fu.onclick=()=>Backup.run(true);
+  const p=$('bkPull');if(p)p.onclick=async()=>{const k=await Backup.pull();if(k>0){toast('Merged entries from the Sheet');vGuide()}};
+  const m=$('bkMaster');if(m)m.onclick=()=>{if(m.dataset.sure!=='1'){m.dataset.sure='1';m.textContent='Tap again to copy '+fmt(S.recs.length)+' services';return}Backup.copyMaster()};
 }
 
 /* ---------- sign in ----------
@@ -1764,6 +1880,11 @@ async function startApp(){
   go('verify');
   Store.init();
   Who.init();
+  // sync with the Google Sheet: bring in other phones' entries, then send ours
+  window.addEventListener('online',()=>Backup.run(false));
+  if(Backup.ready())setTimeout(async()=>{const n=await Backup.pull();
+    if(n>0&&!S.pending&&!S.fpending&&!S.apending&&!cam.stream){({verify:renderVerify,feeder:renderFeeder,area:renderArea,report:vReport})[S.view]?.()}
+    Backup.run(false)},2500);
 }
 (async()=>{if(Auth.session())await startApp();else showLogin()})();
 })();

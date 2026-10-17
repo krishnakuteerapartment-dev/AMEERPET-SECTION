@@ -42,8 +42,37 @@ python3 tools/make_data.py CONSUMER_MASTER.pdf SERVICE_MAPPING.xlsx -o YRGuda_se
 
 `.gitignore` blocks `*.json`, `*.xlsx`, `*.pdf` and `*.csv`, so data files cannot be committed by mistake.
 
+
+## Google Sheet backup (and sharing between phones)
+
+Every entry can be backed up to a Google Sheet that you own. Several phones can back up into the same Sheet and pull each other's entries, so the one-service-one-DTR check also works across phones.
+
+**Setup (once, on a computer, about 5 minutes):**
+1. Create a new Google Sheet (open `sheets.new`) and name it, for example, "YRG DTR Backup".
+2. **Extensions → Apps Script**. Delete the sample code and paste all of [`tools/google-sheet-backup.gs`](tools/google-sheet-backup.gs).
+3. Change `BACKUP_KEY` at the top to your own secret (8+ characters) and save.
+4. **Deploy → New deployment → Web app**. Set *Execute as* to **Me** and *Who has access* to **Anyone**. Deploy, allow access, and copy the **Web app URL** (it ends in `/exec`).
+5. In the app, sign in as admin: **Guide → Google Sheet backup**. Paste the URL and the key, then tap **Save and test**.
+6. Tap **Save data file**. The file now carries the Sheet settings, so staff phones that load it back up automatically.
+
+**What goes into the Sheet:**
+
+| Tab | Contents |
+|---|---|
+| Services | Every DTR verification: DTR, structure name, feeder, service no, UKSCNO, meter, consumer, result, source, who, when |
+| Unknown meters | Meters scanned that are not in the master or the mapping |
+| Feeder checks | Feeder-wise structure confirmations |
+| Area checks | Area-code-wise structure confirmations |
+| Backup log | Each backup: time, phone, user |
+| Section master | All services with meter, structure, feeder and area (only when the admin taps **Copy section master to Sheet**) |
+
+- **How it updates:** each row is matched by its KEY, and the newest entry wins. Removed entries stay as `REMOVED`, so the removal reaches the other phones.
+- **When it runs:** changes back up automatically within a minute when online. On start, the app first pulls new entries from the Sheet, then sends its own.
+- **Keep it private:** the web app URL plus the key give access to the data. Share them only through the data file, never in a public place.
+- **Where it works:** in the Android app and the GitHub Pages version. The claude.ai preview cannot reach Google.
+
 ## Limits of this hosted version
-- **Results stay on each phone.** Verification results are saved in that phone's browser. Phones do not sync with each other here, so use **Report → downloads** to collect results. Sharing across staff in real time needs a small server (for example Cloudflare Workers + D1, or Firebase), which is the next step.
+- **Results are saved on each phone first.** With Google Sheet backup set up, phones share entries through the Sheet (pull on start, push after changes). Without it, results stay on the phone and you collect them through **Report → downloads**.
 - **IR/IRDA is a demo.** Real reads need an optical probe (USB-OTG or Bluetooth) and a native Android app using DLMS/COSEM (IS 15959), plus TGSPDCL approval for meter passwords. See the Guide tab.
 - **Live camera** scanning works here because GitHub Pages serves over HTTPS. Use Chrome on Android, or the APK below.
 
@@ -85,6 +114,7 @@ After changing `index.html`, run `npm run sync` again before building.
 
 ## Files
 - `index.html`: the whole app (no consumer data).
+- `tools/google-sheet-backup.gs`: Apps Script for the Google Sheet backup.
 - `tools/make_data.py`: builds the private section data file from the consumer master PDF and the Service Mapping Excel.
 - `package.json`, `capacitor.config.json`, `tools/build-www.mjs`: Capacitor setup. `npm run sync` copies `index.html` into `www/` with the scanning and Excel libraries bundled offline.
 - `android/`: the Android Studio project.
