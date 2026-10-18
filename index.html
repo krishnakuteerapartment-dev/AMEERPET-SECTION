@@ -234,7 +234,7 @@ button,.btn,.li,.tab,.stab,.rtab,.chip2,.mchip,.irm,.sq,.cbanner,.dtrbtn,.vrow,.
   main.enter{animation:fadein .18s ease-out}
   .tab svg{transition:background-color .2s ease}
 }
-@keyframes pop{from{transform:translateY(10px) scale(.98);opacity:.15}to{transform:none;opacity:1}}
+@keyframes pop{from{transform:translateY(10px) scale(.98);opacity:.55}to{transform:none;opacity:1}}
 @keyframes fadein{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
 /* Material-style bottom navigation: a pill behind the current tab's icon */
 .tab svg{padding:3px 12px;box-sizing:content-box;border-radius:999px}
@@ -398,7 +398,9 @@ const N={
     const B=this.P('SystemBars');if(!B)return;
     const dark=matchMedia('(prefers-color-scheme: dark)').matches;
     const edge=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'))>0;
-    try{B.setStyle({style:'DARK',bar:'StatusBar'});B.setStyle({style:edge&&!dark?'LIGHT':'DARK',bar:'NavigationBar'})}catch(e){}},
+    // edge to edge: icons sit on the page header (dark green, or light teal in dark mode) and the bottom tab bar;
+    // older WebViews: both bars sit on the window colour, which is always dark green
+    try{B.setStyle({style:edge&&dark?'LIGHT':'DARK',bar:'StatusBar'});B.setStyle({style:edge&&!dark?'LIGHT':'DARK',bar:'NavigationBar'})}catch(e){}},
   async init(){
     if(!this.on)return;
     document.documentElement.classList.add('native');
@@ -2259,10 +2261,10 @@ const Auth={
 const validName=n=>/^[a-z0-9._-]{2,20}$/.test(n);
 function showLogin(msg){
   document.querySelector('.tabs').hidden=true;$('userPill').hidden=true;$('storeBadge').textContent='Signed out';N.hideSplash();
-  $('hdr').innerHTML='YRG DTR Verify<small>Sec 10 Yella Reddy Guda · ERO 11</small>';
+  $('hdr').innerHTML='DTR Verify<small>Sec 10 Yella Reddy Guda · ERO 11</small>';
   let last='';try{last=localStorage.getItem('yrg_last_user')||''}catch(e){}
   main.innerHTML=`<section class="card stack login" aria-label="Sign in">
-    <div class="brand">${I.qr}<div><b>YRG DTR Verify</b><span>DTR, feeder and area verification</span></div></div>
+    <div class="brand">${I.qr}<div><b>DTR Verify</b><span>Sec 10 Yella Reddy Guda · DTR, feeder and area verification</span></div></div>
     <h2>Sign in</h2>
     <form id="lgForm" class="stack" autocomplete="on">
       <div><label class="lbl" for="lgUser">User name</label><input class="inp" id="lgUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" value="${h(last)}" placeholder="admin"></div>

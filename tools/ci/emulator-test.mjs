@@ -101,9 +101,11 @@ async function main() {
   step('keyboard', { kb: await page.evaluate(() => document.documentElement.classList.contains('kb')), tabsVisible: await page.evaluate(() => getComputedStyle(document.querySelector('.tabs')).display) });
   await shot('12-keyboard'); adb('shell input keyevent 4'); await sleep(800);
 
+  const closeKb = async () => { if (await page.evaluate(() => document.documentElement.classList.contains('kb'))) { adb('shell input keyevent 4'); await sleep(900); } };
   for (const [tab, name] of [['feeder', '13-feeders'], ['area', '14-areas'], ['report', '15-report'], ['search', '16-search'], ['guide', '17-guide']]) {
-    await page.click(`[data-tab="${tab}"]`); await sleep(900); await shot(name);
+    await closeKb(); await page.click(`[data-tab="${tab}"]`, { timeout: 10000 }); await sleep(900); await shot(name);
   }
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await sleep(500); await shot('17b-guide-bottom');
 
   // Documents backup file
   const fb = await page.evaluate(async () => { const F = window.__yrg.FileBackup; F.dirty = true; await F.write(); return { ok: F.ok, name: F.name() }; });
@@ -117,7 +119,7 @@ async function main() {
   step('sheet network', net);
 
   // pull down to sync (not set up -> friendly message)
-  await page.click('[data-tab="verify"]'); await sleep(600);
+  await closeKb(); await page.click('[data-tab="verify"]'); await sleep(600);
   adb('shell input swipe 540 600 540 1500 400'); await sleep(1200); await shot('18-pull-to-sync');
 
   // dark mode
