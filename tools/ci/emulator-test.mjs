@@ -114,6 +114,14 @@ async function main() {
   }
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await sleep(500); await shot('17b-guide-bottom');
 
+  // hamburger menu: opens, Android back closes it, an item navigates
+  await closeKb(); await page.click('#menuBtn'); await sleep(600); await shot('17c-menu');
+  const menuOpen = await page.evaluate(() => !!document.querySelector('.drawer.on'));
+  adb('shell input keyevent 4'); await sleep(700);
+  const closedByBack = await page.evaluate(() => !document.querySelector('.drawer'));
+  await page.click('#menuBtn'); await sleep(600); await page.click('.dr-item[data-act="go:feeder"]'); await sleep(700);
+  step('menu', { menuOpen, closedByBack, view: await page.evaluate(() => document.querySelector('.tab[aria-current="page"]').dataset.tab) });
+
   // Service-wise: look up one service, move it to another DTR with a remark
   await closeKb(); await page.click('[data-tab="search"]'); await sleep(400);
   await page.fill('#q', 'S1001205'); await sleep(800); await closeKb(); await sleep(300); await shot('21-service');

@@ -221,6 +221,39 @@ table.inner th,table.inner td{padding:5px 8px;font-size:12px}
 .sumry{cursor:pointer;font-weight:600;padding:6px 0}
 .loading{display:grid;place-items:center;min-height:50vh;color:var(--muted);text-align:center}
 
+/* hamburger menu: side drawer */
+.hamb{width:44px;height:44px;margin-left:-10px;border:0;background:transparent;color:inherit;display:grid;place-items:center;border-radius:12px;flex:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hamb svg{width:25px;height:25px}
+.hamb:active{background:rgba(255,255,255,.18)}
+.drawer-bg{position:fixed;inset:0;background:rgba(8,18,40,.46);z-index:55;opacity:0;transition:opacity .22s ease}
+.drawer-bg.on{opacity:1}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(84vw,330px);background:var(--surface);z-index:56;transform:translateX(-104%);transition:transform .27s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;box-shadow:8px 0 32px rgba(0,0,0,.24);border-radius:0 20px 20px 0;overflow:hidden}
+.drawer.on{transform:none}
+.dr-head{background:var(--accent);color:var(--accent-ink);padding:calc(var(--sat) + 18px) 18px 16px 20px;display:flex;flex-direction:column;gap:10px;flex:none}
+.dr-brand{display:flex;align-items:center;gap:12px}
+.dr-logo{width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.16);display:grid;place-items:center;flex:none}
+.dr-logo svg{width:28px;height:28px}
+.dr-brand b{display:block;font-family:var(--f-head);font-size:20px;line-height:1.1}
+.dr-brand span{font-size:12.5px;opacity:.88}
+.dr-user{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px}
+.dr-user .pill{background:rgba(255,255,255,.2);color:inherit}
+.dr-sync{font-size:12.5px;opacity:.9}
+.dr-body{flex:1;overflow-y:auto;padding:6px 0 10px;overscroll-behavior:contain}
+.dr-sec{font-family:var(--f-head);font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:14px 22px 4px}
+.dr-item{display:flex;align-items:center;gap:15px;width:calc(100% - 16px);margin:1px 8px;padding:11px 14px;border:0;background:transparent;border-radius:12px;color:var(--ink);font-size:15px;font-weight:600;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dr-item svg{width:22px;height:22px;color:var(--muted);flex:none}
+.dr-item small{display:block;font-weight:500;font-size:12px;color:var(--muted);margin-top:1px}
+.dr-item:active{background:var(--surface-2)}
+.dr-item[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.dr-item[aria-current="page"] svg{color:var(--accent)}
+.dr-item:disabled{opacity:.45}
+.dr-item .badge{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:99px;background:var(--bad);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
+.dr-item.danger,.dr-item.danger svg{color:var(--bad)}
+.dr-line{height:1px;background:var(--line);margin:8px 18px}
+.card.flash{animation:cardFlash 1.2s ease}
+@keyframes cardFlash{0%,35%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
+.dr-foot{flex:none;padding:10px 22px calc(var(--sab) + 12px);font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+
 /* ---- touch feel: no grey tap flash, instant taps, press feedback ---- */
 html{-webkit-text-size-adjust:100%}
 body{overscroll-behavior-y:contain;margin:0}
@@ -310,6 +343,7 @@ html.scanning body>*:not(#scanOv):not(#toast){visibility:hidden}
 </head><body>
 
 <header class="top"><div class="top-in">
+  <button class="hamb" id="menuBtn" aria-label="Open menu" aria-haspopup="dialog" aria-expanded="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <h1 id="hdr">DTR Verification<small>Sec 10 Yella Reddy Guda · ERO 11</small></h1>
   <button class="upill" id="userPill" hidden></button>
   <span class="store" id="storeBadge">Loading</span>
@@ -688,7 +722,7 @@ async function decide(action){
 async function undoVerify(){const u=S.last&&S.last.undo;if(!u)return;await Store.put(S.dtr,u.kind,u.key,u.prev||{del:1,t:Date.now(),by:Who.id});S.last=null;toast('Scan undone');showResult()}
 
 /* ---------- navigation ---------- */
-function go(view,anim){stopCam();if(NScan.active)NScan.stop(true,true);Sheet.close(true);if(!S.ready){showSetup();return}S.view=view;
+function go(view,anim){stopCam();if(NScan.active)NScan.stop(true,true);Sheet.close(true);Drawer.close(true);if(!S.ready){showSetup();return}S.view=view;
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===view?'page':'false'));
   const T={verify:'DTR Verification',feeder:'Feeder-wise structures',area:'Area-wise structures',search:'Service-wise',report:'Verification report',guide:'Guide'};
   $('hdr').innerHTML=h(T[view])+'<small>Sec '+h(SECTION.name)+' · ERO 11</small>';
@@ -714,6 +748,87 @@ const Sheet={el:null,bg:null,onClose:null,
     if(now){el.remove();bg.remove()}else{el.classList.remove('on');bg.classList.remove('on');setTimeout(()=>{el.remove();bg.remove()},300)}
     if(cb)cb();return true}
 };
+/* ---------- hamburger menu (side drawer) ---------- */
+const DI={
+  sync:I.sync,dl:I.dl,warn:I.warn,qr:I.qr,
+  sheet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg>',
+  db:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.5"/><path d="M4.5 5.5v13c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5v-13M4.5 12c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>',
+  help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg>',
+  out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/></svg>'
+};
+const Drawer={el:null,bg:null,
+  isOpen(){return !!this.el},
+  item(act,icon,label,sub,extra,badge,cls){return `<button class="dr-item${cls?' '+cls:''}" data-act="${act}" ${extra||''}>${icon}<span>${h(label)}${sub?`<small>${sub}</small>`:''}</span>${badge?`<span class="badge">${badge}</span>`:''}</button>`},
+  html(){
+    const tabIcon=t=>{const sv=document.querySelector('.tab[data-tab="'+t+'"] svg');return sv?sv.outerHTML:''};
+    const cur=t=>S.ready&&S.view===t&&!(t==='report'&&S.rtab==='conflicts')?'aria-current="page" ':'';
+    const nC=S.ready?conflictIndex().size+fConflictIndex().size:0;
+    const l=Backup.cfg().last,sync=Store.mode==='db'?'Synced in this page':!Backup.ready()?'Not syncing: backup key not set':!isOnline()?'Offline: entries wait on this phone':l&&l.ok?'Last synced '+tstr(l.t):'Last sync failed';
+    const dis=S.ready?'':'disabled',a=N.app;
+    return `<div class="dr-head">
+        <div class="dr-brand"><div class="dr-logo">${I.qr}</div><div><b>DTR Verify</b><span>Sec 10 Yella Reddy Guda · ERO 11</span></div></div>
+        <div class="dr-user">${DI.user.replace('<svg','<svg width="18" height="18"')}<b>${h(Who.name||'')}</b><span class="pill">${Who.sup?'Admin':'Staff'}</span></div>
+        <div class="dr-sync">${h(sync)}</div></div>
+      <div class="dr-body">
+        <div class="dr-sec">Sections</div>
+        ${this.item('go:verify',tabIcon('verify'),'Services','DTR-wise meter verification',cur('verify')+dis)}
+        ${this.item('go:feeder',tabIcon('feeder'),'Feeders','Structures on each feeder',cur('feeder')+dis)}
+        ${this.item('go:area',tabIcon('area'),'Areas','Structures in each area code',cur('area')+dis)}
+        ${this.item('go:search',tabIcon('search'),'Service-wise','Look up, verified date, move DTR',cur('search')+dis)}
+        ${this.item('go:report',tabIcon('report'),'Report','Summary, DTR, feeder and area reports',cur('report')+dis)}
+        ${this.item('conflicts',DI.warn,'Conflicts','Services or structures on two places',(S.ready&&S.view==='report'&&S.rtab==='conflicts'?'aria-current="page" ':'')+dis,nC>999?'999+':nC||'')}
+        <div class="dr-line"></div>
+        <div class="dr-sec">Quick actions</div>
+        ${this.item('sync',DI.sync,'Sync now',h(sync),dis)}
+        ${this.item('scan',DI.qr,'Scan meters',S.dtr?'DTR '+h(S.dtr.slice(-3))+' · '+h(dtrName(S.dtr)):'Choose a DTR first',dis)}
+        ${this.item('csv',DI.dl,'Download all findings','CSV for the ERO',dis)}
+        <div class="dr-line"></div>
+        <div class="dr-sec">Settings</div>
+        ${this.item('g:bkCard',DI.sheet,'Google Sheet sync','Backup key, phones that synced',dis)}
+        ${this.item('g:dataCard',DI.db,'Section data','Load file or Excel, put on Sheet',dis)}
+        ${this.item('g:acct',DI.user,'Account and staff logins','Password, add staff',dis)}
+        ${this.item('g:appCard',DI.phone,'This phone and backup file','Restore entries from a backup',dis)}
+        ${this.item('g:helpCard',DI.help,'How to use','Steps for DTR, feeder and area checks',dis)}
+        <div class="dr-line"></div>
+        ${this.item('signout',DI.out,'Sign out','Entries stay saved on this phone','','','danger')}
+      </div>
+      <div class="dr-foot">${N.on?'DTR Verify '+h(a?'v'+a.version:'app'):'DTR Verify web'} · ${h(Backup.device())}</div>`;
+  },
+  open(){
+    if(this.el||NScan.active)return;Sheet.close(true);if(document.activeElement)document.activeElement.blur();N.tap();
+    const bg=document.createElement('div');bg.className='drawer-bg';const el=document.createElement('nav');el.className='drawer';el.setAttribute('aria-label','Menu');
+    el.innerHTML=this.html();document.body.append(bg,el);this.el=el;this.bg=bg;$('menuBtn').setAttribute('aria-expanded','true');
+    bg.onclick=()=>this.close();
+    el.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&!b.disabled)this.act(b.dataset.act)});
+    let x0=null,dx=0; // swipe left to close
+    el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;dx=0;el.style.transition='none'},{passive:true});
+    el.addEventListener('touchmove',e=>{if(x0==null)return;dx=Math.min(0,e.touches[0].clientX-x0);el.style.transform=dx?`translateX(${dx}px)`:''},{passive:true});
+    el.addEventListener('touchend',()=>{if(x0==null)return;x0=null;el.style.transition='';el.style.transform='';if(dx<-70)this.close()});
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{bg.classList.add('on');el.classList.add('on')}));
+  },
+  close(now){const el=this.el,bg=this.bg;if(!el)return false;this.el=this.bg=null;$('menuBtn').setAttribute('aria-expanded','false');
+    if(now){el.remove();bg.remove()}else{el.classList.remove('on');bg.classList.remove('on');setTimeout(()=>{el.remove();bg.remove()},300)}return true},
+  act(a){
+    this.close();
+    const nav=v=>{if(v!=='verify')S.panel=null;if(v!=='feeder')S.fpanel=null;if(v!=='area')S.apanel=null;go(v,true)};
+    const card=id=>{nav('guide');const el=$(id);if(!el)return;
+      const top=el.getBoundingClientRect().top+scrollY-document.querySelector('.top').offsetHeight-parseFloat(getComputedStyle(document.body).paddingTop)-10;
+      window.scrollTo(0,Math.max(0,top));el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1200)};
+    if(a.startsWith('go:')){const v=a.slice(3);if(v==='report'&&S.rtab==='conflicts')S.rtab='summary';nav(v);return}
+    if(a==='conflicts'){S.rtab='conflicts';nav('report');return}
+    if(a.startsWith('g:')){card(a.slice(2));return}
+    if(a==='sync'){if(!Backup.ready()){card('bkCard');toast('Set the backup key first');return}
+      if(!isOnline()){toast('Offline. Entries will sync when the internet is back.');return}
+      toast('Syncing…');Backup.sync().then(()=>{const l=Backup.cfg().last;toast(l&&l.ok?'Synced with Google Sheet':'Sync failed'+(l&&l.msg?': '+l.msg:''))});return}
+    if(a==='scan'){if(!S.dtr){nav('verify');openDtrSheet();return}nav('verify');if(NScan.available())NScan.start('verify');else{S.panel='scan';renderVerify();startLive()}return}
+    if(a==='csv'){exportAll();return}
+    if(a==='signout'){(async()=>{const ok=await N.confirm('Sign out?','Entries stay saved on this phone.','Sign out');if(ok!==false)signOut()})();return}
+  }
+};
+$('menuBtn').onclick=()=>Drawer.isOpen()?Drawer.close():Drawer.open();
+
 /* DTR list: all 800 codes with name and progress; type a number (001) or part of a name to jump. Only the visible rows are drawn. */
 function openDtrSheet(opts){
   opts=opts||{};const cur=opts.cur===undefined?S.dtr:opts.cur;
@@ -1972,7 +2087,7 @@ function exportAll(){const rows=[],elsew=elsewhereIndex();for(const d of S.dtrs)
 /* ---------- GUIDE ---------- */
 function vGuide(){
   main.innerHTML=`<div class="plan stack">${accountCard()}${backupCard()}${dataCard()}${appCard()}${moveCard()}
-  <div class="card stack">
+  <div class="card stack" id="helpCard">
     <p class="eyebrow">How to verify a DTR</p>
     <ol>
       <li>Pick the <b>DTR structure code</b> from the dropdown, or type part of the code to filter it. The list shows every service the EBS master maps to that DTR.</li>
@@ -2414,7 +2529,7 @@ const Auth={
 };
 const validName=n=>/^[a-z0-9._-]{2,20}$/.test(n);
 function showLogin(msg){
-  document.querySelector('.tabs').hidden=true;$('userPill').hidden=true;$('storeBadge').textContent='Signed out';N.hideSplash();
+  document.querySelector('.tabs').hidden=true;$('userPill').hidden=true;$('menuBtn').hidden=true;Drawer.close(true);$('storeBadge').textContent='Signed out';N.hideSplash();
   $('hdr').innerHTML='DTR Verify<small>Sec 10 Yella Reddy Guda · ERO 11</small>';
   let last='';try{last=localStorage.getItem('yrg_last_user')||''}catch(e){}
   main.innerHTML=`<section class="card stack login" aria-label="Sign in">
@@ -2486,6 +2601,7 @@ let backBound=false;
 function bindBackButton(){
   const App=capPlugin('App');if(backBound||!App||!App.addListener)return;backBound=true;
   App.addListener('backButton',()=>{
+    if(Drawer.close())return;
     if(Sheet.close())return;
     if(S.pending){S.pending=null;return showResult()}
     if(S.fpending){S.fpending=null;return showF()}
@@ -2527,7 +2643,7 @@ function bindPullToSync(){
 let started=false;
 async function startApp(){
   document.querySelector('.tabs').hidden=false;document.querySelectorAll('.tab').forEach(b=>b.disabled=false);
-  Who.fromSession();const up=$('userPill');up.hidden=false;up.textContent=Who.name+(Who.sup&&Who.name!=='admin'?' · admin':'');up.title=Who.sup?'Admin':'Staff';up.onclick=()=>{if(S.ready)go('guide')};
+  Who.fromSession();$('userPill').hidden=true;$('menuBtn').hidden=false;
   let P=null;
   try{P=await IDB.get('section')}catch(e){}
   if(!P){try{P=await embeddedParts()}catch(e){}}
