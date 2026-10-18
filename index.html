@@ -583,20 +583,35 @@ const byTag=id=>`<span data-uid="${h(id||'')}">…</span>`;
 const ST_LABEL={ok:'Verified',other:'Found here',conf:'In admin review',nf:'Not found',na:'No access'};
 
 /* ---------- scan matching ---------- */
+/* A meter's QR or barcode does not always hold just the meter number: it may add the maker (HPL06695910), the year, or other fields.
+   1) any whole token that is a meter no, UKSCNO or service no; 2) a meter number found inside the code (7+ characters);
+   3) the code being the end of a longer meter number (HP240318826598 read as 240318826598). Ties prefer the selected DTR. */
+let meterSuffix=null;
+function suffixIndex(){if(meterSuffix)return meterSuffix;meterSuffix=new Map();
+  for(const [nm,arr] of S.byM)if(nm.length>=8)for(let i=1;i<=nm.length-7;i++){const k=nm.slice(i);const a=meterSuffix.get(k);if(a)a.push(...arr);else meterSuffix.set(k,arr.slice())}
+  return meterSuffix}
+function pickHere(m){const live=m.filter(x=>!x.x);return live.find(x=>x.dtr===S.dtr)||live[0]||m[0]}
 function resolveScan(text){
   const t=String(text||'').toUpperCase();
-  const toks=[t.replace(/\s+/g,''),...(t.match(/[A-Z0-9]{5,16}/g)||[])];
+  const toks=[t.replace(/\s+/g,''),...(t.match(/[A-Z0-9]{4,24}/g)||[])];
   for(const k of toks){
-    const m=S.byM.get(normM(k));if(m&&m.length){const here=m.find(x=>x.dtr===S.dtr&&!x.x)||m.find(x=>!x.x);const all=m.filter(x=>!x.x);return{o:here||m[0],by:'Meter no',key:k,all:all.length>1?all:null}}
+    const m=S.byM.get(normM(k));if(m&&m.length){const all=m.filter(x=>!x.x);return{o:pickHere(m),by:'Meter no',key:k,all:all.length>1?all:null}}
     if(S.byU.has(k))return{o:S.byU.get(k),by:'UKSCNO',key:k};
     if(S.byS.has(k))return{o:S.byS.get(k),by:'Service no',key:k};
   }
+  const flat=t.replace(/[^A-Z0-9]/g,'');let best=null;
+  for(let i=0;i<flat.length;i++)for(let L=Math.min(15,flat.length-i);L>=7;L--){const n=normM(flat.slice(i,i+L));if(n.length<6)continue;
+    const m=S.byM.get(n);if(m){if(!best||n.length>best.n.length||(n.length===best.n.length&&m.some(x=>x.dtr===S.dtr)))best={n,m};break}}
+  if(best){const all=best.m.filter(x=>!x.x);return{o:pickHere(best.m),by:'Meter no (in code)',key:best.n,all:all.length>1?all:null}}
+  for(const k of toks){const n=normM(k);if(n.length<7)continue;const m=suffixIndex().get(n);
+    if(m){const uniq=[...new Set(m)],here=uniq.filter(x=>x.dtr===S.dtr&&!x.x);if(uniq.length===1||here.length===1)return{o:here[0]||uniq[0],by:'Meter no (end)',key:n}}}
   return{o:null,key:(toks[1]||toks[0]||'').slice(0,24)};
 }
-async function processScan(text,src){
+async function processScan(text,src,fromCamera){
   if(!S.dtr){toast('Select a DTR structure code first');return}
   const r=resolveScan(text);const now=Date.now();const raw=String(text).slice(0,120);
   let res;
+  if(!r.o&&fromCamera){S.pending={type:'unknown',raw,src,key:r.key};S.last=null;beep('warn');return showResult()}
   if(!r.o){
     const key=normM(r.key)||('X'+now);const prev=vrec(S.dtr).x[key];
     await Store.put(S.dtr,'x',key,{raw,src,t:now,by:Who.id});
@@ -652,7 +667,9 @@ const refreshAfterScan=()=>refreshVerify(false);
 async function decide(action){
   const p=S.pending;if(!p)return;const o=p.o,now=Date.now();
   const reason=($('pReason')&&$('pReason').value)||'';
-  if(action==='cancel'){S.pending=null;S.last=null;toast('Cancelled. Nothing saved.');return showResult()}
+  if(action==='cancel'){S.pending=null;S.last=null;toast(p.type==='unknown'?'Ignored':'Cancelled. Nothing saved.');return showResult()}
+  if(action==='recordx'&&p.type==='unknown'){const key=normM(p.key)||('X'+now);const prev=vrec(S.dtr).x[key];
+    await Store.put(S.dtr,'x',key,{raw:p.raw,src:p.src,t:now,by:Who.id});S.pending=null;S.last={kind:'unk',raw:p.raw,src:p.src,undo:{kind:'x',key,prev}};beep('bad');return showResult()}
   if((action==='review'||action==='move')&&!reason){toast('Choose a reason first');const s=$('pReason');if(s)s.focus();return}
   const prev=vrec(S.dtr).s[o.u];
   if(action==='confirm'){
@@ -773,6 +790,11 @@ function claimLine(c){const d=S.dtrMap.get(c.dtr);return `<div class="claim"><b 
 function resultBlock(){return freshen(S.pending?pendingHtml(S.pending):S.last?resultHtml(S.last):'')}
 function freshen(html){if(!S.fresh)return html;S.fresh=false;return html.replace('class="res ','class="res fresh ')}
 function pendingHtml(p){
+  if(p.type==='unknown')return `<div class="res unk" role="alertdialog" aria-label="Code not found">
+    <div class="verdict">${I.x}Code not found in the section master</div>
+    <div class="idbox"><span>Read · ${h(p.src)}</span><b>${h(p.raw.slice(0,60))}</b></div>
+    <p class="small" style="margin:0">It may be another code on the meter (seal, sticker, maker's code) or a meter that is not in EBS yet. Aim at the meter-number code, or record it.</p>
+    <div class="btn-row"><button class="btn" data-pa="cancel">Ignore</button><button class="btn primary" data-pa="recordx">Record as unknown meter</button></div></div>`;
   const o=p.o,cur=S.dtrMap.get(S.dtr),md=S.dtrMap.get(o.dtr);
   const head=`<div class="ids"><div class="idbox"><span>Service no</span><b>${h(o.s)}</b></div><div class="idbox"><span>UKSCNO</span><b>${h(o.u)}</b></div></div>
     <div><b>${h(o.n)}</b> ${phPill(o.ph)}<div class="small">${h(o.a)}</div><div class="small">Meter <b class="mono">${h(o.m)}</b> · ${h(p.src)}</div></div>`;
@@ -1035,7 +1057,7 @@ async function startLive(){
     if(!r)return;const now=Date.now();
     if(r.text===cam.lastText&&now-cam.lastAt<4000)return;if(now-cam.lastAt<1200)return;
     cam.lastText=r.text;cam.lastAt=now;
-    await routeScan(r.text,fmtName(r.format));
+    await routeScan(r.text,fmtName(r.format),true);
   },280);
 }
 async function scanFile(file){
@@ -1056,20 +1078,21 @@ async function scanFile(file){
 /* ---------- native scanner (Android app): Google ML Kit, full screen, continuous ----------
    The camera preview is drawn behind the web page, so while scanning the page turns transparent and only this overlay shows:
    the scan frame, torch and zoom, and a bottom sheet with the running counts and the result of each meter (with its decision buttons). */
-const SCAN_FORMATS=['QR_CODE','CODE_128','CODE_39','CODE_93','CODABAR','DATA_MATRIX','EAN_13','EAN_8','ITF','UPC_A','UPC_E','PDF_417','AZTEC'];
-const NScan={active:false,view:null,lastText:'',lastAt:0,torch:false,zoom:1,maxZoom:1,el:null,handles:[],typing:false,
+// ITF, Codabar, EAN-8 and UPC-E are left out: they give false reads on partial 1D codes and meters do not use them
+const SCAN_FORMATS=['QR_CODE','CODE_128','CODE_39','CODE_93','DATA_MATRIX','EAN_13','UPC_A','PDF_417','AZTEC'];
+const NScan={active:false,view:null,lastText:'',lastAt:0,torch:false,zoom:1,maxZoom:1,el:null,handles:[],typing:false,seen:new Map(),errShown:false,outAt:0,
   available(){return N.on&&!!N.P('BarcodeScanner')&&!S.noNativeScan},
   async start(view){
     const BS=N.P('BarcodeScanner');if(this.active||!BS)return;
     if(this.stopping)await this.stopping;
     try{let p=await BS.checkPermissions();if(p.camera!=='granted')p=await BS.requestPermissions();
       if(p.camera!=='granted'){const ok=await N.confirm('Camera is off','Allow the camera for this app in Android settings to scan meter codes.','Open settings');if(ok)BS.openSettings().catch(()=>{});return}}catch(e){}
-    stopCam();this.active=true;this.view=view;this.typing=false;this.torch=false;this.zoom=1;this.lastText='';
+    stopCam();this.active=true;this.view=view;this.typing=false;this.torch=false;this.zoom=1;this.lastText='';this.seen=new Map();this.errShown=false;
     main.innerHTML='';this.render();document.documentElement.classList.add('scanning');
     try{
       this.handles.push(await BS.addListener('barcodesScanned',e=>this.onCodes(e&&e.barcodes)));
-      this.handles.push(await BS.addListener('scanError',e=>toast('Camera: '+((e&&e.message)||'error'))));
-      await BS.startScan({formats:SCAN_FORMATS,lensFacing:'BACK'});
+      this.handles.push(await BS.addListener('scanError',e=>{if(!this.errShown){this.errShown=true;console.warn('scanError',e&&e.message)}}));
+      await BS.startScan({formats:SCAN_FORMATS,lensFacing:'BACK',resolution:2}); // 1920x1080: small name-plate codes read better
       const KA=N.P('KeepAwake');if(KA)KA.keepAwake().catch(()=>{});
       BS.isTorchAvailable().then(r=>{const b=$('soTorch');if(b)b.hidden=!(r&&r.available)}).catch(()=>{});
       BS.getMaxZoomRatio().then(r=>{this.maxZoom=(r&&r.zoomRatio)||1;const b=$('soZoom');if(b)b.hidden=this.maxZoom<1.9}).catch(()=>{});
@@ -1079,12 +1102,26 @@ const NScan={active:false,view:null,lastText:'',lastAt:0,torch:false,zoom:1,maxZ
       startLive();
     }
   },
+  inFrame(list){ // corner points come in screen pixels; keep codes whose centre is in (or just around) the scan frame, nearest first
+    const f=$('soFrame');if(!f)return list;const r=f.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+    const cx=(r.left+r.right)/2,cy=(r.top+r.bottom)/2,mx=r.width/2+30,my=r.height/2+70;
+    const out=[];for(const b of list){const p=b.cornerPoints;if(!p||p.length<4){out.push({b,d:0});continue}
+      const x=p.reduce((a,q)=>a+q[0],0)/4/dpr,y=p.reduce((a,q)=>a+q[1],0)/4/dpr;
+      if(Math.abs(x-cx)<=mx&&Math.abs(y-cy)<=my)out.push({b,d:Math.hypot(x-cx,y-cy)})}
+    return out.sort((a,b)=>a.d-b.d).map(x=>x.b)},
   onCodes(list){
     if(!this.active||!list||!list.length||S.pending||S.fpending||S.apending)return; // hold while a decision is open
-    const b=list[0],text=String(b.rawValue||b.displayValue||'').trim();if(!text)return;
-    const now=Date.now();if(text===this.lastText&&now-this.lastAt<3500)return;if(now-this.lastAt<900)return;
-    this.lastText=text;this.lastAt=now;routeScan(text,fmtName(String(b.format||'')));
+    const now=Date.now();let ok=this.inFrame(list);
+    if(!ok.length&&list.length===1){ // one code held steady for 2.5 s counts even if the position estimate says it is outside the box
+      const tx=String(list[0].rawValue||'');if(this.outText!==tx){this.outText=tx;this.outSince=now}else if(now-this.outSince>2500)ok=list}
+    if(!ok.length){if(now-this.outAt>2500){this.outAt=now;const hn=$('soHint');if(hn){hn.textContent='Move the code inside the box';setTimeout(()=>{if(hn.isConnected&&!S.pending)hn.textContent=this.hintText()},1800)}}return}
+    const b=ok[0],text=String(b.rawValue||b.displayValue||'').trim();if(!text)return;
+    const seenAt=this.seen.get(text);this.seen.set(text,now);
+    if(seenAt&&now-seenAt<20000)return; // the same code stays in view: read it once, not again every few seconds
+    if(now-this.lastAt<1000)return;
+    this.lastText=text;this.lastAt=now;routeScan(text,fmtName(String(b.format||'')),true);
   },
+  hintText(){return this.view==='verify'?'Point at the meter QR or barcode':'Point at the code on the DTR'},
   async stop(silent,noRender){
     if(!this.active)return;this.active=false;const BS=N.P('BarcodeScanner');
     document.documentElement.classList.remove('scanning');if(this.el){this.el.remove();this.el=null}
@@ -1112,7 +1149,7 @@ const NScan={active:false,view:null,lastText:'',lastAt:0,torch:false,zoom:1,maxZ
     return html.replace(/<button class="btn sm" data-svc="[^"]*">[^<]*<\/button>/g,''); // no jumping to another screen from the camera
   },
   kind(){ // colour of the frame flash for the latest result
-    const p=this.view==='feeder'?S.fpending:this.view==='area'?S.apending:S.pending;if(p)return p.type==='conflict'?'bad':'warn';
+    const p=this.view==='feeder'?S.fpending:this.view==='area'?S.apending:S.pending;if(p)return p.type==='conflict'||p.type==='unknown'?'bad':'warn';
     const r=this.view==='feeder'?S.flast:this.view==='area'?S.alast:S.last;if(!r)return'';
     return r.kind==='ok'?'ok':(r.kind==='unk'||r.kind==='legacy'||r.kind==='conf')?'bad':'warn'},
   render(){
@@ -1130,7 +1167,7 @@ const NScan={active:false,view:null,lastText:'',lastAt:0,torch:false,zoom:1,maxZ
   refresh(first){
     if(!this.el)return;const k=first?'':this.kind();
     const pend=this.view==='feeder'?S.fpending:this.view==='area'?S.apending:S.pending;
-    $('soHint').textContent=pend?'Decide below to keep scanning':this.view==='verify'?'Point at the meter QR or barcode':'Point at the code on the DTR';
+    $('soHint').textContent=pend?'Decide below to keep scanning':this.hintText();
     const res=this.result();
     $('soSheet').innerHTML=`<div class="so-stats">${this.stats().map(([l,n,c])=>`<span class="${c}"><b>${n}</b>${l}</span>`).join('')}</div>
       ${res||'<div class="so-empty">Each code you scan shows here, with a beep.</div>'}
@@ -1417,7 +1454,7 @@ function exportFeeder(f){
    S.av[areaCode] = { s:{ structureCode:{st,src,t,by,reason} } }
    st: ok = confirmed in this area (mapping links it) · other = found in this area, mapping does not link it · nf = not in this area at site
    A structure may be in several areas, so there is no one-area rule; a structure outside the mapping asks before it is recorded. */
-function routeScan(text,src){return S.view==='feeder'?processStructText(text,src):S.view==='area'?processAreaText(text,src):processScan(text,src)}
+function routeScan(text,src,fromCamera){return S.view==='feeder'?processStructText(text,src):S.view==='area'?processAreaText(text,src):processScan(text,src,fromCamera)}
 Object.assign(Store,{seenA:new Set(),
   subscribeA(){
     try{this.db.collection('area').onSnapshot(snap=>{let changed=false;
