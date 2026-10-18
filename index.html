@@ -1873,7 +1873,8 @@ function vGuide(){
   <div class="card stack">
     <p class="eyebrow">Scanning in the field</p>
     <ul>
-      <li>Inside this page the camera opens as a photo: snap the code and the result appears. Hosted on your own HTTPS site, or as an Android app, the camera scans continuously and beeps on each meter.</li>
+      <li>In the Android app, <b>QR / Barcode</b> opens the full-screen scanner. Keep moving from meter to meter: each code beeps, vibrates and shows its result at the bottom. Use the torch in dark meter rooms and 2× zoom for small name-plate codes.</li>
+      <li>In a browser the camera scans in the page; where the camera is blocked, it opens as a photo instead.</li>
       <li>Meter QR codes differ by maker. The app tries every 5–16 character token in the code against meter no, UKSCNO and service no, and ignores leading zeros.</li>
       <li>Wipe the meter cover and avoid glare. For small QR codes on the name plate, get within 10 cm.</li>
     </ul>
@@ -1891,11 +1892,10 @@ function vGuide(){
     </tbody></table></div>
   </div>
   <div class="card stack">
-    <p class="eyebrow">Build order for the real app</p>
+    <p class="eyebrow">What comes next</p>
     <ol>
-      <li><b>Now:</b> use this page for DTR verification with QR / barcode scan and manual marks.</li>
-      <li><b>Android app:</b> same screens in Kotlin or Flutter, with offline storage and ML Kit continuous scanning. Add GPS and a photo per meter as proof.</li>
-      <li><b>Sync and office view:</b> several staff verifying different DTRs, with the admin seeing progress and the wrong-DTR list.</li>
+      <li><b>Done:</b> Android app with the native scanner, offline storage, Google Sheet sync between phones, and a backup file on each phone.</li>
+      <li><b>Next:</b> a GPS point and a photo per meter as proof of the site visit.</li>
       <li><b>IRDA:</b> one probe and one make (HPL single-phase) reading the serial, then 3-phase and the other makes.</li>
     </ol>
   </div>
