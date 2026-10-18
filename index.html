@@ -320,7 +320,7 @@ html.scanning body>*:not(#scanOv):not(#toast){visibility:hidden}
   <button class="tab" data-tab="verify" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3"/><path d="M8 12l3 3 5-6"/></svg>Services</button>
   <button class="tab" data-tab="feeder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L5 13h6l-1 9 8-11h-6z"/></svg>Feeders</button>
   <button class="tab" data-tab="area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Areas</button>
-  <button class="tab" data-tab="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</button>
+  <button class="tab" data-tab="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Service</button>
   <button class="tab" data-tab="report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Report</button>
   <button class="tab" data-tab="guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M8 11h8M8 15h6"/></svg>Guide</button>
 </div></nav>
@@ -661,7 +661,7 @@ async function decide(action){
     await Store.put(S.dtr,'s',o.u,{st:'conf',src:p.src,raw:p.raw,t:now,mdtr:o.dtr,reason,by:Who.id});
     S.last={kind:'conf',o,src:p.src,by:p.by,others:p.others,reason,undo:{kind:'s',key:o.u,prev}};toast('Sent to admin review');
   }else if(action==='move'&&Who.sup){
-    await Store.put(S.dtr,'s',o.u,{st:o.dtr===S.dtr?'ok':'other',src:p.src,raw:p.raw,t:now,mdtr:o.dtr,reason,by:Who.id,moved:1});
+    await Store.put(S.dtr,'s',o.u,{st:o.dtr===S.dtr?'ok':'other',src:p.src,raw:p.raw,t:now,mdtr:o.dtr,reason,by:Who.id,moved:1,from:(p.others[p.others.length-1]||{}).dtr});
     for(const c of p.others)await Store.put(c.dtr,'s',o.u,{del:1,t:now,movedTo:S.dtr,reason,by:Who.id});
     S.last={kind:o.dtr===S.dtr?'ok':'other',o,src:p.src,by:p.by,moved:p.others.map(c=>c.dtr)};toast('Moved to this DTR. Earlier entry removed.');
   }
@@ -672,7 +672,7 @@ async function undoVerify(){const u=S.last&&S.last.undo;if(!u)return;await Store
 /* ---------- navigation ---------- */
 function go(view,anim){stopCam();if(NScan.active)NScan.stop(true,true);Sheet.close(true);if(!S.ready){showSetup();return}S.view=view;
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===view?'page':'false'));
-  const T={verify:'DTR Verification',feeder:'Feeder-wise structures',area:'Area-wise structures',search:'Search services',report:'Verification report',guide:'Guide'};
+  const T={verify:'DTR Verification',feeder:'Feeder-wise structures',area:'Area-wise structures',search:'Service-wise',report:'Verification report',guide:'Guide'};
   $('hdr').innerHTML=h(T[view])+'<small>Sec '+h(SECTION.name)+' · ERO 11</small>';
   ({verify:renderVerify,feeder:renderFeeder,area:renderArea,search:vSearch,report:vReport,guide:vGuide})[view]();window.scrollTo(0,0);
   if(anim){main.classList.remove('enter');void main.offsetWidth;main.classList.add('enter')}}
@@ -697,15 +697,16 @@ const Sheet={el:null,bg:null,onClose:null,
     if(cb)cb();return true}
 };
 /* DTR list: all 800 codes with name and progress; type a number (001) or part of a name to jump. Only the visible rows are drawn. */
-function openDtrSheet(){
+function openDtrSheet(opts){
+  opts=opts||{};const cur=opts.cur===undefined?S.dtr:opts.cur;
   const RH=62;let items=S.dtrs,filt='all';
-  const el=Sheet.open(`<div class="sh-head"><div class="row between sh-title"><h3>Choose DTR</h3><span class="small muted">${DTR_PREFIX}001 to 800</span></div>
+  const el=Sheet.open(`<div class="sh-head"><div class="row between sh-title"><h3>${h(opts.title||'Choose DTR')}</h3><span class="small muted">${DTR_PREFIX}001 to 800</span></div>
     <label class="field">${I.search}<input id="dsQ" type="search" inputmode="search" enterkeyhint="go" placeholder="Number (001) or structure name" autocomplete="off"></label>
     <div class="chips2" id="dsF">${[['all','All'],['svc','Has services'],['started','Started'],['done','Done']].map(([k,l])=>`<button class="chip2" data-f="${k}" aria-pressed="${k==='all'}">${l}</button>`).join('')}</div></div>
     <div class="sh-body" id="dsB"><div class="vlist" id="dsL"></div></div>`);
   const q=el.querySelector('#dsQ'),body=el.querySelector('#dsB'),list=el.querySelector('#dsL');
   const row=(d,i)=>{const st=dtrStats(d),done=st.ok+st.nf+st.el;
-    return `<button class="vrow ${d.code===S.dtr?'cur':''} ${d.list.length?'':'none'}" data-pick="${d.code}" style="top:${i*RH}px"><span class="n3">${d.code.slice(-3)}</span><span class="nm">${h(d.name||'NO NAME')}</span><span class="sub">${d.list.length?d.list.length+' services':'No services'}${d.feeder?' · '+h(shortF(d.feeder)):''}</span><span class="pr">${d.list.length?`<b>${done}/${st.n}</b>${meter(done,st.n)}`:''}</span></button>`};
+    return `<button class="vrow ${d.code===cur?'cur':''} ${d.list.length?'':'none'}" data-pick="${d.code}" style="top:${i*RH}px"><span class="n3">${d.code.slice(-3)}</span><span class="nm">${h(d.name||'NO NAME')}</span><span class="sub">${d.list.length?d.list.length+' services':'No services'}${d.feeder?' · '+h(shortF(d.feeder)):''}</span><span class="pr">${d.list.length?`<b>${done}/${st.n}</b>${meter(done,st.n)}`:''}</span></button>`};
   let drawn='';
   const draw=()=>{const top=body.scrollTop,hgt=body.clientHeight||600;const a=Math.max(0,Math.floor(top/RH)-6),b=Math.min(items.length,Math.ceil((top+hgt)/RH)+6);
     const key=a+':'+b+':'+items.length;if(key===drawn)return;drawn=key;
@@ -720,10 +721,10 @@ function openDtrSheet(){
   q.addEventListener('input',apply);
   q.addEventListener('keydown',e=>{if(e.key==='Enter'&&items[0]){e.preventDefault();pick(items[0].code)}});
   el.querySelector('#dsF').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;filt=b.dataset.f;el.querySelectorAll('#dsF [data-f]').forEach(x=>x.setAttribute('aria-pressed',x===b));apply()});
-  const pick=code=>{N.tap();Sheet.close();selectDtr(code)};
+  const pick=code=>{N.tap();Sheet.close();(opts.onPick||selectDtr)(code)};
   list.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(b)pick(b.dataset.pick)});
   list.style.height=items.length*RH+'px';
-  const ci=S.dtr?S.dtrs.findIndex(d=>d.code===S.dtr):-1;
+  const ci=cur?S.dtrs.findIndex(d=>d.code===cur):-1;
   requestAnimationFrame(()=>{if(ci>2)body.scrollTop=(ci-2)*RH;draw()});draw();
 }
 
@@ -867,7 +868,7 @@ function detailHtml(o,r){
 }
 function bindVerify(d){
   const sw=$('syncWarn');if(sw)sw.onclick=()=>go('guide');
-  $('dtrPick').onclick=openDtrSheet;
+  $('dtrPick').onclick=()=>openDtrSheet();
   const pv=$('prevD'),nx=$('nextD');
   pv.onclick=()=>{const i=S.dtrs.indexOf(S.dtrMap.get(S.dtr));if(i>0){N.tap();selectDtr(S.dtrs[i-1].code)}};
   nx.onclick=()=>{const i=S.dtrs.indexOf(S.dtrMap.get(S.dtr));if(i<S.dtrs.length-1){N.tap();selectDtr(S.dtrs[i+1].code)}};
@@ -1568,23 +1569,130 @@ function exportArea(a){
   saveRaw('Area_'+a.ac+'_structures.csv',rows.map(csvRow).join('\n'));
 }
 
-/* ---------- SEARCH ---------- */
+/* ---------- SERVICE: service-wise lookup, status, move between DTRs, history ----------
+   Type a service no, UKSCNO or meter no: the service's details, its master structure code, whether and when it was verified,
+   and every move with its remark. "Move to another DTR" picks the new DTR from the full searchable list. */
+const dstr=t=>new Date(t).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const MOVE_REASONS=['Meter is physically on this DTR (checked at site)','Wrong structure code in EBS mapping','Load shifted to a new DTR','Earlier entry was on the wrong DTR','Other (write the remark)'];
+const dtrName=c=>{const d=S.dtrMap.get(c);return d&&d.name?d.name:'NO NAME'};
+const dtrTag=c=>`<b class="mono">DTR ${h(String(c).slice(-3))}</b> <span class="muted">${h(c)}</span> ${h(dtrName(c))}`;
+function svcHistory(u){const ev=[];for(const d in S.ver){const r=S.ver[d].s&&S.ver[d].s[u];if(r)ev.push({dtr:d,r})}return ev.sort((a,b)=>(b.r.t||0)-(a.r.t||0))}
+function svcNow(o){ // current place of the service: live claims (verified / found / review) and the record on its master DTR
+  return{claims:claimsFor(o.u,null),own:vrec(o.dtr).s[o.u]}}
+function svcCurrentDtr(o){const n=svcNow(o);const c=n.claims[n.claims.length-1];return c?c.dtr:o.dtr}
+function svcStatusHtml(o){
+  if(o.x)return `<div class="res unk"><div class="verdict">${I.x}Not in current service mapping</div><p class="small" style="margin:0">This service is in the old consumer master (status ${h(o.st)}) but not in the service-to-structure mapping.</p></div>`;
+  const {claims,own}=svcNow(o);const by=r=>`by ${byTag(r.by)}`;
+  if(claims.length>1)return `<div class="res unk"><div class="verdict">${I.warn}Recorded on ${claims.length} DTRs</div>
+    <div class="claims">${claims.map(claimLine).join('')}</div><p class="small" style="margin:0">One service can be on only one DTR. ${Who.sup?'Use <b>Move to another DTR</b> to keep the correct one.':'The admin must pick the correct DTR.'}</p></div>`;
+  if(claims.length===1){const c=claims[0],r=c.rec;
+    const moved=r.moved||r.from?`<p class="small" style="margin:0"><b>Moved</b>${r.from?` from DTR <b>${h(r.from.slice(-3))}</b> (${h(dtrName(r.from))})`:''} to DTR <b>${h(c.dtr.slice(-3))}</b> on ${h(dstr(r.t))} ${by(r)}.</p>`:'';
+    const remark=r.reason?`<p class="small" style="margin:0"><b>Remark:</b> ${h(r.reason)}</p>`:'';
+    if(r.st==='conf')return `<div class="res unk"><div class="verdict">${I.warn}Waiting for admin review</div><p class="small" style="margin:0">Claimed on ${dtrTag(c.dtr)} on ${h(dstr(r.t))} ${by(r)}.</p>${remark}</div>`;
+    if(c.dtr===o.dtr)return `<div class="res ok"><div class="verdict">${I.check}Verified on its master DTR</div><p class="small" style="margin:0">${dtrTag(c.dtr)}<br>Verified on <b>${h(dstr(r.t))}</b> ${by(r)} · ${h(r.src||'')}</p>${moved}${remark}</div>`;
+    return `<div class="res other"><div class="verdict">${I.warn}Verified on another DTR</div><p class="small" style="margin:0">Found on ${dtrTag(c.dtr)}<br>on <b>${h(dstr(r.t))}</b> ${by(r)} · ${h(r.src||'')}. Master says DTR ${h(o.dtr.slice(-3))}, so the structure code may need correction in EBS.</p>${moved}${remark}</div>`}
+  if(live(own)&&(own.st==='nf'||own.st==='na'))return `<div class="res unk"><div class="verdict">${I.x}${own.st==='nf'?'Not found at site':'No access'}</div><p class="small" style="margin:0">On ${dtrTag(o.dtr)} · ${h(dstr(own.t))} ${by(own)}</p>${own.reason?`<p class="small" style="margin:0"><b>Remark:</b> ${h(own.reason)}</p>`:''}</div>`;
+  return `<div class="res" style="border-color:var(--line);background:var(--surface-2)"><div class="verdict" style="color:var(--muted)">Not verified yet</div><p class="small" style="margin:0">Master DTR: ${dtrTag(o.dtr)}</p></div>`;
+}
+function svcHistoryHtml(o){
+  const ev=svcHistory(o.u);if(!ev.length)return '';
+  return `<div class="card stack"><p class="eyebrow">History</p><div class="drows">${ev.map(({dtr,r})=>{
+    const what=r.del?(r.movedTo?`Moved to DTR <b>${h(r.movedTo.slice(-3))}</b> (${h(dtrName(r.movedTo))})`:'Entry removed'):
+      `${h({ok:'Verified',other:'Found on this DTR',conf:'Sent to admin review',nf:'Not found at site',na:'No access'}[r.st]||r.st)}${r.from?` · moved here from DTR <b>${h(r.from.slice(-3))}</b>`:''}`;
+    return `<div class="drow"><div><b class="mono">DTR ${h(dtr.slice(-3))}</b> ${what}</div><span class="small muted">${h(dstr(r.t||0))}</span>
+      <div class="tsub">by ${byTag(r.by)}${r.src?' · '+h(r.src):''}${r.reason?' · <b>Remark:</b> '+h(r.reason):''}</div></div>`}).join('')}</div></div>`;
+}
+function svcMoveHtml(o){
+  const m=S.mv;if(!m||m.u!==o.u)return '';
+  const {claims}=svcNow(o);const others=claims.filter(c=>c.dtr!==m.to);
+  const toBtn=m.to?`<span class="code">${h(m.to)}</span><span class="nm">${h(dtrName(m.to))}</span>`:'<span class="code">Tap to choose</span><span class="nm">Select the new DTR…</span>';
+  const note=!m.to?'':m.to===m.from&&!others.length?'This is already its DTR.':
+    (others.length&&!Who.sup)?`This service is already recorded on DTR ${others.map(c=>h(c.dtr.slice(-3))).join(', ')}. Your move goes to the admin for review; nothing is removed.`:
+    others.length?`The entry on DTR ${others.map(c=>h(c.dtr.slice(-3))).join(', ')} is removed and kept in History with this remark.`:
+    m.to===o.dtr?'Recorded as verified on its master DTR.':'Recorded as found on the new DTR. The master DTR stays as it is in EBS until EBS is corrected.';
+  return `<div class="card stack" id="mvCard"><p class="eyebrow">Move to another DTR</p>
+    <div><span class="lbl">From (now)</span><div class="dtrinfo"><div>${dtrTag(m.from)}</div></div></div>
+    <div><span class="lbl">To</span><button class="dtrbtn ${m.to?'':'empty'}" id="mvTo" aria-haspopup="dialog">${toBtn}</button></div>
+    <div><label class="lbl" for="mvReason">Reason</label><select class="sel" id="mvReason"><option value="">Choose reason…</option>${MOVE_REASONS.map(x=>`<option ${m.reason===x?'selected':''}>${h(x)}</option>`).join('')}</select></div>
+    <div><label class="lbl" for="mvRemark">Remark</label><input class="inp" id="mvRemark" autocomplete="off" placeholder="For example: checked at site with lineman, meter on pole 12" value="${h(m.remark||'')}"></div>
+    ${note?`<p class="hint" style="margin:0">${note}</p>`:''}
+    <div class="btn-row"><button class="btn" id="mvCancel">Cancel</button><button class="btn primary" id="mvSave" ${m.to&&!(m.to===m.from&&!others.length)?'':'disabled'}>Save move</button></div></div>`;
+}
+function svcDetailHtml(o){
+  const d=S.dtrMap.get(o.dtr)||{},cur=svcCurrentDtr(o),{claims,own}=svcNow(o);
+  const canMark=!o.x&&!claims.length;
+  return `<div class="card stack" id="svcCard">
+    <div class="ids"><div class="idbox"><span>Service no</span><b>${h(o.s)}</b></div><div class="idbox"><span>UKSCNO</span><b>${h(o.u)}</b></div></div>
+    <div><b style="font-size:17px">${h(o.n)}</b> ${phPill(o.ph)}<div class="small">${h(o.a)}</div></div>
+    <dl class="kv">
+      <div style="grid-column:1/-1"><dt>Master structure code</dt><dd><span class="mono" style="font-weight:600">${h(dtrLabel(o.dtr))}</span> · ${h(d.name||'NO NAME')}${d.type?` <span class="pill neutral">${h(STYPE[d.type]||d.type)}</span>`:''}</dd></div>
+      <div style="grid-column:1/-1"><dt>Feeder · area</dt><dd>${h(d.feeder||'—')} · ${h(o.an||'—')}</dd></div>
+      <div><dt>Meter no</dt><dd class="mono">${h(o.m==='0'?'Not recorded':o.m)}</dd></div><div><dt>Make</dt><dd>${h(o.mk||'—')}</dd></div>
+      <div><dt>Category · load</dt><dd>Cat ${h(o.ct)} · ${o.ld} kW</dd></div><div><dt>Seal no</dt><dd class="mono">${h(o.sl||'—')}</dd></div>
+      <div><dt>Last reading</dt><dd class="mono">${fmt(o.r)} (${h(o.rm)})</dd></div><div><dt>Now on</dt><dd class="mono">${claims.length>1?h(claims.length+' DTRs: '+claims.map(c=>c.dtr.slice(-3)).join(', ')):h(dtrLabel(cur))}</dd></div>
+    </dl>
+    ${svcStatusHtml(o)}
+    ${o.x?'':`<div class="btn-row">${canMark&&!(live(own)&&own.st==='ok')?`<button class="btn primary" data-sv="ok">${I.check}Verify on DTR ${h(o.dtr.slice(-3))}</button>`:`<button class="btn" data-sv="open">Open DTR ${h(cur.slice(-3))} list</button>`}
+      <button class="btn ${canMark?'':'primary'}" data-sv="move">Move to another DTR</button></div>
+    ${canMark?`<div class="btn-row"><button class="btn sm" data-sv="nf">Not found at site</button><button class="btn sm" data-sv="na">No access</button></div>`:''}
+    ${live(own)&&!claims.length?`<button class="btn sm" data-sv="clear">Reset to not verified</button>`:''}`}
+  </div>${svcMoveHtml(o)}${svcHistoryHtml(o)}`;
+}
+async function svcAction(o,k){
+  const t=Date.now();
+  if(k==='open'){const c=svcCurrentDtr(o);if(!S.dtrSet.has(c)){toast('Structure '+c+' is outside the 001–800 list');return}
+    S.dtr=c;S.open=o.u;S.dtrFilter='';try{localStorage.setItem(LSDTR,c)}catch(e){}
+    const r=vrec(c).s[o.u];S.tab=live(r)?(r.st==='ok'?'ok':r.st==='other'||r.st==='conf'?'other':'nf'):D.elsew.has(o.u)?'nf':'pending';S.limit=100000;S.last=null;go('verify');S.limit=60;
+    const el=main.querySelector('[data-u="'+o.u+'"]');if(el)el.scrollIntoView({block:'center'});return}
+  if(k==='move'){S.mv={u:o.u,from:svcCurrentDtr(o),to:null,reason:'',remark:''};renderSvc();const c=$('mvCard');if(c)c.scrollIntoView({block:'start',behavior:'smooth'});return}
+  if(k==='ok'){if(claimsFor(o.u,null).length){toast('Already recorded on another DTR. Use Move.');return}
+    await Store.put(o.dtr,'s',o.u,{st:'ok',src:'Service page',t,by:Who.id});beep('ok');toast('Verified on DTR '+o.dtr.slice(-3))}
+  else if(k==='nf'||k==='na'){await Store.put(o.dtr,'s',o.u,{st:k,src:'Service page',t,by:Who.id});N.haptic('tap');toast(k==='nf'?'Marked not found':'Marked no access')}
+  else if(k==='clear'){await Store.put(o.dtr,'s',o.u,{del:1,t,by:Who.id});toast('Reset')}
+  renderSvc();
+}
+async function saveMove(o){
+  const m=S.mv;if(!m||!m.to)return;
+  const reason=($('mvReason').value||'').trim(),remark=($('mvRemark').value||'').trim();
+  if(!reason){toast('Choose a reason');$('mvReason').focus();return}
+  if(reason.startsWith('Other')&&!remark){toast('Write the remark');$('mvRemark').focus();return}
+  const why=reason.startsWith('Other')?remark:(remark?reason+' · '+remark:reason);
+  const now=Date.now(),to=m.to,from=m.from,others=claimsFor(o.u,null).filter(c=>c.dtr!==to);
+  if(others.length&&!Who.sup){ // staff cannot remove someone else's entry: the move waits for the admin
+    await Store.put(to,'s',o.u,{st:'conf',src:'Moved (service page)',t:now,mdtr:o.dtr,reason:why,by:Who.id,from});
+    S.mv=null;beep('warn');toast('Sent to admin review');renderSvc();return}
+  await Store.put(to,'s',o.u,{st:to===o.dtr?'ok':'other',src:'Moved (service page)',t:now,mdtr:o.dtr,reason:why,by:Who.id,moved:1,from});
+  for(const c of others)await Store.put(c.dtr,'s',o.u,{del:1,t:now,movedTo:to,reason:why,by:Who.id});
+  if(from!==to&&!others.some(c=>c.dtr===from)){const fr=vrec(from).s[o.u];if(live(fr))await Store.put(from,'s',o.u,{del:1,t:now,movedTo:to,reason:why,by:Who.id})}
+  S.mv=null;beep('ok');toast('Moved to DTR '+to.slice(-3));renderSvc();
+}
+function renderSvc(){
+  const box=$('svcBox'),res=$('res');if(!box)return;
+  const o=S.svc&&S.byU.get(S.svc);
+  if(!o){box.innerHTML='';res.hidden=false;return}
+  res.hidden=true;box.innerHTML=svcDetailHtml(o);Who.fill(box);
+  box.querySelectorAll('[data-sv]').forEach(b=>b.onclick=()=>svcAction(o,b.dataset.sv));
+  const mt=$('mvTo');if(mt)mt.onclick=()=>openDtrSheet({title:'Move to DTR',cur:S.mv.to||S.mv.from,onPick:c=>{S.mv.to=c;S.mv.reason=$('mvReason').value;S.mv.remark=$('mvRemark').value;renderSvc();const sv=$('mvSave');if(sv)sv.scrollIntoView({block:'nearest',behavior:'smooth'})}});
+  const mr=$('mvReason');if(mr)mr.onchange=()=>{S.mv.reason=mr.value};
+  const mm=$('mvRemark');if(mm)mm.oninput=()=>{S.mv.remark=mm.value};
+  const mc=$('mvCancel');if(mc)mc.onclick=()=>{S.mv=null;renderSvc()};
+  const ms=$('mvSave');if(ms)ms.onclick=()=>saveMove(o);
+}
+function openSvc(u){S.svc=u;S.mv=null;renderSvc();window.scrollTo({top:0})}
 function vSearch(){
-  main.innerHTML=`<label class="field" for="q">${I.search}<input id="q" autocomplete="off" placeholder="Service no, UKSCNO, meter no or name" value="${h(S.q)}"></label><div id="res"></div>`;
-  const q=$('q');q.focus();
-  const run=()=>{S.q=q.value;const r=searchAll(q.value);const elsew=elsewhereIndex();
-    $('res').innerHTML=!q.value.trim()?`<p class="hint">Find any of the ${fmt(S.live.length)} services and see which DTR it is mapped to and whether it has been verified.</p>`:
-      r.length?`<div class="list">${r.map(o=>{const rr=vrec(o.dtr).s[o.u];const el=elsew.get(o.u);
-        const st=o.x?'<span class="pill bad">Not in mapping</span>':live(rr)?({ok:'<span class="pill ok">Verified</span>',nf:'<span class="pill bad">Not found</span>',na:'<span class="pill warn">No access</span>'}[rr.st]||''):el?`<span class="pill warn">Seen on ${h(el.dtr.slice(-4))}</span>`:'<span class="pill neutral">Pending</span>';
+  main.innerHTML=`<label class="field" for="q">${I.search}<input id="q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Service no, UKSCNO, meter no or name" value="${h(S.q)}"></label><div id="svcBox"></div><div id="res"></div>`;
+  const q=$('q');if(!S.svc)q.focus();
+  const run=()=>{const v=q.value;const changed=v!==S.q;S.q=v;const r=searchAll(v);const elsew=D.elsew;
+    const Q=v.trim().toUpperCase().replace(/\s+/g,'');const nm=S.byM.get(normM(Q))||[];
+    const exact=Q.length>=5?(S.byU.get(Q)||S.byS.get(Q)||(nm.length===1?nm[0]:null)):null;
+    if(exact){if(S.svc!==exact.u)openSvc(exact.u)}else if(changed&&S.svc){S.svc=null;S.mv=null;renderSvc()}
+    $('res').innerHTML=!v.trim()?`<p class="hint">Type a service no, UKSCNO or meter no to see the service: its master structure code, whether and when it was verified, and any move between DTRs with the remark. Or type part of a name to find it.</p>`:
+      r.length?`<div class="list">${r.map(o=>{const n=svcNow(o),c=n.claims[n.claims.length-1],rr=n.own;
+        const st=o.x?'<span class="pill bad">Not in mapping</span>':n.claims.length>1?'<span class="pill bad">On 2 DTRs</span>':c?(c.rec.st==='conf'?'<span class="pill bad">In review</span>':`<span class="pill ${c.dtr===o.dtr?'ok':'warn'}">${c.dtr===o.dtr?'Verified':'On DTR '+h(c.dtr.slice(-3))} ${h(new Date(c.rec.t).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}))}</span>`):live(rr)?({nf:'<span class="pill bad">Not found</span>',na:'<span class="pill warn">No access</span>'}[rr.st]||''):'<span class="pill neutral">Not verified</span>';
         return `<button class="li" data-go="${h(o.u)}"><div class="t"><span class="mono">${h(o.s)}</span> · ${h(o.n)}</div><div class="r">${st}</div><div class="s">UKSCNO <span class="mono">${h(o.u)}</span> · meter <span class="mono">${h(o.m)}</span></div><div class="r small mono">DTR ${h(o.dtr.slice(-3))}</div>${S.dtrMap.get(o.dtr)?.name?`<div class="s" style="grid-column:1/-1">${h(S.dtrMap.get(o.dtr).name)}</div>`:''}</button>`}).join('')}</div>`:'<div class="card empty">No service matches that.</div>';
-    $('res').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const o=S.byU.get(b.dataset.go);
-      if(o.x){toast('This service is not in the current service mapping');return}
-      if(!S.dtrSet.has(o.dtr)){toast('Structure '+o.dtr+' is outside the 001–800 list');return}
-      S.dtr=o.dtr;S.open=o.u;S.dtrFilter='';
-      try{localStorage.setItem(LSDTR,o.dtr)}catch(e){}
-      const r=vrec(o.dtr).s[o.u];S.tab=live(r)?(r.st==='ok'?'ok':'nf'):elsewhereIndex().has(o.u)?'nf':'pending';S.limit=100000;S.last=null;go('verify');S.limit=60;
-      const el=main.querySelector('[data-u="'+o.u+'"]');if(el)el.scrollIntoView({block:'center'})})};
-  let t;q.oninput=()=>{clearTimeout(t);t=setTimeout(run,140)};run();
+    $('res').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{q.blur();openSvc(b.dataset.go)})};
+  let t;q.oninput=()=>{clearTimeout(t);t=setTimeout(run,140)};q.onkeydown=e=>{if(e.key==='Enter'){clearTimeout(t);run();q.blur()}};
+  run();renderSvc();
 }
 function searchAll(raw){
   const q=raw.trim().toUpperCase();if(q.length<3)return[];
@@ -2051,7 +2159,7 @@ const BK_KEY='yrg_backup_v1';
 // and "Save data file" passes it to staff phones. The admin can change the link in Guide.
 const DEFAULT_BACKUP_URL='https://script.google.com/macros/s/AKfycbwscgjcOgNcTe38j1Ft1RhGEEZK3p0N0IiGtYqtypT7Y7mGswLpCT_MBAPa8Eo2bXSNJQ/exec';
 const SHEET_HEAD={
-  'Services':['KEY','DTR_VERIFIED','STRUCTURE_NAME','FEEDER','SERVICE_NO','UKSCNO','METER_NO','CONSUMER_NAME','MASTER_DTR','RESULT','STATUS_CODE','SOURCE','SCANNED_TEXT','REASON','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE'],
+  'Services':['KEY','DTR_VERIFIED','STRUCTURE_NAME','FEEDER','SERVICE_NO','UKSCNO','METER_NO','CONSUMER_NAME','MASTER_DTR','RESULT','STATUS_CODE','SOURCE','SCANNED_TEXT','REASON','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE','MOVED_FROM'],
   'Unknown meters':['KEY','DTR','STRUCTURE_NAME','SCANNED_TEXT','SERVICE_NO','UKSCNO','NOTE','STATUS_CODE','SOURCE','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE'],
   'Feeder checks':['KEY','FEEDER_CODE','FEEDER','STRUCTURE_CODE','STRUCTURE_NAME','MAPPING_FEEDER_CODE','RESULT','STATUS_CODE','SOURCE','REASON','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE'],
   'Area checks':['KEY','AREA_CODE','AREA_NAME','STRUCTURE_CODE','STRUCTURE_NAME','RESULT','STATUS_CODE','SOURCE','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE']
@@ -2076,7 +2184,7 @@ const Backup={timer:null,busy:false,
     const T=t=>t?new Date(t).toLocaleString('en-IN'):'';
     for(const [dtr,v] of Object.entries(S.ver)){const d=S.dtrMap.get(dtr)||{};
       for(const [u,r] of Object.entries(v.s||{})){if(!r||(r.t||0)<=since)continue;const o=S.byU.get(u)||{};
-        out['Services'].push([dtr+'|'+u,dtr,d.name||'NO NAME',d.feeder||'',o.s||'',u,o.m||'',o.n||'',o.dtr||r.mdtr||'',r.del?'REMOVED':(LBL[r.st]||r.st),r.del?'del':r.st,r.src||'',r.raw||'',r.reason||'',this.byName(r.by),r.by||'',T(r.t),r.t||0,dev])}
+        out['Services'].push([dtr+'|'+u,dtr,d.name||'NO NAME',d.feeder||'',o.s||'',u,o.m||'',o.n||'',o.dtr||r.mdtr||'',r.del?(r.movedTo?'MOVED TO '+r.movedTo:'REMOVED'):(LBL[r.st]||r.st),r.del?'del':r.st,r.src||'',r.raw||'',r.reason||'',this.byName(r.by),r.by||'',T(r.t),r.t||0,dev,r.from||''])}
       for(const [k,r] of Object.entries(v.x||{})){if(!r||(r.t||0)<=since)continue;const o=r.u?S.byU.get(r.u)||{}:{};
         out['Unknown meters'].push([dtr+'|'+k,dtr,d.name||'NO NAME',r.raw||'',r.svc||o.s||'',r.u||'',r.u?'Not in current mapping':'Meter not in master',r.del?'del':'unk',r.src||'',this.byName(r.by),r.by||'',T(r.t),r.t||0,dev])}}
     for(const [fc,v] of Object.entries(S.fv))for(const [code,r] of Object.entries(v.s||{})){if(!r||(r.t||0)<=since)continue;const d=S.dtrMap.get(code)||{};
@@ -2119,7 +2227,8 @@ const Backup={timer:null,busy:false,
       const take=(sh,fn)=>{if(!sh||!sh.rows)return;for(const row of sh.rows){const t=Number(row[col(sh,'T_MS')])||0;if(!t)continue;if(fn(row,t,c2=>row[col(sh,c2)]||''))n++}};
       const newer=(cur,t)=>!cur||(cur.t||0)<t;
       take(j.sheets['Services'],(row,t,g)=>{const dtr=g('DTR_VERIFIED'),u=g('UKSCNO'),st=g('STATUS_CODE');const v=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});if(!newer(v.s[u],t))return false;Persist.v(dtr);
-        v.s[u]=st==='del'?{del:1,t,by:g('BY_ID')}:{st,src:g('SOURCE'),raw:g('SCANNED_TEXT'),reason:g('REASON')||undefined,t,by:g('BY_ID'),mdtr:(st==='other'||st==='conf')?g('MASTER_DTR'):undefined};return true});
+        const mv=(g('RESULT').match(/^MOVED TO (\S+)/)||[])[1],from=g('MOVED_FROM')||undefined;
+        v.s[u]=st==='del'?{del:1,t,by:g('BY_ID'),reason:g('REASON')||undefined,movedTo:mv}:{st,src:g('SOURCE'),raw:g('SCANNED_TEXT'),reason:g('REASON')||undefined,t,by:g('BY_ID'),mdtr:(st==='other'||st==='conf')?g('MASTER_DTR'):undefined,from,moved:from?1:undefined};return true});
       take(j.sheets['Unknown meters'],(row,t,g)=>{const [dtr,k]=g('KEY').split('|');const v=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});if(!newer(v.x[k],t))return false;Persist.v(dtr);
         v.x[k]=g('STATUS_CODE')==='del'?{del:1,t,by:g('BY_ID')}:{raw:g('SCANNED_TEXT'),src:g('SOURCE'),t,by:g('BY_ID'),svc:g('SERVICE_NO')||undefined,u:g('UKSCNO')||undefined};return true});
       take(j.sheets['Feeder checks'],(row,t,g)=>{const fc=g('FEEDER_CODE'),code=g('STRUCTURE_CODE'),st=g('STATUS_CODE');const v=S.fv[fc]||(S.fv[fc]={s:{}});if(!newer(v.s[code],t))return false;Persist.f(fc);
@@ -2214,7 +2323,8 @@ function rerenderIdle(){ // after other phones' entries arrive: refresh counts i
   if(NScan.active){NScan.refresh(true);return}
   const y=window.scrollY;
   if(S.view==='verify'){if(S.dtr&&$('svcList'))refreshVerify(false);else renderVerify()}
-  else if(S.view==='feeder')refreshF();else if(S.view==='area')refreshA();else if(S.view==='report'){vReport();window.scrollTo(0,y)}}
+  else if(S.view==='feeder')refreshF();else if(S.view==='area')refreshA();else if(S.view==='report'){vReport();window.scrollTo(0,y)}
+  else if(S.view==='search'&&S.svc&&!S.mv){renderSvc();window.scrollTo(0,y)}}
 function updateBadge(){
   const b=$('storeBadge');if(!b||!S.ready)return;b.classList.remove('bad','off');
   if(Store.mode==='db'){b.textContent='Synced';return}
@@ -2343,6 +2453,7 @@ function bindBackButton(){
     if(S.fpending){S.fpending=null;return showF()}
     if(S.apending){S.apending=null;return showA()}
     if(NScan.active)return NScan.stop();
+    if(S.view==='search'&&S.svc){if(S.mv){S.mv=null}else S.svc=null;return renderSvc()}
     if(cam.stream||cam.timer||S.panel||S.fpanel||S.apanel){stopCam();S.panel=null;S.fpanel=null;S.apanel=null;return go(S.view)}
     if(S.view!=='verify'&&S.ready)return go('verify',true);
     App.exitApp();
