@@ -207,6 +207,7 @@ table.inner th,table.inner td{padding:5px 8px;font-size:12px}
 .drow .tsub{grid-column:1/-1}
 .drow>div{min-width:0;overflow-wrap:anywhere}
 .inp{display:block;width:100%;min-height:46px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:0 12px;color:var(--ink);font-size:16px}
+.store{cursor:pointer}.store.bad{background:var(--bad);color:#fff}
 .upill{background:rgba(255,255,255,.18);color:inherit;border:0;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;max-width:40vw;overflow:hidden;text-overflow:ellipsis}
 .login{max-width:420px;width:100%;margin:6vh auto 0}
 .brand{display:flex;gap:12px;align-items:center}
@@ -332,7 +333,7 @@ const Store={mode:'device',db:null,seen:new Set(),
   loadLocal(){try{const j=localStorage.getItem(LSKEY);if(j)S.ver=JSON.parse(j)||{}}catch(e){}
     try{const d=localStorage.getItem(LSDTR);if(d&&S.dtrSet.has(d))S.dtr=d}catch(e){}},
   saveLocal(){try{localStorage.setItem(LSKEY,JSON.stringify(S.ver))}catch(e){}},
-  badge(){const b=$('storeBadge');b.textContent=this.mode==='db'?'Synced':'On device';b.title=this.mode==='db'?'Saved to this page and shared with your other devices':'Saved in this browser only'},
+  badge(){if(this.mode!=='db'&&S.ready){updateBadge();return}const b=$('storeBadge');b.textContent=this.mode==='db'?'Synced':'On device';b.title=this.mode==='db'?'Saved to this page and shared with your other devices':'Saved in this browser only'},
   async init(){
     this.badge();
     try{if(window.claude&&typeof window.claude.use==='function'){const db=await window.claude.use('db');if(db){this.db=db;this.mode='db';this.badge();this.subscribe();this.subscribeF();this.subscribeA()}}}catch(e){}
@@ -521,7 +522,7 @@ function renderVerify(){
   const elsew=elsewhereIndex();
   const st=d?dtrStats(d,elsew):null;
   const idx=d?S.dtrs.indexOf(d):-1;
-  main.innerHTML=`
+  main.innerHTML=`${syncWarn()}
   <section class="card stack" aria-label="DTR">
     <div class="row between"><label class="eyebrow" for="dtrSel">DTR structure code</label><span class="small muted">${DTR_PREFIX}${String(DTR_FROM).padStart(3,'0')} to ${String(DTR_TO).padStart(3,'0')}</span></div>
     <div class="picker">
@@ -649,6 +650,7 @@ function detailHtml(o,r){
   </div>`;
 }
 function bindVerify(d){
+  const sw=$('syncWarn');if(sw)sw.onclick=()=>go('guide');
   const sel=$('dtrSel');
   sel.onchange=()=>selectDtr(sel.value);
   const pv=$('prevD'),nx=$('nextD');
@@ -1668,9 +1670,9 @@ const Backup={timer:null,busy:false,
   async post(sheets){const c=this.cfg();
     const res=await fetch(c.url,{method:'POST',body:JSON.stringify({key:c.key,device:this.device(),user:Who.name,app:'yrg-dtr-1',sheets})});
     const j=await res.json();if(!j.ok)throw new Error(j.error||'Backup refused');return j},
-  status(msg,ok){const c=this.cfg();c.last={t:Date.now(),ok,msg};this.setCfg(c);if(ok)$('storeBadge').textContent='Sheet '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  status(msg,ok){const c=this.cfg();c.last={t:Date.now(),ok,msg};this.setCfg(c);updateBadge();
     const el=$('bkStatus');if(el)el.innerHTML=this.statusHtml()},
-  statusHtml(){const c=this.cfg();if(!this.ready())return c.url?(Who.sup?'Sheet link is set. Type the backup key below and tap Save and test to start backups.':'Waiting for the admin to set the backup key on this phone (or load the data file from the admin).'):'Not set up on this phone.';const l=c.last;
+  statusHtml(){const c=this.cfg();if(!this.ready())return c.url?(Who.sup?'Sheet link is set. Type the backup key below and tap Save and test to start syncing.':'Type the backup key from the admin below to start syncing.'):'Not set up on this phone.';const l=c.last;
     return l?`${l.ok?'✓':'✕'} ${h(l.msg)} <span class="muted">· ${h(tstr(l.t))}</span>`:'Set up. No backup yet.'},
   async run(full){
     if(!this.ready()||this.busy)return;if(!navigator.onLine){this.status('Offline. Will back up when online.',false);return}
@@ -1684,6 +1686,12 @@ const Backup={timer:null,busy:false,
   },
   why(e){const m=String(e&&e.message||e);return /Failed to fetch|NetworkError|Load failed/i.test(m)?(window.claude?'Blocked inside claude.ai. Use the Android app or the GitHub Pages link to back up.':'Could not reach the Sheet. Check the internet and the web app URL.'):m},
   soon(){if(!this.ready())return;clearTimeout(this.timer);this.timer=setTimeout(()=>this.run(false),45000)},
+  async sync(){if(!this.ready()||this.syncing)return;this.syncing=true;try{const n=await this.pull();if(n>0)rerenderIdle();await this.run(false)}finally{this.syncing=false}},
+  async phones(){const c=this.cfg();
+    try{const r=await fetch(c.url+(c.url.includes('?')?'&':'?')+'sheets='+encodeURIComponent('Backup log')+'&key='+encodeURIComponent(c.key));const j=await r.json();if(!j.ok)return null;
+      const sh=j.sheets['Backup log'];if(!sh||!sh.rows)return[];const m=new Map();
+      for(const r2 of sh.rows){const k=r2[1]+'|'+r2[2];const x=m.get(k)||{device:r2[1],user:r2[2],count:0};x.time=r2[0];x.count++;m.set(k,x)}
+      return[...m.values()].reverse()}catch(e){return null}},
   async pull(){
     if(!this.ready())return;const c=this.cfg();
     try{const r=await fetch(c.url+(c.url.includes('?')?'&':'?')+'key='+encodeURIComponent(c.key));const j=await r.json();if(!j.ok)throw new Error(j.error||'Refused');
@@ -1716,11 +1724,12 @@ const Backup={timer:null,busy:false,
 for(const m of ['put','putF','putA']){const f=Store[m].bind(Store);Store[m]=async(...a)=>{const r=await f(...a);Backup.soon();return r}}
 function backupCard(){
   const c=Backup.cfg();
-  return `<div class="card stack" id="bkCard"><p class="eyebrow">Google Sheet backup</p>
+  return `<div class="card stack" id="bkCard"><p class="eyebrow">Google Sheet backup and sync</p>
     <div class="small" id="bkStatus">${Backup.statusHtml()}</div>
-    ${Backup.ready()?`<div class="dlgrid"><button class="btn sm" id="bkNow">Back up now</button><button class="btn sm" id="bkPull">Get entries from Sheet</button>
-      ${Who.sup?`<button class="btn sm" id="bkFull">Full backup again</button><button class="btn sm" id="bkMaster">Copy section master to Sheet</button>`:''}</div>
-      <p class="hint" style="margin:0">Every change backs up automatically within a minute when the phone is online. "Get entries from Sheet" brings in what other phones have backed up.</p>`:''}
+    ${Backup.ready()?`<button class="btn primary" id="bkSync">${I.dl}Sync now</button>
+      <p class="hint" style="margin:0">Sync sends this phone's entries to the Sheet and brings in other phones' entries. It also runs by itself every 3 minutes, when the app is opened, and shortly after every change.</p>
+      ${Who.sup?`<div class="dlgrid"><button class="btn sm" id="bkPhones">Phones that backed up</button><button class="btn sm" id="bkFull">Send everything again</button><button class="btn sm" id="bkMaster">Copy section master to Sheet</button></div><div id="bkPhoneList"></div>`:''}`:
+     `<div class="cbanner" style="cursor:default">${I.warn}<span><b>This phone is not syncing.</b> Entries made here stay only on this phone, and other phones cannot see them. ${Who.sup?'Type the backup key below.':'Ask the admin for the backup key and type it below.'}</span></div>`}
     ${Who.sup?`<details ${Backup.ready()?'':'open'}><summary class="sumry">${Backup.ready()?'Change Sheet settings':'Set up backup: type the key'}</summary>
       <form id="bkForm" class="stack" style="margin-top:8px">
         <label class="lbl" for="bkUrl">Web app URL${c.url===DEFAULT_BACKUP_URL?' (built in)':''}</label>
@@ -1728,24 +1737,42 @@ function backupCard(){
         <label class="lbl" for="bkKey">Backup key</label>
         <input class="inp" id="bkKey" type="password" autocomplete="off" placeholder="Backup key (same as BACKUP_KEY in the script)" value="${h(c.key||'')}">
         <button class="btn primary" type="submit">Save and test</button></form>
-      <ol class="small" style="padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;gap:4px">
-        <li>On a computer, create a Google Sheet (sheets.new).</li>
-        <li>Extensions → Apps Script. Paste the script from <b>tools/google-sheet-backup.gs</b> in the GitHub repo and set your own BACKUP_KEY.</li>
-        <li>Deploy → New deployment → Web app. Execute as <b>Me</b>, access <b>Anyone</b>. Copy the URL ending in /exec.</li>
-        <li>Paste the URL and key here and tap Save and test. "Save data file" then carries these settings to the other phones.</li></ol></details>`:'<p class="hint" style="margin:0">The admin sets up the Sheet link.</p>'}
+      <p class="hint">Staff can type the key on their own phones, or load a data file saved by the admin after the key is set.</p></details>`
+    :(Backup.ready()?'':`<form id="bkForm" class="stack">
+        <input type="hidden" id="bkUrl" value="${h(c.url||'')}">
+        <label class="lbl" for="bkKey">Backup key (from the admin)</label>
+        <input class="inp" id="bkKey" type="password" autocomplete="off" placeholder="Backup key">
+        <button class="btn primary" type="submit">Save and start syncing</button></form>`)}
   </div>`;
 }
 function bindBackupCard(){
   const f=$('bkForm');if(f)f.onsubmit=async e=>{e.preventDefault();const url=$('bkUrl').value.trim(),key=$('bkKey').value.trim();
     if(!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(url)){toast('Paste the Apps Script web app URL (it starts with https://script.google.com/)');return}
     if(key.length<8){toast('Backup key must be at least 8 characters');return}
-    const c=Backup.cfg();const changed=c.url!==url;Object.assign(c,{url,key});if(changed)c.sentT=0;Backup.setCfg(c);
-    toast('Testing…');try{const r=await fetch(url+(url.includes('?')?'&':'?')+'ping=1&key='+encodeURIComponent(key));const j=await r.json();
-      if(!j.ok)throw new Error(j.error||'Refused');Backup.status('Connected to "'+(j.sheet||'Sheet')+'"',true);vGuide();Backup.run(false)}catch(err){Backup.status(Backup.why(err),false);vGuide()}};
-  const n=$('bkNow');if(n)n.onclick=()=>Backup.run(false);
+    toast('Testing…');
+    try{const r=await fetch(url+(url.includes('?')?'&':'?')+'ping=1&key='+encodeURIComponent(key));const j=await r.json();
+      if(!j.ok)throw new Error(j.error||'Refused');
+      const c=Backup.cfg();const changed=c.url!==url;Object.assign(c,{url,key});if(changed)c.sentT=0;Backup.setCfg(c);
+      Backup.status('Connected to "'+(j.sheet||'Sheet')+'"',true);vGuide();Backup.sync()}
+    catch(err){Backup.status(Backup.why(err),false);toast(Backup.why(err))}};
+  const s=$('bkSync');if(s)s.onclick=async()=>{s.disabled=true;s.textContent='Syncing…';await Backup.sync();if(S.view==='guide')vGuide()};
   const fu=$('bkFull');if(fu)fu.onclick=()=>Backup.run(true);
-  const p=$('bkPull');if(p)p.onclick=async()=>{const k=await Backup.pull();if(k>0){toast('Merged entries from the Sheet');vGuide()}};
+  const ph=$('bkPhones');if(ph)ph.onclick=async()=>{const box=$('bkPhoneList');box.innerHTML='<p class="hint">Loading…</p>';const list=await Backup.phones();
+    box.innerHTML=list===null?'<p class="hint">Could not load the list. Check the internet.</p>':list.length?`<div class="drows">${list.map(x=>`<div class="drow"><div><b>${h(x.user||'?')}</b> · ${h(x.device)}</div><span class="small muted">${h(x.time)}</span><div class="tsub">${x.count} backups</div></div>`).join('')}</div><p class="hint">A staff member missing here has not synced. Check that their phone shows "Synced" at the top.</p>`:'<p class="hint">No phone has backed up yet.</p>'};
   const m=$('bkMaster');if(m)m.onclick=()=>{if(m.dataset.sure!=='1'){m.dataset.sure='1';m.textContent='Tap again to copy '+fmt(S.recs.length)+' services';return}Backup.copyMaster()};
+}
+function syncWarn(){
+  if(Store.mode==='db'||Backup.ready())return '';
+  return `<button class="cbanner" id="syncWarn">${I.warn}<span><b>Not syncing.</b> Entries on this phone are not shared with other phones. Tap to set up the backup key.</span></button>`;
+}
+function rerenderIdle(){if(!S.pending&&!S.fpending&&!S.apending&&!cam.stream){({verify:renderVerify,feeder:renderFeeder,area:renderArea,report:vReport})[S.view]?.()}}
+function updateBadge(){
+  const b=$('storeBadge');if(!b||!S.ready)return;b.classList.remove('bad');
+  if(Store.mode==='db'){b.textContent='Synced';return}
+  if(!Backup.ready()){b.textContent='Not syncing';b.classList.add('bad');b.title='Tap to set up the Google Sheet backup';return}
+  const l=Backup.cfg().last;
+  if(l&&l.ok){b.textContent='Synced '+new Date(l.t).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});b.title='Tap to sync now'}
+  else{b.textContent='Sync failed';b.classList.add('bad');b.title=l?l.msg:'Tap to sync now'}
 }
 
 /* ---------- sign in ----------
@@ -1886,10 +1913,12 @@ async function startApp(){
   Store.init();
   Who.init();
   // sync with the Google Sheet: bring in other phones' entries, then send ours
-  window.addEventListener('online',()=>Backup.run(false));
-  if(Backup.ready())setTimeout(async()=>{const n=await Backup.pull();
-    if(n>0&&!S.pending&&!S.fpending&&!S.apending&&!cam.stream){({verify:renderVerify,feeder:renderFeeder,area:renderArea,report:vReport})[S.view]?.()}
-    Backup.run(false)},2500);
+  updateBadge();
+  $('storeBadge').onclick=()=>{if(Backup.ready()){toast('Syncing…');Backup.sync().then(()=>toast(Backup.cfg().last&&Backup.cfg().last.ok?'Synced':'Sync failed: '+(Backup.cfg().last||{}).msg))}else go('guide')};
+  window.addEventListener('online',()=>Backup.sync());
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Backup.sync()});
+  setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)Backup.sync()},180000);
+  if(Backup.ready())setTimeout(()=>Backup.sync(),2500);
 }
 (async()=>{if(Auth.session())await startApp();else showLogin()})();
 })();
