@@ -116,10 +116,10 @@ async function main() {
 
   // Service-wise: look up one service, move it to another DTR with a remark
   await closeKb(); await page.click('[data-tab="search"]'); await sleep(400);
-  await page.fill('#q', 'S1001205'); await sleep(800); adb('shell input keyevent 4'); await sleep(700); await shot('21-service');
+  await page.fill('#q', 'S1001205'); await sleep(800); await closeKb(); await sleep(300); await shot('21-service');
   await page.click('[data-sv="move"]'); await sleep(300); await page.click('#mvTo'); await page.waitForSelector('.sheet.on');
   await page.fill('#dsQ', '13'); await sleep(300); await page.click('[data-pick="1607010013"]'); await sleep(500);
-  await page.selectOption('#mvReason', { index: 2 }); await page.fill('#mvRemark', 'CI test remark'); adb('shell input keyevent 4'); await sleep(600);
+  await page.selectOption('#mvReason', { index: 2 }); await page.fill('#mvRemark', 'CI test remark'); await closeKb(); await sleep(300);
   await page.click('#mvSave'); await sleep(700); await shot('22-service-moved');
   step('service move', { status: (await page.textContent('#svcCard .res')).slice(0, 200) });
 
