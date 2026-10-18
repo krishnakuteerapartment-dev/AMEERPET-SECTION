@@ -2,7 +2,7 @@
   "appId": "com.ameerpetsection.yrgdtr",
   "appName": "DTR Verify",
   "webDir": "www",
-  "backgroundColor": "#eef2f0",
+  "backgroundColor": "#f2f5fb",
   "android": {
     "allowMixedContent": false
   },
@@ -16,7 +16,7 @@
       "launchAutoHide": true,
       "launchShowDuration": 4000,
       "launchFadeOutDuration": 180,
-      "backgroundColor": "#0f5a4e",
+      "backgroundColor": "#1556b8",
       "showSpinner": false
     }
   }

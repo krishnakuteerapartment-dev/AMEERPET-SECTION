@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#0F5A4E</color>
-    <color name="colorPrimaryDark">#0B463D</color>
-    <color name="colorAccent">#3FB59C</color>
-    <color name="yrgAccent">#0F5A4E</color>
+    <color name="colorPrimary">#1556B8</color>
+    <color name="colorPrimaryDark">#0E4291</color>
+    <color name="colorAccent">#5B9DFF</color>
+    <color name="yrgAccent">#1556B8</color>
 </resources>
