@@ -11,7 +11,7 @@ A phone app (one HTML page) for **Section 10 Yella Reddy Guda, ERO 11 Banjara Hi
 | **Services** | Pick a DTR structure code (1607010001–1607010800). Scan each meter's QR code or barcode, or use IR/IRDA (demo), or type the number. The app shows the **Service No and UKSCNO** and tells you whether the service belongs to this DTR. |
 | **Feeders** | Pick a feeder. Confirm each structure the mapping puts on it, by scanning a DTR tag, typing the code or name, or ticking it from the list. |
 | **Areas** | Pick an area code. Confirm each structure that has services in that area. |
-| **Search** | Find any service by service no, UKSCNO, meter no or name. |
+| **Service** | Type a service no, UKSCNO or meter no: details, **master structure code**, whether and when it was verified (and by whom), **move it to another DTR** from a searchable list of all DTRs with a remark, and the history of moves with remarks. Part of a name lists matches. |
 | **Report** | Summary, DTR-wise, feeder-wise and area-wise reports, plus conflicts. Everything can be downloaded as CSV. |
 | **Guide** | How to use the app, and the data on this phone. |
 
