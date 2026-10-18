@@ -36,6 +36,8 @@ async function main() {
   step('device', { model: device.model(), serial: device.serial(), sdk: adb('shell getprop ro.build.version.sdk'), webview: adb('shell dumpsys webviewupdate | grep -m1 "Current WebView package"') });
   const shot = async (name) => { try { await device.screenshot({ path: `shots/${name}.png` }); } catch (e) { report.errors.push('shot ' + name + ': ' + e.message); } };
 
+  // the CI emulator's launcher sometimes shows "isn't responding"; hide such system dialogs so they don't swallow key presses
+  adb('shell settings put global hide_error_dialogs 1'); adb('shell settings put global anr_show_background 0');
   adb(`uninstall ${PKG}`);
   step('install', { out: adb(`install -r -g ${APK}`) });
   adb(`shell pm grant ${PKG} android.permission.CAMERA`);
