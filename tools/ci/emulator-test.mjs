@@ -115,8 +115,8 @@ async function main() {
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await sleep(500); await shot('17b-guide-bottom');
 
   // hamburger menu: opens, Android back closes it, an item navigates
-  await closeKb(); await page.click('#menuBtn'); await sleep(600); await shot('17c-menu');
-  const menuOpen = await page.evaluate(() => !!document.querySelector('.drawer.on'));
+  await closeKb(); await page.click('#menuBtn'); await page.waitForSelector('.drawer.on'); await sleep(1500); await shot('17c-menu');
+  const menuOpen = await page.evaluate(() => { const d = document.querySelector('.drawer.on'); if (!d) return false; const r = d.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { left: Math.round(r.left), width: Math.round(r.width), transform: getComputedStyle(d).transform, onTop: !!(hit && d.contains(hit)), items: d.querySelectorAll('.dr-item').length }; });
   adb('shell input keyevent 4'); await sleep(700);
   const closedByBack = await page.evaluate(() => !document.querySelector('.drawer'));
   await page.click('#menuBtn'); await sleep(600); await page.click('.dr-item[data-act="go:feeder"]'); await sleep(700);

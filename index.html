@@ -806,7 +806,7 @@ const Drawer={el:null,bg:null,
     el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;dx=0;el.style.transition='none'},{passive:true});
     el.addEventListener('touchmove',e=>{if(x0==null)return;dx=Math.min(0,e.touches[0].clientX-x0);el.style.transform=dx?`translateX(${dx}px)`:''},{passive:true});
     el.addEventListener('touchend',()=>{if(x0==null)return;x0=null;el.style.transition='';el.style.transform='';if(dx<-70)this.close()});
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{bg.classList.add('on');el.classList.add('on')}));
+    void el.offsetWidth;bg.classList.add('on');el.classList.add('on'); // slide in from the closed position
   },
   close(now){const el=this.el,bg=this.bg;if(!el)return false;this.el=this.bg=null;$('menuBtn').setAttribute('aria-expanded','false');
     if(now){el.remove();bg.remove()}else{el.classList.remove('on');bg.classList.remove('on');setTimeout(()=>{el.remove();bg.remove()},300)}return true},
