@@ -5,10 +5,12 @@
 <meta name="theme-color" content="#0f5a4e">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link id="webfonts" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 /* Layout: one-column field tool (max 640px). Sticky header, DTR picker card, scan actions, result card, status-tabbed service list, fixed bottom tabs */
 :root{
+  --sat:var(--safe-area-inset-top,env(safe-area-inset-top,0px)); --sab:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));
+  --sal:var(--safe-area-inset-left,env(safe-area-inset-left,0px)); --sar:var(--safe-area-inset-right,env(safe-area-inset-right,0px));
   --bg:#eef2f0; --surface:#ffffff; --surface-2:#f6f8f7; --ink:#14201c; --muted:#5b6a65; --line:#d6dfdb;
   --accent:#0f5a4e; --accent-ink:#ffffff; --accent-soft:#dcebe7;
   --lcd:#b8dc7a; --lcd-ink:#1b2a10; --lcd-dim:#5f7a38; --lcd-edge:#8fb553;
@@ -37,22 +39,22 @@
 [hidden]{display:none!important}
 html,body{background:var(--bg)}
 body{color:var(--ink);font-family:var(--f-ui);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--accent)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:var(--sat);z-index:30;background:var(--accent)}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .mono{font-family:var(--f-code);font-variant-numeric:tabular-nums}
 .muted{color:var(--muted)}
 .small{font-size:13px}
 
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--accent);color:var(--accent-ink)}
+.top{position:sticky;top:var(--sat);z-index:20;background:var(--accent);color:var(--accent-ink)}
 .top-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:54px;padding-block:6px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  padding-left:max(16px,var(--sal));padding-right:max(16px,var(--sar))}
 .top h1{font-family:var(--f-head);font-weight:700;font-size:19px;letter-spacing:.01em;margin:0;line-height:1.1;min-width:0;flex:1}
-.top h1 small{display:block;font-family:var(--f-ui);font-weight:500;font-size:12px;opacity:.85;letter-spacing:.02em}
+.top h1 small{display:block;font-family:var(--f-ui);font-weight:500;font-size:12px;opacity:.85;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .store{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.18);white-space:nowrap}
 
-main{max-width:640px;margin:0 auto;padding-block:14px calc(86px + env(safe-area-inset-bottom,0px));
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+main{max-width:640px;margin:0 auto;padding-block:14px calc(86px + var(--sab));
+  padding-left:max(16px,var(--sal));padding-right:max(16px,var(--sar));
   display:flex;flex-direction:column;gap:12px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
 .stack{display:flex;flex-direction:column;gap:10px}
@@ -110,6 +112,7 @@ h3{font-family:var(--f-head);font-weight:600;font-size:17px;margin:0;text-wrap:b
 .list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);cursor:pointer;background:transparent;width:100%;text-align:left;border-left:0;border-right:0;border-bottom:0}
 .li:first-child{border-top:0}
+.list>.li:not(.open){content-visibility:auto;contain-intrinsic-size:auto 62px}
 .li:hover{background:var(--surface-2)}
 .li .t{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .li .s{font-size:13px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -156,13 +159,13 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--surface-2)}
 .sum b{display:block;font-family:var(--f-head);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
 .sum span{font-size:11.5px;color:var(--muted)}
 
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:var(--sab)}
 .tabs-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);
-  padding-left:max(4px,env(safe-area-inset-left,0px));padding-right:max(4px,env(safe-area-inset-right,0px))}
+  padding-left:max(4px,var(--sal));padding-right:max(4px,var(--sar))}
 .tab{background:transparent;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 1px 9px;font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:.02em}
 .tab svg{width:23px;height:23px}
 .tab[aria-current="page"]{color:var(--accent)}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;font-size:14px;z-index:40;max-width:calc(100% - 32px);text-align:center}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(78px + var(--sab));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;font-size:14px;z-index:40;max-width:calc(100% - 32px);text-align:center}
 .dtrinfo{display:flex;flex-direction:column;gap:3px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px}
 .dname{font-family:var(--f-head);font-size:18px;font-weight:700;line-height:1.2;min-width:0;overflow-wrap:anywhere}
 .mchips{display:flex;flex-direction:column;gap:4px;margin-top:2px}
@@ -216,6 +219,92 @@ table.inner th,table.inner td{padding:5px 8px;font-size:12px}
 .brand span{font-size:13px;color:var(--muted)}
 .sumry{cursor:pointer;font-weight:600;padding:6px 0}
 .loading{display:grid;place-items:center;min-height:50vh;color:var(--muted);text-align:center}
+
+/* ---- touch feel: no grey tap flash, instant taps, press feedback ---- */
+html{-webkit-text-size-adjust:100%}
+body{overscroll-behavior-y:contain;margin:0}
+button,.btn,.li,.tab,.stab,.rtab,.chip2,.mchip,.irm,.sq,.cbanner,.dtrbtn,.vrow,.so-btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.top,.tabs,.btn,.tab,.stab,.rtab,.chip2,.sq,.pill,.dtrbtn,.vrow,.so-top,.so-stats{-webkit-user-select:none;user-select:none}
+.btn:active,.sq:active,.irm:active,.chip2:active,.rtab:active,.dtrbtn:active,.so-btn:active{filter:brightness(.92)}
+.li:active,.stab:active,.mchip:active,.cbanner:active,.vrow:active{filter:brightness(.95)}
+@media (prefers-reduced-motion:no-preference){
+  .btn,.li,.tab,.stab,.rtab,.chip2,.mchip,.sq,.irm,.cbanner,.dtrbtn,.vrow,.so-btn{transition:transform .1s ease,filter .12s ease,background-color .18s ease}
+  .btn:active,.sq:active,.irm:active,.chip2:active,.rtab:active,.dtrbtn:active,.so-btn:active{transform:scale(.97)}
+  .res.fresh{animation:pop .24s cubic-bezier(.2,.9,.3,1.15)}
+  main.enter{animation:fadein .18s ease-out}
+  .tab svg{transition:background-color .2s ease}
+}
+@keyframes pop{from{transform:translateY(10px) scale(.98);opacity:.15}to{transform:none;opacity:1}}
+@keyframes fadein{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+/* Material-style bottom navigation: a pill behind the current tab's icon */
+.tab svg{padding:3px 12px;box-sizing:content-box;border-radius:999px}
+.tab[aria-current="page"] svg{background:var(--accent-soft)}
+.tab[aria-current="page"]{font-weight:700}
+html.kb .tabs{display:none}
+html.kb main{padding-bottom:20px}
+.store.off{background:rgba(0,0,0,.35)}
+
+/* DTR picker button (opens the searchable list) */
+.picker .sq{min-height:60px}
+.dtrbtn{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;min-height:60px;padding:6px 34px 6px 12px;border:2px solid var(--accent);border-radius:var(--r);background:var(--surface);color:var(--ink);text-align:left;cursor:pointer;min-width:0;width:100%;position:relative}
+.dtrbtn .code{font-family:var(--f-code);font-weight:600;font-size:14px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.dtrbtn .nm{font-family:var(--f-head);font-weight:700;font-size:17px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.dtrbtn.empty .nm{color:var(--muted)}
+.dtrbtn::after{content:"";position:absolute;right:13px;top:50%;width:8px;height:8px;border-right:2.5px solid var(--accent);border-bottom:2.5px solid var(--accent);transform:translateY(-70%) rotate(45deg)}
+
+/* bottom sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:50;opacity:0;transition:opacity .22s ease}
+.sheet-bg.on{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--surface);border-radius:18px 18px 0 0;height:min(86vh,760px);display:flex;flex-direction:column;transform:translateY(102%);transition:transform .28s cubic-bezier(.2,.8,.2,1);padding-bottom:var(--sab);max-width:640px;margin:0 auto;box-shadow:0 -10px 30px rgba(0,0,0,.2)}
+.sheet.on{transform:none}
+html.kb .sheet{height:min(100%,760px);border-radius:0}
+.sheet .grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:8px auto 2px;flex:none}
+.sh-head{padding:6px 16px 10px;display:flex;flex-direction:column;gap:8px;flex:none;border-bottom:1px solid var(--line)}
+.sh-body{overflow-y:auto;flex:1;min-height:0;overscroll-behavior:contain;position:relative}
+.vlist{position:relative}
+.vrow{position:absolute;left:0;right:0;height:62px;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:0 10px;align-items:center;padding:0 16px;border:0;border-bottom:1px solid var(--line);background:var(--surface);width:100%;text-align:left;cursor:pointer;color:var(--ink)}
+.vrow .n3{grid-row:1/span 2;font-family:var(--f-code);font-weight:700;font-size:18px;color:var(--accent)}
+.vrow .nm{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;align-self:end}
+.vrow .sub{grid-column:2;font-size:12px;color:var(--muted);align-self:start;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vrow .pr{grid-row:1/span 2;grid-column:3;text-align:right;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.vrow .pr b{font-family:var(--f-head);font-size:15px;color:var(--ink)}
+.vrow.cur{background:var(--accent-soft)}
+.vrow.none .n3,.vrow.none .nm{color:var(--muted)}
+
+/* native camera scanner: the camera runs behind the page, so the page goes transparent except this overlay */
+html.scanning,html.scanning body{background:transparent!important}
+html.scanning body::before{display:none}
+html.scanning body>*:not(#scanOv):not(#toast){visibility:hidden}
+#scanOv{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;color:#fff;pointer-events:none}
+#scanOv>*{pointer-events:auto}
+.so-top{display:flex;align-items:center;gap:8px;padding:calc(var(--sat) + 8px) max(12px,var(--sar)) 10px max(12px,var(--sal));background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,0))}
+.so-top h2{flex:1;min-width:0;font-size:17px;line-height:1.2;margin:0;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.so-top h2 small{display:block;font-family:var(--f-ui);font-weight:500;font-size:12.5px;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.so-btn{width:46px;height:46px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff;display:grid;place-items:center;flex:none;font-weight:700;font-size:14px;cursor:pointer}
+.so-btn svg{width:22px;height:22px}
+.so-btn[aria-pressed="true"]{background:#ffd54a;color:#1b1b1b}
+.so-mid{flex:1;display:grid;place-items:center;pointer-events:none!important;min-height:140px}
+.so-frame{width:min(74vw,320px);aspect-ratio:1.4;border-radius:16px;box-shadow:0 0 0 100vmax rgba(0,0,0,.38);position:relative}
+.so-frame i{position:absolute;width:34px;height:34px;border:4px solid #fff;transition:border-color .15s}
+.so-frame i:nth-child(1){left:-3px;top:-3px;border-right:0;border-bottom:0;border-radius:16px 0 0 0}
+.so-frame i:nth-child(2){right:-3px;top:-3px;border-left:0;border-bottom:0;border-radius:0 16px 0 0}
+.so-frame i:nth-child(3){left:-3px;bottom:-3px;border-right:0;border-top:0;border-radius:0 0 0 16px}
+.so-frame i:nth-child(4){right:-3px;bottom:-3px;border-left:0;border-top:0;border-radius:0 0 16px 0}
+.so-frame.ok i{border-color:#5cd68a}.so-frame.warn i{border-color:#ffc04d}.so-frame.bad i{border-color:#ff6b57}
+.so-hint{position:absolute;left:-20px;right:-20px;top:calc(100% + 12px);text-align:center;font-size:13.5px;font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.so-sheet{background:var(--surface);color:var(--ink);border-radius:18px 18px 0 0;padding:12px max(14px,var(--sar)) calc(var(--sab) + 12px) max(14px,var(--sal));display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto;overscroll-behavior:contain}
+.so-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.so-stats span{text-align:center;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:5px 2px;font-size:11px;color:var(--muted);line-height:1.2}
+.so-stats b{display:block;font-family:var(--f-head);font-size:19px;color:var(--ink);font-variant-numeric:tabular-nums}
+.so-stats .k-ok b{color:var(--ok)}.so-stats .k-bad b{color:var(--bad)}.so-stats .k-warn b{color:var(--warn)}
+.so-sheet .res{padding:10px 12px}
+.so-empty{text-align:center;color:var(--muted);font-size:14px;padding:6px 0 2px}
+
+/* pull down to sync */
+#ptr{position:fixed;left:50%;top:calc(var(--sat) + 58px);z-index:25;width:42px;height:42px;margin-left:-21px;border-radius:50%;background:var(--surface);box-shadow:0 2px 12px rgba(0,0,0,.22);display:grid;place-items:center;color:var(--accent);opacity:0;transform:translateY(-70px);pointer-events:none}
+#ptr svg{width:22px;height:22px}
+#ptr.go svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head><body>
 
@@ -238,9 +327,10 @@ table.inner th,table.inner td{padding:5px 8px;font-size:12px}
 <input type="file" id="photo" accept="image/*" capture="environment" hidden>
 <input type="file" id="dataFile" accept=".json,application/json" hidden>
 <input type="file" id="xlsFile" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden>
+<input type="file" id="bkFile" accept=".json,application/json" hidden>
+<div id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></div>
 <div id="toast" hidden></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
 <script type="text/plain" id="masterdata"></script>
 <script type="application/json" id="structdata">{}</script>
 <script type="application/json" id="areadata">{}</script>
@@ -254,12 +344,13 @@ const STYPE={PUBLIC:'Public',APRMT:'Apartment',INDUSTRIAL:'Industrial'};
 const LSKEY='dtrverify_v1', LSDTR='dtrverify_sel', LSF='dtrverify_feeder_v1', LSFS='dtrverify_feeder_sel', LSA='dtrverify_area_v1', LSAS='dtrverify_area_sel';
 const DTR_PREFIX='1607010', DTR_FROM=1, DTR_TO=800;
 const S={recs:[],live:[],rtab:'summary',ropen:null,rall:false,av:{},adr:null,atab:'pending',aopen:null,alast:null,apending:null,apanel:null,alimit:200,fv:{},fdr:null,ftab:'pending',fopen:null,flast:null,fpending:null,fpanel:null,flimit:200,byU:new Map(),byS:new Map(),byM:new Map(),dtrs:[],dtrMap:new Map(),
-  ver:{}, view:'verify', dtr:null, tab:'pending', open:null, last:null, panel:null, irMode:'irda1', q:'', dtrFilter:'', liveBlocked:false, limit:150};
+  ver:{}, view:'verify', dtr:null, tab:'pending', open:null, last:null, panel:null, irMode:'irda1', q:'', dtrFilter:'', liveBlocked:false, limit:60};
 const main=document.getElementById('main');
 const $=id=>document.getElementById(id);
 const h=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n).toLocaleString('en-IN');
-const normM=m=>String(m||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^0+/,'');
+const normM=m=>{let s=String(m||'').toUpperCase();if(/[^A-Z0-9]/.test(s))s=s.replace(/[^A-Z0-9]/g,'');let i=0;while(s.charCodeAt(i)===48)i++;return i?s.slice(i):s};
+const cmp=(a,b)=>a<b?-1:a>b?1:0;
 const tstr=t=>new Date(t).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 const I={
   qr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>',
@@ -273,31 +364,75 @@ const I={
   prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
   next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
   plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5"/></svg>',
-  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>'
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>',
+  torch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10l-2 6v12H9V9z"/><path d="M12 13v3"/></svg>',
+  close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  sync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>',
+  kbd:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg>'
 };
 function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2600)}
 let actx;
 function beep(kind){
-  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();
     const seq=kind==='ok'?[[1320,.1]]:kind==='warn'?[[700,.12],[700,.12]]:[[260,.3]];let t=actx.currentTime;
     for(const [f,d] of seq){const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.start(t);o.stop(t+d);t+=d+.07}}catch(e){}
+  if(N.haptic(kind))return;
   try{if(navigator.vibrate)navigator.vibrate(kind==='ok'?70:[90,60,90])}catch(e){}
 }
 
+/* ---------- Android app (Capacitor): native plugins ----------
+   Every call is optional: in a browser these are absent and the page falls back to web features. */
+const isNative=()=>!!(window.Capacitor&&typeof Capacitor.isNativePlatform==='function'&&Capacitor.isNativePlatform());
+const capPlugin=n=>isNative()?((Capacitor.Plugins&&Capacitor.Plugins[n])||(Capacitor.registerPlugin?Capacitor.registerPlugin(n):null)):null;
+const N={
+  on:isNative(),info:null,online:true,splashDone:false,
+  P(n){return capPlugin(n)},
+  haptic(kind){const H=this.on&&this.P('Haptics');if(!H)return false;
+    try{if(kind==='tap')H.impact({style:'LIGHT'});else H.notification({type:kind==='ok'?'SUCCESS':kind==='warn'?'WARNING':'ERROR'})}catch(e){return false}return true},
+  tap(){if(this.on)this.haptic('tap')},
+  hideSplash(){if(this.splashDone)return;this.splashDone=true;const s=this.P('SplashScreen');if(s)requestAnimationFrame(()=>setTimeout(()=>s.hide({fadeOutDuration:180}).catch(()=>{}),30))},
+  async confirm(title,message,ok){ // native dialog in the app; in a browser the caller uses its own "tap again" pattern
+    const D=this.P('Dialog');if(!D)return null;
+    try{const r=await D.confirm({title,message,okButtonTitle:ok||'OK',cancelButtonTitle:'Cancel'});return !!r.value}catch(e){return null}},
+  bars(){ // status bar icons light on the green header; navigation bar icons follow the page theme
+    const B=this.P('SystemBars');if(!B)return;
+    const dark=matchMedia('(prefers-color-scheme: dark)').matches;
+    const edge=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'))>0;
+    try{B.setStyle({style:'DARK',bar:'StatusBar'});B.setStyle({style:edge&&!dark?'LIGHT':'DARK',bar:'NavigationBar'})}catch(e){}},
+  async init(){
+    if(!this.on)return;
+    document.documentElement.classList.add('native');
+    this.bars();setTimeout(()=>this.bars(),800);matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>this.bars());
+    const K=this.P('Keyboard');
+    if(K){try{K.addListener('keyboardWillShow',()=>document.documentElement.classList.add('kb'));K.addListener('keyboardWillHide',()=>document.documentElement.classList.remove('kb'))}catch(e){}}
+    const Net=this.P('Network');
+    if(Net){try{const s=await Net.getStatus();this.online=s.connected;
+      Net.addListener('networkStatusChange',s=>{const was=this.online;this.online=s.connected;updateBadge();if(s.connected&&!was)Backup.sync()})}catch(e){}}
+    const App=this.P('App');
+    if(App){try{App.addListener('appStateChange',({isActive})=>{if(isActive){Backup.sync()}else{Persist.flush();FileBackup.write(true);if(NScan.active)NScan.stop(true)}});
+      App.getInfo().then(i=>{this.app=i}).catch(()=>{})}catch(e){}}
+    const Dv=this.P('Device');
+    if(Dv){try{this.info=await Dv.getInfo()}catch(e){}}
+  }
+};
+const isOnline=()=>N.on?N.online:navigator.onLine!==false;
+
 /* ---------- master data ---------- */
 async function loadData(P){
-  const txt=P.txt;
-  for(const ln of txt.split('\n')){if(!ln)continue;
-    const c=ln.split('\t');const o={};F.forEach((k,i)=>{o[k]=NUMF.has(k)?Number(c[i]||0):(c[i]||'')});
+  const L=P.txt.split('\n');
+  for(let i=0;i<L.length;i++){const ln=L[i];if(!ln)continue;
+    const c=ln.split('\t'); // field order = F
+    const o={s:c[0]||'',u:c[1]||'',m:c[2]||'',dtr:c[3]||'',n:c[4]||'',a:c[5]||'',ph:+c[6]||0,ct:c[7]||'',ld:+c[8]||0,mk:c[9]||'',r:+c[10]||0,rm:c[11]||'',sl:c[12]||'',st:c[13]||'',mf:+c[14]||0,an:c[15]||'',x:+c[16]||0};
+    const nm=normM(o.m);o.mn=nm;o.N=o.n.toUpperCase();
     S.recs.push(o);S.byU.set(o.u,o);S.byS.set(o.s.toUpperCase(),o);
-    const nm=normM(o.m);if(nm){if(!S.byM.has(nm))S.byM.set(nm,[]);S.byM.get(nm).push(o)}
+    if(nm){const a=S.byM.get(nm);if(a)a.push(o);else S.byM.set(nm,[o])}
     if(o.x)continue; // in the old consumer master but not in the current service mapping
     S.live.push(o);
     if(!S.dtrMap.has(o.dtr))S.dtrMap.set(o.dtr,{code:o.dtr,list:[],p1:0,p3:0});
     const d=S.dtrMap.get(o.dtr);d.list.push(o);o.ph===3?d.p3++:d.p1++;
   }
   const STR=P.STR;S.structCount=Object.keys(STR).length;
-  S.dtrMap.forEach(d=>d.list.sort((a,b)=>a.s.localeCompare(b.s)));
+  S.dtrMap.forEach(d=>d.list.sort((a,b)=>cmp(a.s,b.s)));
   // dropdown shows the fixed range 1607010001 to 1607010800, including codes with no services in the master
   S.dtrs=[];
   for(let i=DTR_FROM;i<=DTR_TO;i++){const code=DTR_PREFIX+String(i).padStart(3,'0');
@@ -312,12 +447,12 @@ async function loadData(P){
   for(const [code,s] of Object.entries(STR)){const fc=s[3]||s[2];if(!fm.has(fc))fm.set(fc,{fc,name:s[2],list:[]});
     if(!S.dtrMap.has(code))S.dtrMap.set(code,{code,list:[],p1:0,p3:0,name:s[0],type:s[1],feeder:s[2],fc,areas:[]});fm.get(fc).list.push(S.dtrMap.get(code))}
   S.feeders=[...fm.values()].sort((a,b)=>a.name.localeCompare(b.name));
-  S.feeders.forEach(f=>{f.list.sort((a,b)=>a.code.localeCompare(b.code));f.svc=f.list.reduce((n,d)=>n+d.list.length,0)});
+  S.feeders.forEach(f=>{f.list.sort((a,b)=>cmp(a.code,b.code));f.svc=f.list.reduce((n,d)=>n+d.list.length,0)});
   S.fMap=new Map(S.feeders.map(f=>[f.fc,f]));
   S.fNames=new Map(S.feeders.map(f=>[f.fc,f.name]));
   // areas: area code is on each service, so one structure can sit in several areas
   const AR=P.AR;
-  S.areas=Object.entries(AR).map(([ac,[name,sc]])=>{const list=Object.entries(sc).map(([code,n])=>{const d=S.dtrMap.get(code);if(!d.acs)d.acs={};d.acs[ac]=n;return{d,n}}).sort((a,b)=>a.d.code.localeCompare(b.d.code));
+  S.areas=Object.entries(AR).map(([ac,[name,sc]])=>{const list=Object.entries(sc).map(([code,n])=>{const d=S.dtrMap.get(code);if(!d.acs)d.acs={};d.acs[ac]=n;return{d,n}}).sort((a,b)=>cmp(a.d.code,b.d.code));
     return{ac,name,list,svc:list.reduce((t,x)=>t+x.n,0)}}).sort((a,b)=>a.ac.localeCompare(b.ac,'en',{numeric:true}));
   S.aMap=new Map(S.areas.map(a=>[a.ac,a]));
   S.areaByName=new Map(S.areas.map(a=>[a.name,a.ac]));
@@ -326,13 +461,47 @@ async function loadData(P){
 /* ---------- verification store ----------
    S.ver[dtr] = { s:{ukscno:{st,src,raw,t,mdtr}}, x:{meterKey:{raw,src,t}} }
    st: ok = found on this DTR · other = found here, master says another DTR · nf = not found at site · na = no access
-   removals are kept as {del:1,t} so newest-wins merging works across devices */
+   removals are kept as {del:1,t} so newest-wins merging works across devices.
+   Entries are saved to IndexedDB one DTR / feeder / area at a time (no 5 MB localStorage limit, no full rewrite per tap). */
 const live=e=>e&&!e.del;
 const docId=d=>'d'+(d||'0');
+function mergeRecs(dst,src){let n=0;if(!src)return 0;for(const key in src){const rec=src[key],c=dst[key];if(rec&&(!c||(rec.t||0)>(c.t||0))){dst[key]=rec;n++}}return n}
+const Persist={dirty:new Set(),timer:0,ok:true,
+  mark(k){this.dirty.add(k);if(!this.timer)this.timer=setTimeout(()=>this.flush(),40);FileBackup.soon()},
+  v(dtr){this.mark('v:'+dtr)},f(fc){this.mark('f:'+fc)},a(ac){this.mark('a:'+ac)},
+  all(){for(const k in S.ver)this.v(k);for(const k in S.fv)this.f(k);for(const k in S.av)this.a(k)},
+  val(k){const id=k.slice(2);return (k[0]==='v'?S.ver:k[0]==='f'?S.fv:S.av)[id]||null},
+  async flush(){clearTimeout(this.timer);this.timer=0;if(!this.dirty.size)return;const keys=[...this.dirty];this.dirty.clear();
+    if(this.ok){try{await IDB.putMany(keys.map(k=>[k,this.val(k)]));return}catch(e){this.ok=false}}
+    this.legacySave()},
+  legacySave(){try{localStorage.setItem(LSKEY,JSON.stringify(S.ver));localStorage.setItem(LSF,JSON.stringify(S.fv));localStorage.setItem(LSA,JSON.stringify(S.av))}catch(e){toast('Phone storage is full. Free some space so entries keep saving.')}},
+  async load(){
+    let rows=null;try{rows=await IDB.entAll()}catch(e){this.ok=false}
+    for(const [k,v] of rows||[]){if(!v)continue;const id=k.slice(2);(k[0]==='v'?S.ver:k[0]==='f'?S.fv:S.av)[id]=v}
+    // entries saved by older versions in localStorage: merge them in, then free that space
+    let moved=0;const take=(lsKey,target,kind)=>{try{const j=localStorage.getItem(lsKey);if(!j)return;const o=JSON.parse(j)||{};
+      for(const id in o){const src=o[id];if(!src)continue;const cur=target[id]||(target[id]=kind==='v'?{s:{},x:{}}:{s:{}});
+        const n=mergeRecs(cur.s||(cur.s={}),src.s)+(kind==='v'?mergeRecs(cur.x||(cur.x={}),src.x):0);if(n){moved+=n;this.mark(kind+':'+id)}}}catch(e){}};
+    take(LSKEY,S.ver,'v');take(LSF,S.fv,'f');take(LSA,S.av,'a');
+    if(moved&&this.ok){await this.flush();if(this.ok){try{[LSKEY,LSF,LSA].forEach(k=>localStorage.removeItem(k))}catch(e){}}}
+    D.rebuild();bumpF();
+  }
+};
+/* derived indexes, kept up to date on every change so screens never rescan all entries */
+const D={claims:new Map(),conf:new Set(),elsew:new Map(),stats:new Map(),rev:0,_cx:null,_cxRev:-1,
+  rebuild(){this.claims.clear();this.conf.clear();this.elsew.clear();this.stats.clear();
+    for(const d in S.ver){const s=S.ver[d].s||{};for(const u in s){const r=s[u];if(isClaim(r)){let m=this.claims.get(u);if(!m)this.claims.set(u,m=new Map());m.set(d,r)}}}
+    for(const [u,m] of this.claims){if(m.size>1)this.conf.add(u);this._el(u,m)}
+    this.rev++},
+  set(d,u,r){let m=this.claims.get(u);if(m)m.delete(d);
+    if(isClaim(r)){if(!m)this.claims.set(u,m=new Map());m.set(d,r)}
+    if(m&&!m.size){this.claims.delete(u);m=null}
+    if(m&&m.size>1)this.conf.add(u);else this.conf.delete(u);
+    this._el(u,m);this.stats.delete(d);const o=S.byU.get(u);if(o)this.stats.delete(o.dtr);this.rev++},
+  x(d){this.stats.delete(d);this.rev++},
+  _el(u,m){let b=null;if(m)for(const [d,r] of m)if((r.st==='other'||r.st==='conf')&&(!b||r.t>b.rec.t))b={dtr:d,rec:r};if(b)this.elsew.set(u,b);else this.elsew.delete(u)}
+};
 const Store={mode:'device',db:null,seen:new Set(),
-  loadLocal(){try{const j=localStorage.getItem(LSKEY);if(j)S.ver=JSON.parse(j)||{}}catch(e){}
-    try{const d=localStorage.getItem(LSDTR);if(d&&S.dtrSet.has(d))S.dtr=d}catch(e){}},
-  saveLocal(){try{localStorage.setItem(LSKEY,JSON.stringify(S.ver))}catch(e){}},
   badge(){if(this.mode!=='db'&&S.ready){updateBadge();return}const b=$('storeBadge');b.textContent=this.mode==='db'?'Synced':'On device';b.title=this.mode==='db'?'Saved to this page and shared with your other devices':'Saved in this browser only'},
   async init(){
     this.badge();
@@ -343,14 +512,13 @@ const Store={mode:'device',db:null,seen:new Set(),
       let changed=false;
       snap.docs.forEach(d=>{this.seen.add(d.id);const x=d.data();if(!x||!x.dtr)return;
         const cur=S.ver[x.dtr]||(S.ver[x.dtr]={s:{},x:{}});
-        for(const k of ['s','x'])for(const [key,rec] of Object.entries(x[k]||{})){
-          const c=cur[k][key];if(rec&&(!c||(rec.t||0)>(c.t||0))){cur[k][key]=rec;changed=true}}});
-      if(changed){this.saveLocal();if(S.view==='verify'&&!cam.timer)renderVerify();else if(S.view==='report')vReport()}
+        if(mergeRecs(cur.s,x.s)+mergeRecs(cur.x,x.x)){changed=true;Persist.v(x.dtr)}});
+      if(changed){D.rebuild();rerenderIdle()}
     },()=>{this.mode='device';this.badge()})}catch(e){this.mode='device';this.badge()}
   },
   async put(dtr,kind,key,rec){
     const cur=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});
-    cur[kind][key]=rec;this.saveLocal();
+    cur[kind][key]=rec;if(kind==='s')D.set(dtr,key,rec);else D.x(dtr);Persist.v(dtr);
     if(this.mode!=='db')return;
     const id=docId(dtr),ref=this.db.doc('verify/'+id);
     try{
@@ -363,37 +531,32 @@ const Store={mode:'device',db:null,seen:new Set(),
   }
 };
 function vrec(dtr){return S.ver[dtr]||{s:{},x:{}}}
-function pendingList(d){const v=vrec(d.code),el=elsewhereIndex();return d.list.filter(o=>!live(v.s[o.u])&&!el.has(o.u))}
+function pendingList(d){const v=vrec(d.code),el=D.elsew;return d.list.filter(o=>!live(v.s[o.u])&&!el.has(o.u))}
 /* One service, one DTR.
    A "location claim" is any live record saying the meter was found on a DTR: ok (its own DTR), other (a different DTR), conf (sent to admin review).
    Two or more claims for the same UKSCNO = a conflict that only the admin (page owner / editor) can resolve. */
 const CLAIM=new Set(['ok','other','conf']);
 const isClaim=r=>live(r)&&CLAIM.has(r.st);
 function claimsFor(u,exceptDtr){
-  const out=[];for(const [d,v] of Object.entries(S.ver)){if(d===exceptDtr)continue;const r=v.s&&v.s[u];if(isClaim(r))out.push({dtr:d,rec:r})}
+  const m=D.claims.get(u);if(!m)return[];const out=[];for(const [d,r] of m)if(d!==exceptDtr)out.push({dtr:d,rec:r});
   return out.sort((a,b)=>a.rec.t-b.rec.t);
 }
 function conflictIndex(){ // ukscno -> [{dtr,rec}] when claimed on 2+ DTRs
-  const m=new Map();
-  for(const [d,v] of Object.entries(S.ver))for(const [u,r] of Object.entries(v.s||{}))if(isClaim(r)){if(!m.has(u))m.set(u,[]);m.get(u).push({dtr:d,rec:r})}
-  for(const [u,c] of m)if(c.length<2)m.delete(u);else c.sort((a,b)=>a.rec.t-b.rec.t);
-  return m;
+  if(D._cxRev===D.rev)return D._cx;const m=new Map();
+  for(const u of D.conf){const m2=D.claims.get(u);if(!m2)continue;m.set(u,[...m2].map(([dtr,rec])=>({dtr,rec})).sort((a,b)=>a.rec.t-b.rec.t))}
+  D._cx=m;D._cxRev=D.rev;return m;
 }
-function elsewhereIndex(){
-  const m=new Map();
-  for(const [d,v] of Object.entries(S.ver))for(const [u,r] of Object.entries(v.s||{}))if(live(r)&&(r.st==='other'||r.st==='conf')){const p=m.get(u);if(!p||r.t>p.rec.t)m.set(u,{dtr:d,rec:r})}
-  return m;
+function elsewhereIndex(){return D.elsew}
+function dtrStats(d){
+  let st=D.stats.get(d.code);if(st)return st;
+  const v=vrec(d.code),el=D.elsew;let ok=0,nf=0,e=0;
+  for(const o of d.list){const r=v.s[o.u];if(r&&!r.del){if(r.st==='ok'){ok++;continue}if(r.st==='nf'||r.st==='na'){nf++;continue}}if(el.has(o.u))e++}
+  let other=0,unk=0;for(const k in v.s){const r=v.s[k];if(r&&!r.del&&(r.st==='other'||r.st==='conf'))other++}for(const k in v.x)if(live(v.x[k]))unk++;
+  st={n:d.list.length,ok,nf,el:e,pending:d.list.length-ok-nf-e,other,unk};D.stats.set(d.code,st);return st;
 }
-function dtrStats(d,elsew){
-  const v=vrec(d.code);elsew=elsew||elsewhereIndex();
-  let ok=0,nf=0,el=0;
-  for(const o of d.list){const r=v.s[o.u];if(live(r)&&r.st==='ok')ok++;else if(live(r)&&(r.st==='nf'||r.st==='na'))nf++;else if(elsew.has(o.u))el++}
-  let other=0,unk=0;for(const r of Object.values(v.s))if(live(r)&&(r.st==='other'||r.st==='conf'))other++;for(const r of Object.values(v.x))if(live(r))unk++;
-  return{n:d.list.length,ok,nf,el,pending:d.list.length-ok-nf-el,other,unk};
-}
-function dtrConflicts(code,cx){ // conflicts that touch this DTR: a claim here, or the service belongs here by master
-  cx=cx||conflictIndex();const out=[];
-  for(const [u,c] of cx){const o=S.byU.get(u);if(c.some(x=>x.dtr===code)||(o&&o.dtr===code))out.push(u)}
+function dtrConflicts(code){ // conflicts that touch this DTR: a claim here, or the service belongs here by master
+  const out=[];
+  for(const [u,c] of conflictIndex()){const o=S.byU.get(u);if(c.some(x=>x.dtr===code)||(o&&o.dtr===code))out.push(u)}
   return out;
 }
 
@@ -463,18 +626,25 @@ async function processScan(text,src){
   showResult();
 }
 function showResult(){
+  S.fresh=true;
+  if(NScan.active){NScan.refresh();return}
   if(S.view!=='verify'){go('verify');return}
-  if(cam.timer||cam.stream)refreshAfterScan();else{renderVerify();const rc=$('lastRes');if(rc)rc.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  const r=S.pending||S.last;refreshVerify(!(cam.timer||cam.stream),r&&r.o?r.o.u:undefined);
 }
-function refreshAfterScan(){ // update result, counts and list without tearing down the live camera
-  const d=S.dtrMap.get(S.dtr);const elsew=elsewhereIndex();
+const progText=(d,st)=>d.list.length?`${d.list.length} services · ${d.p1} single-phase · ${d.p3} three-phase · ${st.ok+st.nf+st.el} of ${st.n} done`:'';
+function refreshVerify(scroll,u){ // update result, counts and list in place (keeps the picker, the camera and the scroll position)
+  const d=S.dtrMap.get(S.dtr);if(!d||!$('svcList'))return renderVerify();
+  const st=dtrStats(d);
   $('lastRes').innerHTML=resultBlock();
   $('confBox').innerHTML=confBanner(d);
-  $('stabsBox').innerHTML=stabsHtml(dtrStats(d,elsew));
-  $('svcList').innerHTML=listHtml(d,elsew);
-  $('barBox').innerHTML=barHtml(dtrStats(d,elsew));
+  $('stabsBox').innerHTML=stabsHtml(st);
+  if(!(u&&patchRow(u)))$('svcList').innerHTML=listHtml(d);
+  const bb=$('barBox');if(bb&&d.list.length)bb.innerHTML=barHtml(st);
+  const pg=$('dtrProg');if(pg)pg.textContent=progText(d,st);
   bindDynamic(d);
+  if(scroll){const rc=$('lastRes');if(rc&&rc.firstElementChild)rc.scrollIntoView({block:'nearest',behavior:'smooth'})}
 }
+const refreshAfterScan=()=>refreshVerify(false);
 /* decisions on a held scan */
 async function decide(action){
   const p=S.pending;if(!p)return;const o=p.o,now=Date.now();
@@ -495,46 +665,89 @@ async function decide(action){
   }
   S.pending=null;showResult();
 }
+async function undoVerify(){const u=S.last&&S.last.undo;if(!u)return;await Store.put(S.dtr,u.kind,u.key,u.prev||{del:1,t:Date.now(),by:Who.id});S.last=null;toast('Scan undone');showResult()}
 
 /* ---------- navigation ---------- */
-function go(view){stopCam();if(!S.ready){showSetup();return}S.view=view;
+function go(view,anim){stopCam();if(NScan.active)NScan.stop(true,true);Sheet.close(true);if(!S.ready){showSetup();return}S.view=view;
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===view?'page':'false'));
   const T={verify:'DTR Verification',feeder:'Feeder-wise structures',area:'Area-wise structures',search:'Search services',report:'Verification report',guide:'Guide'};
   $('hdr').innerHTML=h(T[view])+'<small>Sec '+h(SECTION.name)+' · ERO 11</small>';
-  ({verify:renderVerify,feeder:renderFeeder,area:renderArea,search:vSearch,report:vReport,guide:vGuide})[view]();window.scrollTo(0,0)}
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(b.dataset.tab!=='verify')S.panel=null;if(b.dataset.tab!=='feeder')S.fpanel=null;if(b.dataset.tab!=='area')S.apanel=null;go(b.dataset.tab)});
+  ({verify:renderVerify,feeder:renderFeeder,area:renderArea,search:vSearch,report:vReport,guide:vGuide})[view]();window.scrollTo(0,0);
+  if(anim){main.classList.remove('enter');void main.offsetWidth;main.classList.add('enter')}}
+main.addEventListener('animationend',()=>main.classList.remove('enter'));
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{N.tap();if(b.dataset.tab!=='verify')S.panel=null;if(b.dataset.tab!=='feeder')S.fpanel=null;if(b.dataset.tab!=='area')S.apanel=null;go(b.dataset.tab,true)});
+
+/* ---------- bottom sheet (used for the DTR list) ---------- */
+const Sheet={el:null,bg:null,onClose:null,
+  open(html,onClose){this.close(true);
+    const bg=document.createElement('div');bg.className='sheet-bg';const el=document.createElement('div');el.className='sheet';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+    el.innerHTML='<div class="grab" aria-hidden="true"></div>'+html;document.body.append(bg,el);this.el=el;this.bg=bg;this.onClose=onClose||null;
+    bg.onclick=()=>this.close();
+    let y0=null,dy=0;const start=e=>{y0=e.touches[0].clientY;dy=0;el.style.transition='none'};
+    const move=e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);el.style.transform=dy?`translateY(${dy}px)`:''};
+    const end=()=>{if(y0==null)return;y0=null;el.style.transition='';el.style.transform='';if(dy>80)this.close()};
+    el.querySelectorAll('.grab,.sh-title').forEach(x=>{x.addEventListener('touchstart',start,{passive:true});x.addEventListener('touchmove',move,{passive:true});x.addEventListener('touchend',end)});
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{bg.classList.add('on');el.classList.add('on')}));
+    return el},
+  close(now){const el=this.el,bg=this.bg;if(!el)return false;this.el=this.bg=null;const cb=this.onClose;this.onClose=null;
+    if(document.activeElement&&el.contains(document.activeElement))document.activeElement.blur();
+    if(now){el.remove();bg.remove()}else{el.classList.remove('on');bg.classList.remove('on');setTimeout(()=>{el.remove();bg.remove()},300)}
+    if(cb)cb();return true}
+};
+/* DTR list: all 800 codes with name and progress; type a number (001) or part of a name to jump. Only the visible rows are drawn. */
+function openDtrSheet(){
+  const RH=62;let items=S.dtrs,filt='all';
+  const el=Sheet.open(`<div class="sh-head"><div class="row between sh-title"><h3>Choose DTR</h3><span class="small muted">${DTR_PREFIX}001 to 800</span></div>
+    <label class="field">${I.search}<input id="dsQ" type="search" inputmode="search" enterkeyhint="go" placeholder="Number (001) or structure name" autocomplete="off"></label>
+    <div class="chips2" id="dsF">${[['all','All'],['svc','Has services'],['started','Started'],['done','Done']].map(([k,l])=>`<button class="chip2" data-f="${k}" aria-pressed="${k==='all'}">${l}</button>`).join('')}</div></div>
+    <div class="sh-body" id="dsB"><div class="vlist" id="dsL"></div></div>`);
+  const q=el.querySelector('#dsQ'),body=el.querySelector('#dsB'),list=el.querySelector('#dsL');
+  const row=(d,i)=>{const st=dtrStats(d),done=st.ok+st.nf+st.el;
+    return `<button class="vrow ${d.code===S.dtr?'cur':''} ${d.list.length?'':'none'}" data-pick="${d.code}" style="top:${i*RH}px"><span class="n3">${d.code.slice(-3)}</span><span class="nm">${h(d.name||'NO NAME')}</span><span class="sub">${d.list.length?d.list.length+' services':'No services'}${d.feeder?' · '+h(shortF(d.feeder)):''}</span><span class="pr">${d.list.length?`<b>${done}/${st.n}</b>${meter(done,st.n)}`:''}</span></button>`};
+  let drawn='';
+  const draw=()=>{const top=body.scrollTop,hgt=body.clientHeight||600;const a=Math.max(0,Math.floor(top/RH)-6),b=Math.min(items.length,Math.ceil((top+hgt)/RH)+6);
+    const key=a+':'+b+':'+items.length;if(key===drawn)return;drawn=key;
+    let s='';for(let i=a;i<b;i++)s+=row(items[i],i);list.innerHTML=s||'<div class="empty">No DTR matches.</div>'};
+  const apply=()=>{const v=q.value.trim();let base=S.dtrs;
+    if(filt!=='all')base=base.filter(d=>{const st=dtrStats(d),done=st.ok+st.nf+st.el;return filt==='svc'?d.list.length>0:filt==='started'?done+st.other+st.unk>0:d.list.length>0&&st.pending===0});
+    if(/[A-Za-z]/.test(v)){const u=v.toUpperCase();items=base.filter(d=>d.name&&d.name.includes(u))}
+    else{const dg=v.replace(/\D/g,'');if(!dg)items=base;else{const exact=dg.length<=3?DTR_PREFIX+dg.padStart(3,'0'):dg;const n=String(+dg);
+      items=base.filter(d=>d.code===exact||String(+d.code.slice(-3)).startsWith(n)||(dg.length>3&&d.code.endsWith(dg)));items.sort((x,y)=>(y.code===exact)-(x.code===exact))}}
+    list.style.height=Math.max(items.length*RH,60)+'px';drawn='';body.scrollTop=0;draw()};
+  body.addEventListener('scroll',()=>requestAnimationFrame(draw),{passive:true});
+  q.addEventListener('input',apply);
+  q.addEventListener('keydown',e=>{if(e.key==='Enter'&&items[0]){e.preventDefault();pick(items[0].code)}});
+  el.querySelector('#dsF').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;filt=b.dataset.f;el.querySelectorAll('#dsF [data-f]').forEach(x=>x.setAttribute('aria-pressed',x===b));apply()});
+  const pick=code=>{N.tap();Sheet.close();selectDtr(code)};
+  list.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(b)pick(b.dataset.pick)});
+  list.style.height=items.length*RH+'px';
+  const ci=S.dtr?S.dtrs.findIndex(d=>d.code===S.dtr):-1;
+  requestAnimationFrame(()=>{if(ci>2)body.scrollTop=(ci-2)*RH;draw()});draw();
+}
 
 const phPill=p=>p===3?'<span class="pill p3">3Φ</span>':'<span class="pill p1">1Φ</span>';
 const dtrLabel=c=>c==='0'?'No structure code':c;
 
 /* ---------- VERIFY ---------- */
-function optionsHtml(){
-  const elsew=elsewhereIndex();
-  return (S.dtr?'':'<option value="" selected>Select DTR structure code…</option>')+S.dtrs.map(d=>{
-    const st=dtrStats(d,elsew);const done=st.ok+st.nf+st.el;
-    return `<option value="${h(d.code)}" ${d.code===S.dtr?'selected':''}>${h(d.code)} · ${h(d.name||'NO NAME')} (${d.list.length})${done?` ✓${done}`:''}</option>`}).join('');
-}
 const barHtml=st=>`<div class="bar" title="Green verified · amber seen on another DTR · red not found"><i class="b-ok" style="width:${st.ok*100/(st.n||1)}%"></i><i class="b-el" style="width:${st.el*100/(st.n||1)}%"></i><i class="b-nf" style="width:${st.nf*100/(st.n||1)}%"></i></div>`;
 const stabsHtml=st=>[['pending','Pending',st.pending,''],['ok','Verified',st.ok,'t-ok'],['other','From other DTR',st.other,'t-other'],['unk','Not in master',st.unk,'t-unk'],['nf','Not found',st.nf+st.el,'t-nf']].map(([k,l,n,c])=>`<button class="stab ${c}" data-t="${k}" aria-pressed="${S.tab===k}"><b>${n}</b><span>${l}</span></button>`).join('');
 function renderVerify(){
   if(S.view!=='verify')return;
   const d=S.dtr?S.dtrMap.get(S.dtr):null;
-  const elsew=elsewhereIndex();
-  const st=d?dtrStats(d,elsew):null;
+  const st=d?dtrStats(d):null;
   const idx=d?S.dtrs.indexOf(d):-1;
   main.innerHTML=`${syncWarn()}
   <section class="card stack" aria-label="DTR">
-    <div class="row between"><label class="eyebrow" for="dtrSel">DTR structure code</label><span class="small muted">${DTR_PREFIX}${String(DTR_FROM).padStart(3,'0')} to ${String(DTR_TO).padStart(3,'0')}</span></div>
+    <div class="row between"><span class="eyebrow" id="dtrLbl">DTR structure code</span><span class="small muted">${DTR_PREFIX}${String(DTR_FROM).padStart(3,'0')} to ${String(DTR_TO).padStart(3,'0')}</span></div>
     <div class="picker">
       <button class="sq" id="prevD" aria-label="Previous DTR" ${idx<=0?'disabled':''}>${I.prev}</button>
-      <select id="dtrSel">${optionsHtml()}</select>
+      <button class="dtrbtn ${d?'':'empty'}" id="dtrPick" aria-labelledby="dtrLbl dtrPick" aria-haspopup="dialog">${d?`<span class="code">${h(d.code)}${d.type?` <span class="pill neutral">${h(STYPE[d.type]||d.type)}</span>`:''}</span><span class="nm">${h(d.name||'NO NAME')}</span>`:'<span class="code">Tap to choose</span><span class="nm">Select DTR structure code…</span>'}</button>
       <button class="sq" id="nextD" aria-label="Next DTR" ${idx<0||idx>=S.dtrs.length-1?'disabled':''}>${I.next}</button>
     </div>
-    <label class="field" for="dtrF">${I.search}<input id="dtrF" type="search" placeholder="Go to DTR: number 001–800 or structure name" value="${h(S.dtrFilter)}" autocomplete="off"></label>
+    <label class="field" for="dtrF">${I.search}<input id="dtrF" type="search" inputmode="search" placeholder="Go to DTR: number 001–800 or structure name" value="${h(S.dtrFilter)}" autocomplete="off"></label>
     <div class="hint" id="dtrHint" hidden></div>
-    ${d?`<div class="dtrinfo"><div class="row between" style="align-items:baseline"><b class="dname">${h(d.name||'NO NAME')}</b>${d.type?`<span class="pill neutral">${h(STYPE[d.type]||d.type)}</span>`:''}</div>
-      ${d.feeder?`<div class="small">${h(d.feeder)}</div>`:''}${d.areas&&d.areas.length?`<div class="small muted">Area: ${h(d.areas.slice(0,3).join(', '))}${d.areas.length>3?` +${d.areas.length-3} more`:''}</div>`:''}</div>`:''}
-    ${d?(d.list.length?`<div class="small muted">${d.list.length} services · ${d.p1} single-phase · ${d.p3} three-phase · ${st.ok+st.nf+st.el} of ${st.n} done</div><div id="barBox">${barHtml(st)}</div>`:`<div class="small" style="color:var(--warn)">No services mapped to this structure code in the service mapping. Meters you scan here are recorded as found on this DTR.</div><div id="barBox" hidden></div>`):''}
+    ${d&&(d.feeder||(d.areas&&d.areas.length))?`<div class="small">${d.feeder?h(d.feeder):''}${d.areas&&d.areas.length?`<span class="muted">${d.feeder?' · ':''}Area: ${h(d.areas.slice(0,3).join(', '))}${d.areas.length>3?` +${d.areas.length-3} more`:''}</span>`:''}</div>`:''}
+    ${d?(d.list.length?`<div class="small muted" id="dtrProg">${progText(d,st)}</div><div id="barBox">${barHtml(st)}</div>`:`<div class="small" style="color:var(--warn)">No services mapped to this structure code in the service mapping. Meters you scan here are recorded as found on this DTR.</div><div id="barBox" hidden></div>`):''}
   </section>
   ${d?`
   <div class="btn-row">
@@ -546,14 +759,15 @@ function renderVerify(){
   <div id="lastRes">${resultBlock()}</div>
   <div id="confBox">${confBanner(d)}</div>
   <div class="stabs" id="stabsBox" role="group" aria-label="Show services">${stabsHtml(st)}</div>
-  <div class="list" id="svcList">${listHtml(d,elsew)}</div>
+  <div class="list" id="svcList">${listHtml(d)}</div>
   <div class="row between"><span class="small muted">Saved ${Store.mode==='db'?'to this page, synced across your devices':'on this device'}</span><button class="btn sm" id="expD">${I.dl}Export this DTR</button></div>
   `:`<div class="card empty">Choose a DTR structure code above to start verifying its services.</div>`}`;
   bindVerify(d);
 }
 const REASONS=['Meter is physically on this DTR (checked at site)','Earlier entry was on the wrong DTR','Same meter number on two services','Not sure, needs joint site check'];
 function claimLine(c){const d=S.dtrMap.get(c.dtr);return `<div class="claim"><b class="mono">DTR ${h(c.dtr.slice(-3))}</b> ${h(d&&d.name||'NO NAME')}<span>${h(ST_LABEL[c.rec.st]||c.rec.st)} · ${h(c.rec.src||'')} · ${h(tstr(c.rec.t))} · by ${byTag(c.rec.by)}${c.rec.reason?' · '+h(c.rec.reason):''}</span></div>`}
-function resultBlock(){return S.pending?pendingHtml(S.pending):S.last?resultHtml(S.last):''}
+function resultBlock(){return freshen(S.pending?pendingHtml(S.pending):S.last?resultHtml(S.last):'')}
+function freshen(html){if(!S.fresh)return html;S.fresh=false;return html.replace('class="res ','class="res fresh ')}
 function pendingHtml(p){
   const o=p.o,cur=S.dtrMap.get(S.dtr),md=S.dtrMap.get(o.dtr);
   const head=`<div class="ids"><div class="idbox"><span>Service no</span><b>${h(o.s)}</b></div><div class="idbox"><span>UKSCNO</span><b>${h(o.u)}</b></div></div>
@@ -604,7 +818,7 @@ function resultHtml(r){
   </div>`;
 }
 function listHtml(d,elsew){
-  const v=vrec(d.code);let items=[];
+  elsew=elsew||D.elsew;const v=vrec(d.code);let items=[];
   if(S.tab==='pending')items=d.list.filter(o=>{const r=v.s[o.u];return !(live(r)&&['ok','nf','na'].includes(r.st))&&!elsew.has(o.u)}).map(o=>({o}));
   else if(S.tab==='ok')items=d.list.filter(o=>{const r=v.s[o.u];return live(r)&&r.st==='ok'}).map(o=>({o,r:v.s[o.u]})).sort((a,b)=>b.r.t-a.r.t);
   else if(S.tab==='nf')items=d.list.filter(o=>{const r=v.s[o.u];return (live(r)&&(r.st==='nf'||r.st==='na'))||(!(live(r)&&r.st==='ok')&&elsew.has(o.u))}).map(o=>({o,r:v.s[o.u],el:elsew.get(o.u)}));
@@ -612,7 +826,7 @@ function listHtml(d,elsew){
   else if(S.tab==='unk')return Object.entries(v.x).filter(([k,r])=>live(r)).sort((a,b)=>b[1].t-a[1].t).map(([k,r])=>`<div class="li" style="cursor:default"><div class="t mono">${r.svc?h(r.svc)+' · ':''}${h(r.raw.slice(0,40))}</div><div class="r"><button class="btn sm" data-delx="${h(k)}">Remove</button></div><div class="s">${r.svc?'Not in current mapping · ':''}${h(r.src)} · ${h(tstr(r.t))}</div><div></div></div>`).join('')||'<div class="empty">No unknown meters scanned on this DTR.</div>';
   if(!items.length)return `<div class="empty">${{pending:d.list.length?'All services on this DTR are accounted for.':'No services in the master for this DTR.',ok:'No services verified yet. Scan a meter to start.',other:'No meters from other DTRs found here.',nf:'Nothing marked as not found.'}[S.tab]}</div>`;
   const shown=items.slice(0,S.limit);S.cx=conflictIndex();
-  return shown.map(rowHtml).join('')+(items.length>shown.length?`<button class="li more" id="moreBtn">Show ${Math.min(150,items.length-shown.length)} more of ${items.length-shown.length}</button>`:'');
+  return shown.map(rowHtml).join('')+(items.length>shown.length?`<button class="li more" id="moreBtn">Show more (${items.length-shown.length})</button>`:'');
 }
 function rowHtml({o,r,el}){
   let right;
@@ -651,11 +865,10 @@ function detailHtml(o,r){
 }
 function bindVerify(d){
   const sw=$('syncWarn');if(sw)sw.onclick=()=>go('guide');
-  const sel=$('dtrSel');
-  sel.onchange=()=>selectDtr(sel.value);
+  $('dtrPick').onclick=openDtrSheet;
   const pv=$('prevD'),nx=$('nextD');
-  pv.onclick=()=>{const i=S.dtrs.indexOf(S.dtrMap.get(S.dtr));if(i>0)selectDtr(S.dtrs[i-1].code)};
-  nx.onclick=()=>{const i=S.dtrs.indexOf(S.dtrMap.get(S.dtr));if(i<S.dtrs.length-1)selectDtr(S.dtrs[i+1].code)};
+  pv.onclick=()=>{const i=S.dtrs.indexOf(S.dtrMap.get(S.dtr));if(i>0){N.tap();selectDtr(S.dtrs[i-1].code)}};
+  nx.onclick=()=>{const i=S.dtrs.indexOf(S.dtrMap.get(S.dtr));if(i<S.dtrs.length-1){N.tap();selectDtr(S.dtrs[i+1].code)}};
   const f=$('dtrF');
   f.oninput=()=>{
     const v=f.value.trim();S.dtrFilter=v;const hint=$('dtrHint');
@@ -673,30 +886,67 @@ function bindVerify(d){
     else{hint.hidden=false;hint.textContent='No structure code '+(dg.length<=3?DTR_PREFIX+dg.padStart(3,'0'):dg)+' in the list (001 to 800).'}};
   f.onkeydown=e=>{if(e.key==='Enter')f.blur()};
   if(!d)return;
-  const sb=$('scanBtn');if(sb)sb.onclick=()=>{S.panel=S.panel==='scan'?null:'scan';stopCam();renderVerify();if(S.panel==='scan')startLive()};
+  const sb=$('scanBtn');if(sb)sb.onclick=()=>{if(NScan.available())return NScan.start('verify');S.panel=S.panel==='scan'?null:'scan';stopCam();renderVerify();if(S.panel==='scan')startLive()};
   $('irBtn').onclick=()=>{S.panel=S.panel==='ir'?null:'ir';stopCam();renderVerify()};
   const find=()=>{const v=$('manual').value.trim();if(v){$('manual').value='';processScan(v,'Typed')}};
   $('findBtn').onclick=find;$('manual').onkeydown=e=>{if(e.key==='Enter')find()};
   $('expD').onclick=()=>exportDtr(d);
   bindPanel();bindDynamic(d);
 }
-function rerenderKeep(){const y=window.scrollY;if(cam.timer||cam.stream)refreshAfterScan();else{renderVerify();window.scrollTo(0,y)}}
+function rerenderKeep(){refreshVerify(false)}
+/* list clicks are handled once on the list (event delegation), so a refresh never rebinds 150 rows */
 function bindDynamic(d){
-  main.querySelectorAll('.stab').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;S.open=null;S.limit=150;rerenderKeep()});
-  main.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{S.open=S.open===b.dataset.u?null:b.dataset.u;rerenderKeep()});
-  main.querySelectorAll('[data-mark]').forEach(b=>b.onclick=async()=>{
-    const u=b.dataset.mu,k=b.dataset.mark,t=Date.now();
-    if(k==='ok'){const others=claimsFor(u,S.dtr);
-      if(others.length){S.pending={type:'conflict',o:S.byU.get(u),src:'Manual',raw:'',by:'site check',others};S.last=null;S.open=null;beep('bad');rerenderKeep();const lr=$('lastRes');if(lr)lr.scrollIntoView({block:'center',behavior:'smooth'});return}}
-    await Store.put(S.dtr,'s',u,k==='clear'?{del:1,t,by:Who.id}:{st:k,src:'Manual',t,by:Who.id});
-    toast({ok:'Marked verified',nf:'Marked not found',na:'Marked no access',clear:'Removed'}[k]);
-    S.open=null;rerenderKeep()});
-  main.querySelectorAll('[data-delx]').forEach(b=>b.onclick=async()=>{await Store.put(S.dtr,'x',b.dataset.delx,{del:1,t:Date.now()});rerenderKeep()});
-  const mb=$('moreBtn');if(mb)mb.onclick=()=>{S.limit+=150;rerenderKeep()};
-  const ub=$('undoBtn');if(ub)ub.onclick=async()=>{const u=S.last.undo;await Store.put(S.dtr,u.kind,u.key,u.prev||{del:1,t:Date.now(),by:Who.id});S.last=null;toast('Scan undone');rerenderKeep();const lr=$('lastRes');if(lr)lr.innerHTML=''};
-  main.querySelectorAll('[data-pa]').forEach(b=>b.onclick=()=>decide(b.dataset.pa));
+  const list=$('svcList');
+  if(list&&!list._bound){list._bound=true;list.addEventListener('click',verifyListClick)}
+  const sb=$('stabsBox');if(sb&&!sb._bound){sb._bound=true;sb.addEventListener('click',e=>{const b=e.target.closest('.stab');if(!b)return;N.tap();S.tab=b.dataset.t;S.open=null;S.limit=S.tab==='pending'?60:150;refreshVerify(false)})}
+  const ub=$('undoBtn');if(ub)ub.onclick=undoVerify;
+  main.querySelectorAll('#lastRes [data-pa]').forEach(b=>b.onclick=()=>decide(b.dataset.pa));
   const tc=$('toConf');if(tc)tc.onclick=()=>{S.panel=null;S.rtab='conflicts';go('report');const c=$('conflicts');if(c)c.scrollIntoView({block:'start'})};
-  Who.fill(main);
+  watchMore($('moreBtn'),()=>{S.limit+=150;refreshVerify(false)});
+  Who.fill($('lastRes'));Who.fill(list);
+}
+/* load the next rows by themselves when "Show more" scrolls into view */
+let moreObs=null;
+function watchMore(btn,fn){if(moreObs){moreObs.disconnect();moreObs=null}if(!btn)return;btn.onclick=fn;
+  if('IntersectionObserver' in window){moreObs=new IntersectionObserver(es=>{if(es.some(x=>x.isIntersecting)){moreObs.disconnect();moreObs=null;requestAnimationFrame(fn)}},{rootMargin:'300px'});moreObs.observe(btn)}}
+async function verifyListClick(e){
+  const mk=e.target.closest('[data-mark]');if(mk)return markSvc(mk.dataset.mu,mk.dataset.mark);
+  const dx=e.target.closest('[data-delx]');if(dx){await Store.put(S.dtr,'x',dx.dataset.delx,{del:1,t:Date.now()});return refreshVerify(false)}
+  const row=e.target.closest('.li[data-u]');if(row)return toggleRow(row);
+}
+function toggleRow(row){ // open or close one service's details in place
+  const list=$('svcList'),u=row.dataset.u;
+  const prev=list.querySelector('.li.open');
+  if(prev){prev.classList.remove('open');prev.setAttribute('aria-expanded','false');const dd=prev.nextElementSibling;if(dd&&dd.classList.contains('detail'))dd.remove()}
+  if(S.open===u||!S.byU.get(u)){S.open=null;return}
+  S.open=u;S.cx=conflictIndex();row.classList.add('open');row.setAttribute('aria-expanded','true');
+  row.insertAdjacentHTML('afterend',detailHtml(S.byU.get(u),vrec(S.dtr).s[u]));Who.fill(row.nextElementSibling);
+  const r=row.nextElementSibling.getBoundingClientRect();if(r.bottom>innerHeight-80)row.nextElementSibling.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+async function markSvc(u,k){
+  const t=Date.now();
+  if(k==='ok'){const others=claimsFor(u,S.dtr);
+    if(others.length){S.pending={type:'conflict',o:S.byU.get(u),src:'Manual',raw:'',by:'site check',others};S.last=null;S.open=null;beep('bad');S.fresh=true;refreshVerify(false);const lr=$('lastRes');if(lr)lr.scrollIntoView({block:'center',behavior:'smooth'});return}}
+  await Store.put(S.dtr,'s',u,k==='clear'?{del:1,t,by:Who.id}:{st:k,src:'Manual',t,by:Who.id});
+  N.haptic(k==='ok'?'ok':'tap');
+  toast({ok:'Marked verified',nf:'Marked not found',na:'Marked no access',clear:'Removed'}[k]);
+  S.open=null;refreshVerify(false,u);
+}
+function inTab(o){ // would this service be listed under the current status tab?
+  const r=vrec(S.dtr).s[o.u],el=D.elsew,own=o.dtr===S.dtr&&!o.x;
+  if(S.tab==='pending')return own&&!(live(r)&&['ok','nf','na'].includes(r.st))&&!el.has(o.u);
+  if(S.tab==='ok')return own&&live(r)&&r.st==='ok';
+  if(S.tab==='nf')return own&&((live(r)&&(r.st==='nf'||r.st==='na'))||(!(live(r)&&r.st==='ok')&&el.has(o.u)));
+  if(S.tab==='other')return live(r)&&(r.st==='other'||r.st==='conf');
+  return false;
+}
+function patchRow(u){ // update or remove one row instead of redrawing the list; false = redraw needed
+  const list=$('svcList');if(!list||S.tab==='unk')return false;const o=S.byU.get(u);if(!o)return false;
+  const row=list.querySelector('.li[data-u="'+u+'"]'),want=inTab(o);
+  if(!row)return !want;
+  const det=row.nextElementSibling;if(det&&det.classList.contains('detail'))det.remove();if(S.open===u)S.open=null;
+  if(!want){row.remove();return !!list.querySelector('.li[data-u]')}
+  S.cx=conflictIndex();row.outerHTML=rowHtml({o,r:vrec(S.dtr).s[u],el:D.elsew.get(u)});return true;
 }
 function dtrFromTyped(dg){ // "1", "01", "001" -> 1607010001 · "596" -> 1607010596 · full 10-digit code as typed
   let code=null;
@@ -707,18 +957,22 @@ function dtrFromTyped(dg){ // "1", "01", "001" -> 1607010001 · "596" -> 1607010
 }
 function selectDtr(code,keepFilter){
   if(!code||!S.dtrMap.has(code))return;
-  S.dtr=code;S.last=null;S.pending=null;S.open=null;S.tab='pending';S.limit=150;if(!keepFilter)S.dtrFilter='';
+  S.dtr=code;S.last=null;S.pending=null;S.open=null;S.tab='pending';S.limit=60;if(!keepFilter)S.dtrFilter='';
   try{localStorage.setItem(LSDTR,code)}catch(e){}
   stopCam();renderVerify();if(S.panel==='scan'&&!S.liveBlocked)startLive();
+  if(!keepFilter){const c=main.querySelector('.card');if(c&&c.getBoundingClientRect().top<0)window.scrollTo({top:0,behavior:'smooth'})}
   if(keepFilter){const f=$('dtrF');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}}
 }
 
 /* ---------- camera scanning ---------- */
 const cam={stream:null,timer:null,lastText:'',lastAt:0};
 function stopCam(){if(cam.timer)clearInterval(cam.timer);cam.timer=null;if(cam.stream){cam.stream.getTracks().forEach(t=>t.stop());cam.stream=null}}
-let zx=null;
+let zx=null,zxLoading=null;
+const ZXING_SRC='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+function loadZX(){return zxLoading||(zxLoading=new Promise(res=>{if(window.ZXing)return res();const s=document.createElement('script');s.src=ZXING_SRC;s.onload=res;s.onerror=()=>{zxLoading=null;res()};document.head.appendChild(s)}))}
 async function decodeCanvas(cv){
   if('BarcodeDetector' in window){try{const r=await new BarcodeDetector().detect(cv);if(r&&r.length)return{text:r[0].rawValue,format:r[0].format}}catch(e){}}
+  if(!window.ZXing)await loadZX();
   if(window.ZXing){try{
     if(!zx){zx=new ZXing.MultiFormatReader();const hints=new Map(),B=ZXing.BarcodeFormat;
       hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[B.QR_CODE,B.CODE_128,B.CODE_39,B.ITF,B.EAN_13,B.DATA_MATRIX,B.CODABAR,B.CODE_93]);
@@ -795,6 +1049,103 @@ async function scanFile(file){
   }catch(e){toast('Could not open that photo')}
 }
 
+/* ---------- native scanner (Android app): Google ML Kit, full screen, continuous ----------
+   The camera preview is drawn behind the web page, so while scanning the page turns transparent and only this overlay shows:
+   the scan frame, torch and zoom, and a bottom sheet with the running counts and the result of each meter (with its decision buttons). */
+const SCAN_FORMATS=['QR_CODE','CODE_128','CODE_39','CODE_93','CODABAR','DATA_MATRIX','EAN_13','EAN_8','ITF','UPC_A','UPC_E','PDF_417','AZTEC'];
+const NScan={active:false,view:null,lastText:'',lastAt:0,torch:false,zoom:1,maxZoom:1,el:null,handles:[],typing:false,
+  available(){return N.on&&!!N.P('BarcodeScanner')&&!S.noNativeScan},
+  async start(view){
+    const BS=N.P('BarcodeScanner');if(this.active||!BS)return;
+    try{let p=await BS.checkPermissions();if(p.camera!=='granted')p=await BS.requestPermissions();
+      if(p.camera!=='granted'){const ok=await N.confirm('Camera is off','Allow the camera for this app in Android settings to scan meter codes.','Open settings');if(ok)BS.openSettings().catch(()=>{});return}}catch(e){}
+    stopCam();this.active=true;this.view=view;this.typing=false;this.torch=false;this.zoom=1;this.lastText='';
+    main.innerHTML='';this.render();document.documentElement.classList.add('scanning');
+    try{
+      this.handles.push(await BS.addListener('barcodesScanned',e=>this.onCodes(e&&e.barcodes)));
+      this.handles.push(await BS.addListener('scanError',e=>toast('Camera: '+((e&&e.message)||'error'))));
+      await BS.startScan({formats:SCAN_FORMATS,lensFacing:'BACK'});
+      const KA=N.P('KeepAwake');if(KA)KA.keepAwake().catch(()=>{});
+      BS.isTorchAvailable().then(r=>{const b=$('soTorch');if(b)b.hidden=!(r&&r.available)}).catch(()=>{});
+      BS.getMaxZoomRatio().then(r=>{this.maxZoom=(r&&r.zoomRatio)||1;const b=$('soZoom');if(b)b.hidden=this.maxZoom<1.9}).catch(()=>{});
+    }catch(e){ // fall back to the in-page camera for the rest of this session
+      S.noNativeScan=true;await this.stop(true);toast('Using the in-page camera instead');
+      if(view==='verify'){S.panel='scan';renderVerify()}else if(view==='feeder'){S.fpanel='scan';renderFeeder()}else{S.apanel='scan';renderArea()}
+      startLive();
+    }
+  },
+  onCodes(list){
+    if(!this.active||!list||!list.length||S.pending||S.fpending||S.apending)return; // hold while a decision is open
+    const b=list[0],text=String(b.rawValue||b.displayValue||'').trim();if(!text)return;
+    const now=Date.now();if(text===this.lastText&&now-this.lastAt<3500)return;if(now-this.lastAt<900)return;
+    this.lastText=text;this.lastAt=now;routeScan(text,fmtName(String(b.format||'')));
+  },
+  async stop(silent,noRender){
+    if(!this.active)return;this.active=false;const BS=N.P('BarcodeScanner');
+    document.documentElement.classList.remove('scanning');if(this.el){this.el.remove();this.el=null}
+    for(const hd of this.handles){try{await hd.remove()}catch(e){}}this.handles=[];
+    try{if(this.torch)await BS.disableTorch()}catch(e){}this.torch=false;
+    try{await BS.stopScan()}catch(e){}
+    const KA=N.P('KeepAwake');if(KA)KA.allowSleep().catch(()=>{});
+    if(!noRender&&S.ready)go(this.view||S.view);
+  },
+  title(){
+    if(this.view==='feeder'){const f=S.fMap.get(S.fdr);return['Scan DTR tags',f?f.name:'']}
+    if(this.view==='area'){const a=S.aMap.get(S.adr);return['Scan DTR tags',a?a.ac+' · '+a.name:'']}
+    const d=S.dtrMap.get(S.dtr);return['DTR '+(S.dtr||'').slice(-3)+' · scan meters',d?(d.name||'NO NAME'):'']},
+  stats(){
+    if(this.view==='feeder'){const f=S.fMap.get(S.fdr),st=fStats(f);return[['Pending',st.pending,''],['Confirmed',st.ok,'k-ok'],['Other feeder',st.other,'k-warn'],['Not on feeder',st.nf+st.el,'k-bad']]}
+    if(this.view==='area'){const a=S.aMap.get(S.adr),st=aStats(a);return[['Pending',st.pending,''],['Confirmed',st.ok,'k-ok'],['Not mapped',st.other,'k-warn'],['Not in area',st.nf,'k-bad']]}
+    const st=dtrStats(S.dtrMap.get(S.dtr));return[['Pending',st.pending,''],['Verified',st.ok,'k-ok'],['Other DTR',st.other,'k-warn'],['Not in master',st.unk,'k-bad']]},
+  result(){
+    const html=this.view==='feeder'?freshen(fResultBlock()):this.view==='area'?freshen(aResultBlock()):resultBlock();
+    return html.replace(/<button class="btn sm" data-svc="[^"]*">[^<]*<\/button>/g,''); // no jumping to another screen from the camera
+  },
+  kind(){ // colour of the frame flash for the latest result
+    const p=this.view==='feeder'?S.fpending:this.view==='area'?S.apending:S.pending;if(p)return p.type==='conflict'?'bad':'warn';
+    const r=this.view==='feeder'?S.flast:this.view==='area'?S.alast:S.last;if(!r)return'';
+    return r.kind==='ok'?'ok':(r.kind==='unk'||r.kind==='legacy'||r.kind==='conf')?'bad':'warn'},
+  render(){
+    const [t,sub]=this.title();
+    const el=document.createElement('div');el.id='scanOv';el.setAttribute('role','dialog');el.setAttribute('aria-label','Scanner');
+    el.innerHTML=`<div class="so-top"><button class="so-btn" id="soClose" aria-label="Close scanner">${I.close}</button><h2>${h(t)}<small>${h(sub)}</small></h2>
+        <button class="so-btn" id="soZoom" aria-label="Zoom" hidden>1×</button><button class="so-btn" id="soTorch" aria-label="Torch" aria-pressed="false" hidden>${I.torch}</button></div>
+      <div class="so-mid"><div class="so-frame" id="soFrame"><i></i><i></i><i></i><i></i><div class="so-hint" id="soHint"></div></div></div>
+      <div class="so-sheet" id="soSheet"></div>`;
+    document.body.appendChild(el);this.el=el;
+    el.addEventListener('click',e=>this.click(e));
+    el.addEventListener('submit',e=>{e.preventDefault();const i=$('soIn');const v=i&&i.value.trim();if(v){i.value='';routeScan(v,'Typed')}});
+    this.refresh(true);
+  },
+  refresh(first){
+    if(!this.el)return;const k=first?'':this.kind();
+    const pend=this.view==='feeder'?S.fpending:this.view==='area'?S.apending:S.pending;
+    $('soHint').textContent=pend?'Decide below to keep scanning':this.view==='verify'?'Point at the meter QR or barcode':'Point at the code on the DTR';
+    const res=this.result();
+    $('soSheet').innerHTML=`<div class="so-stats">${this.stats().map(([l,n,c])=>`<span class="${c}"><b>${n}</b>${l}</span>`).join('')}</div>
+      ${res||'<div class="so-empty">Each code you scan shows here, with a beep.</div>'}
+      ${this.typing?`<form class="row" id="soForm"><label class="field">${I.search}<input id="soIn" autocomplete="off" placeholder="${this.view==='verify'?'Meter / service / UKSCNO':'Structure code (029)'}"></label><button class="btn" type="submit">Check</button></form>`
+        :`<button class="btn sm" id="soType" style="align-self:center">${I.kbd}Type a number</button>`}`;
+    Who.fill($('soSheet'));
+    if(k){const f=$('soFrame');f.classList.remove('ok','warn','bad');void f.offsetWidth;f.classList.add(k);clearTimeout(this._ft);this._ft=setTimeout(()=>f.classList.remove(k),900)}
+    if(this.typing){const i=$('soIn');if(i&&!first)i.focus()}
+  },
+  async click(e){
+    const b=e.target.closest('button');if(!b)return;const BS=N.P('BarcodeScanner');
+    if(b.id==='soClose')return this.stop();
+    if(b.id==='soTorch'){try{await BS.toggleTorch();this.torch=!this.torch;b.setAttribute('aria-pressed',this.torch)}catch(err){}return}
+    if(b.id==='soZoom'){const steps=[1,2,this.maxZoom>=4?4:0].filter(Boolean);this.zoom=steps[(steps.indexOf(this.zoom)+1)%steps.length]||1;
+      try{await BS.setZoomRatio({zoomRatio:Math.min(this.zoom,this.maxZoom)});b.textContent=this.zoom+'×'}catch(err){}return}
+    if(b.id==='soType'){this.typing=true;this.refresh(true);const i=$('soIn');if(i)i.focus();return}
+    if(b.dataset.pa)return decide(b.dataset.pa);
+    if(b.dataset.fa)return decideF(b.dataset.fa);
+    if(b.dataset.aa)return decideA(b.dataset.aa);
+    if(b.id==='undoBtn')return undoVerify();
+    if(b.id==='fUndo')return undoF();
+    if(b.id==='aUndo')return undoA();
+  }
+};
+
 /* ---------- IR / IRDA ---------- */
 let logStarted=false;
 function logLine(cls,txt){const l=$('log');if(!l)return;if(!logStarted){l.innerHTML='';logStarted=true}const s=document.createElement('div');s.className=cls;s.textContent=txt;l.appendChild(s);l.scrollTop=l.scrollHeight}
@@ -847,18 +1198,16 @@ async function demoRead(){
        conf = disputed, sent to admin review · nf = not on this feeder at site
    One structure, one feeder: a second feeder claim is held and goes to the admin. */
 Object.assign(Store,{seenF:new Set(),
-  loadLocalF(){try{const j=localStorage.getItem(LSF);if(j)S.fv=JSON.parse(j)||{}}catch(e){}try{const f=localStorage.getItem(LSFS);if(f)S.fdr=f}catch(e){}},
-  saveLocalF(){try{localStorage.setItem(LSF,JSON.stringify(S.fv))}catch(e){}},
   subscribeF(){
     try{this.db.collection('feeder').onSnapshot(snap=>{
       let changed=false;
       snap.docs.forEach(d=>{this.seenF.add(d.id);const x=d.data();if(!x||!x.fc)return;const cur=S.fv[x.fc]||(S.fv[x.fc]={s:{}});
-        for(const [k,rec] of Object.entries(x.s||{})){const c=cur.s[k];if(rec&&(!c||(rec.t||0)>(c.t||0))){cur.s[k]=rec;changed=true}}});
-      if(changed){this.saveLocalF();if(S.view==='feeder'&&!cam.timer&&!S.fpending)renderFeeder();else if(S.view==='report')vReport()}
+        if(mergeRecs(cur.s,x.s)){changed=true;Persist.f(x.fc)}});
+      if(changed){bumpF();rerenderIdle()}
     },()=>{})}catch(e){}
   },
   async putF(fc,key,rec){
-    const cur=S.fv[fc]||(S.fv[fc]={s:{}});cur.s[key]=rec;this.saveLocalF();
+    const cur=S.fv[fc]||(S.fv[fc]={s:{}});cur.s[key]=rec;bumpF();Persist.f(fc);
     if(this.mode!=='db')return;
     const id='f'+fc,ref=this.db.doc('feeder/'+id);
     try{let ex=this.seenF.has(id);if(!ex){const s=await ref.get();ex=s.exists}
@@ -869,14 +1218,17 @@ Object.assign(Store,{seenF:new Set(),
 const fvrec=fc=>S.fv[fc]||{s:{}};
 const fName=fc=>S.fNames.get(fc)||'No feeder in mapping';
 function claimsF(code,exceptFc){const out=[];for(const [fc,v] of Object.entries(S.fv)){if(fc===exceptFc)continue;const r=v.s&&v.s[code];if(isClaim(r))out.push({fc,rec:r})}return out.sort((a,b)=>a.rec.t-b.rec.t)}
-function fConflictIndex(){const m=new Map();for(const [fc,v] of Object.entries(S.fv))for(const [k,r] of Object.entries(v.s||{}))if(isClaim(r)){if(!m.has(k))m.set(k,[]);m.get(k).push({fc,rec:r})}
-  for(const [k,c] of m)if(c.length<2)m.delete(k);else c.sort((a,b)=>a.rec.t-b.rec.t);return m}
-function fElsewhere(){const m=new Map();for(const [fc,v] of Object.entries(S.fv))for(const [k,r] of Object.entries(v.s||{}))if(live(r)&&(r.st==='other'||r.st==='conf'))m.set(k,{fc,rec:r});return m}
+/* feeder indexes are cached until the next feeder change */
+const FC={rev:0,cx:null,el:null,st:new Map()};
+function bumpF(){FC.rev++;FC.cx=null;FC.el=null;FC.st.clear()}
+function fConflictIndex(){if(FC.cx)return FC.cx;const m=new Map();for(const [fc,v] of Object.entries(S.fv))for(const [k,r] of Object.entries(v.s||{}))if(isClaim(r)){if(!m.has(k))m.set(k,[]);m.get(k).push({fc,rec:r})}
+  for(const [k,c] of m)if(c.length<2)m.delete(k);else c.sort((a,b)=>a.rec.t-b.rec.t);return FC.cx=m}
+function fElsewhere(){if(FC.el)return FC.el;const m=new Map();for(const [fc,v] of Object.entries(S.fv))for(const [k,r] of Object.entries(v.s||{}))if(live(r)&&(r.st==='other'||r.st==='conf'))m.set(k,{fc,rec:r});return FC.el=m}
 function fPending(f,el){const v=fvrec(f.fc);el=el||fElsewhere();return f.list.filter(d=>!live(v.s[d.code])&&!el.has(d.code))}
-function fStats(f,el){const v=fvrec(f.fc);el=el||fElsewhere();let ok=0,nf=0,e=0;
+function fStats(f){const c=FC.st.get(f.fc);if(c)return c;const v=fvrec(f.fc),el=fElsewhere();let ok=0,nf=0,e=0;
   for(const d of f.list){const r=v.s[d.code];if(live(r)&&r.st==='ok')ok++;else if(live(r)&&r.st==='nf')nf++;else if(el.has(d.code))e++}
   let other=0;for(const r of Object.values(v.s))if(live(r)&&(r.st==='other'||r.st==='conf'))other++;
-  return{n:f.list.length,ok,nf,el:e,other,pending:f.list.length-ok-nf-e}}
+  const st={n:f.list.length,ok,nf,el:e,other,pending:f.list.length-ok-nf-e};FC.st.set(f.fc,st);return st}
 const FLBL={ok:'Confirmed',other:'Found on this feeder',conf:'In admin review',nf:'Not on this feeder'};
 function resolveStruct(text){
   const t=String(text||'').toUpperCase().trim();
@@ -915,9 +1267,14 @@ async function decideF(action){
     S.flast={kind:d.fc===S.fdr?'ok':'other',code,src:p.src,moved:p.others.map(c=>c.fc)};toast('Moved to this feeder. Earlier entry removed.')}
   S.fpending=null;showF();
 }
-function showF(){if(S.view!=='feeder'){go('feeder');return}
-  if(cam.timer||cam.stream)refreshF();else{renderFeeder();const r=$('fRes');if(r)r.scrollIntoView({block:'nearest',behavior:'smooth'})}}
-function refreshF(){const f=S.fMap.get(S.fdr),el=fElsewhere();$('fRes').innerHTML=fResultBlock();$('fConf').innerHTML=fBanner(f);$('fTabs').innerHTML=fTabsHtml(fStats(f,el));$('fList').innerHTML=fListHtml(f,el);bindFDynamic()}
+function showF(){S.fresh=true;if(NScan.active){NScan.refresh();return}if(S.view!=='feeder'){go('feeder');return}
+  refreshF();if(!(cam.timer||cam.stream)){const r=$('fRes');if(r&&r.firstElementChild)r.scrollIntoView({block:'nearest',behavior:'smooth'})}}
+function refreshF(){const f=S.fMap.get(S.fdr),el=fElsewhere();if(!$('fList'))return renderFeeder();const st=fStats(f);
+  $('fRes').innerHTML=freshen(fResultBlock());$('fConf').innerHTML=fBanner(f);$('fTabs').innerHTML=fTabsHtml(st);$('fList').innerHTML=fListHtml(f,el);
+  const p=$('fProg');if(p)p.innerHTML=fProgHtml(st);bindFDynamic()}
+const fProgHtml=st=>`<div class="small muted">${st.ok+st.nf+st.el} of ${st.n} structures checked</div>
+    <div class="bar"><i class="b-ok" style="width:${st.ok*100/(st.n||1)}%"></i><i class="b-el" style="width:${st.el*100/(st.n||1)}%"></i><i class="b-nf" style="width:${st.nf*100/(st.n||1)}%"></i></div>`;
+async function undoF(){const x=S.flast&&S.flast.undo;if(!x)return;await Store.putF(S.fdr,x.key,x.prev||{del:1,t:Date.now(),by:Who.id});S.flast=null;toast('Undone');showF()}
 const fClaimLine=c=>`<div class="claim"><b>${h(fName(c.fc))}</b><span>${h(FLBL[c.rec.st]||c.rec.st)} · ${h(c.rec.src||'')} · ${h(tstr(c.rec.t))} · by ${byTag(c.rec.by)}${c.rec.reason?' · '+h(c.rec.reason):''}</span></div>`;
 function structHead(code){const d=S.dtrMap.get(code);
   return `<div class="ids"><div class="idbox"><span>Structure code</span><b>${h(code)}</b></div><div class="idbox"><span>Services</span><b>${d.list.length}</b></div></div>
@@ -982,13 +1339,12 @@ function renderFeeder(){
     <div class="row between"><label class="eyebrow" for="fSel">Feeder</label><span class="small muted">${S.feeders.length} feeders · ${fmt(S.feeders.reduce((n,x)=>n+x.list.length,0))} structures</span></div>
     <div class="picker">
       <button class="sq" id="fPrev" aria-label="Previous feeder" ${idx<=0?'disabled':''}>${I.prev}</button>
-      <select id="fSel">${S.feeders.map(x=>{const s=fStats(x,el);const done=s.ok+s.nf+s.el;return `<option value="${h(x.fc)}" ${x.fc===S.fdr?'selected':''}>${h(x.name)} (${x.list.length})${done?' ✓'+done:''}</option>`}).join('')}</select>
+      <select id="fSel">${S.feeders.map(x=>{const s=fStats(x);const done=s.ok+s.nf+s.el;return `<option value="${h(x.fc)}" ${x.fc===S.fdr?'selected':''}>${h(x.name)} (${x.list.length})${done?' ✓'+done:''}</option>`}).join('')}</select>
       <button class="sq" id="fNext" aria-label="Next feeder" ${idx>=S.feeders.length-1?'disabled':''}>${I.next}</button>
     </div>
     <div class="dtrinfo"><b class="dname">${h(f.name)}</b><div class="small">Feeder code <span class="mono">${h(f.fc)}</span></div>
       <div class="small muted">${f.list.length} structures (${Object.entries(types).map(([t,n])=>n+' '+t).join(', ')}) · ${fmt(f.svc)} services</div></div>
-    <div class="small muted">${st.ok+st.nf+st.el} of ${st.n} structures checked</div>
-    <div class="bar"><i class="b-ok" style="width:${st.ok*100/(st.n||1)}%"></i><i class="b-el" style="width:${st.el*100/(st.n||1)}%"></i><i class="b-nf" style="width:${st.nf*100/(st.n||1)}%"></i></div>
+    <div class="stack" id="fProg" style="gap:10px">${fProgHtml(st)}</div>
   </section>
   <div class="btn-row">
     ${S.liveBlocked?`<label class="btn primary big" for="photo">${I.qr}Scan DTR tag</label>`:`<button class="btn primary big" id="fScanBtn">${I.qr}Scan DTR tag</button>`}
@@ -1004,7 +1360,7 @@ function renderFeeder(){
   <div class="row between"><span class="small muted">Saved ${Store.mode==='db'?'to this page, synced':'on this device'}</span><button class="btn sm" id="fExp">${I.dl}Export this feeder</button></div>`;
   const sel=$('fSel');sel.onchange=()=>selectFeeder(sel.value);
   $('fPrev').onclick=()=>{if(idx>0)selectFeeder(S.feeders[idx-1].fc)};$('fNext').onclick=()=>{if(idx<S.feeders.length-1)selectFeeder(S.feeders[idx+1].fc)};
-  const fs=$('fScanBtn');if(fs)fs.onclick=()=>{S.fpanel=S.fpanel==='scan'?null:'scan';stopCam();renderFeeder();if(S.fpanel==='scan')startLive()};
+  const fs=$('fScanBtn');if(fs)fs.onclick=()=>{if(NScan.available())return NScan.start('feeder');S.fpanel=S.fpanel==='scan'?null:'scan';stopCam();renderFeeder();if(S.fpanel==='scan')startLive()};
   $('fListBtn').onclick=()=>{S.ftab='pending';renderFeeder();$('fList').scrollIntoView({block:'start',behavior:'smooth'})};
   const inp=$('fIn'),hint=$('fHint');
   const check=()=>{const v=inp.value.trim();if(!v)return;
@@ -1025,12 +1381,12 @@ function bindFDynamic(){
     toast(m==='clear'?'Reset':'Marked not on this feeder');S.fopen=null;fRerender()});
   main.querySelectorAll('[data-fa]').forEach(b=>b.onclick=()=>decideF(b.dataset.fa));
   main.querySelectorAll('[data-svc]').forEach(b=>b.onclick=()=>{const c=b.dataset.svc;S.dtr=c;S.last=null;S.pending=null;S.open=null;S.tab='pending';S.dtrFilter='';try{localStorage.setItem(LSDTR,c)}catch(e){}S.fpanel=null;go('verify')});
-  const u=$('fUndo');if(u)u.onclick=async()=>{const x=S.flast.undo;await Store.putF(S.fdr,x.key,x.prev||{del:1,t:Date.now(),by:Who.id});S.flast=null;toast('Undone');fRerender()};
+  const u=$('fUndo');if(u)u.onclick=undoF;
   const fm=$('fMore');if(fm)fm.onclick=()=>{S.flimit+=200;fRerender()};
   const tc=$('fToConf');if(tc)tc.onclick=()=>{S.fpanel=null;S.rtab='conflicts';go('report');const c=$('fconflicts');if(c)c.scrollIntoView({block:'start'})};
   Who.fill(main);
 }
-function fRerender(){const y=window.scrollY;if(cam.timer||cam.stream)refreshF();else{renderFeeder();window.scrollTo(0,y)}}
+function fRerender(){refreshF()}
 function selectFeeder(fc){if(!S.fMap.has(fc))return;S.fdr=fc;S.flast=null;S.fpending=null;S.fopen=null;S.ftab='pending';S.flimit=200;try{localStorage.setItem(LSFS,fc)}catch(e){}stopCam();renderFeeder();if(S.fpanel==='scan'&&!S.liveBlocked)startLive()}
 async function resolveFConflict(code,keep){
   if(!Who.sup){toast('Only the admin can resolve conflicts');return}
@@ -1053,17 +1409,15 @@ function exportFeeder(f){
    A structure may be in several areas, so there is no one-area rule; a structure outside the mapping asks before it is recorded. */
 function routeScan(text,src){return S.view==='feeder'?processStructText(text,src):S.view==='area'?processAreaText(text,src):processScan(text,src)}
 Object.assign(Store,{seenA:new Set(),
-  loadLocalA(){try{const j=localStorage.getItem(LSA);if(j)S.av=JSON.parse(j)||{}}catch(e){}try{const a=localStorage.getItem(LSAS);if(a)S.adr=a}catch(e){}},
-  saveLocalA(){try{localStorage.setItem(LSA,JSON.stringify(S.av))}catch(e){}},
   subscribeA(){
     try{this.db.collection('area').onSnapshot(snap=>{let changed=false;
       snap.docs.forEach(d=>{this.seenA.add(d.id);const x=d.data();if(!x||!x.ac)return;const cur=S.av[x.ac]||(S.av[x.ac]={s:{}});
-        for(const [k,rec] of Object.entries(x.s||{})){const c=cur.s[k];if(rec&&(!c||(rec.t||0)>(c.t||0))){cur.s[k]=rec;changed=true}}});
-      if(changed){this.saveLocalA();if(S.view==='area'&&!cam.timer&&!S.apending)renderArea();else if(S.view==='report')vReport()}
+        if(mergeRecs(cur.s,x.s)){changed=true;Persist.a(x.ac)}});
+      if(changed)rerenderIdle()
     },()=>{})}catch(e){}
   },
   async putA(ac,key,rec){
-    const cur=S.av[ac]||(S.av[ac]={s:{}});cur.s[key]=rec;this.saveLocalA();
+    const cur=S.av[ac]||(S.av[ac]={s:{}});cur.s[key]=rec;Persist.a(ac);
     if(this.mode!=='db')return;
     const id='a'+ac,ref=this.db.doc('area/'+id);
     try{let ex=this.seenA.has(id);if(!ex){const s=await ref.get();ex=s.exists}
@@ -1097,9 +1451,14 @@ async function decideA(action){const p=S.apending;if(!p)return;const now=Date.no
   const prev=avrec(S.adr).s[p.code];
   await Store.putA(S.adr,p.code,{st:'other',src:p.src,t:now,by:Who.id});S.alast={kind:'other',code:p.code,src:p.src,undo:{key:p.code,prev}};beep('ok');
   S.apending=null;showA()}
-function showA(){if(S.view!=='area'){go('area');return}
-  if(cam.timer||cam.stream)refreshA();else{renderArea();const r=$('aRes');if(r)r.scrollIntoView({block:'nearest',behavior:'smooth'})}}
-function refreshA(){const a=S.aMap.get(S.adr);$('aRes').innerHTML=aResultBlock();$('aTabs').innerHTML=aTabsHtml(aStats(a));$('aList').innerHTML=aListHtml(a);bindADynamic()}
+function showA(){S.fresh=true;if(NScan.active){NScan.refresh();return}if(S.view!=='area'){go('area');return}
+  refreshA();if(!(cam.timer||cam.stream)){const r=$('aRes');if(r&&r.firstElementChild)r.scrollIntoView({block:'nearest',behavior:'smooth'})}}
+function refreshA(){const a=S.aMap.get(S.adr);if(!$('aList'))return renderArea();const st=aStats(a);
+  $('aRes').innerHTML=freshen(aResultBlock());$('aTabs').innerHTML=aTabsHtml(st);$('aList').innerHTML=aListHtml(a);
+  const p=$('aProg');if(p)p.innerHTML=aProgHtml(st);bindADynamic()}
+const aProgHtml=st=>`<div class="small muted">${st.ok+st.nf} of ${st.n} structures checked</div>
+    <div class="bar"><i class="b-ok" style="width:${st.ok*100/(st.n||1)}%"></i><i class="b-nf" style="width:${st.nf*100/(st.n||1)}%"></i></div>`;
+async function undoA(){const x=S.alast&&S.alast.undo;if(!x)return;await Store.putA(S.adr,x.key,x.prev||{del:1,t:Date.now(),by:Who.id});S.alast=null;toast('Undone');showA()}
 function areaShares(d){return Object.entries(d.acs||{}).sort((x,y)=>y[1]-x[1]).map(([ac,n])=>`${h(ac)} ${h((S.aMap.get(ac)||{}).name||'')} (${n})`).join(', ')||'none'}
 function aStructHead(code){const d=S.dtrMap.get(code);const here=(d.acs&&d.acs[S.adr])||0;
   return `<div class="ids"><div class="idbox"><span>Structure code</span><b>${h(code)}</b></div><div class="idbox"><span>Services in this area</span><b>${here} of ${d.list.length}</b></div></div>
@@ -1152,8 +1511,7 @@ function renderArea(){
     </div>
     <div class="dtrinfo"><b class="dname">${h(a.ac)} · ${h(a.name)}</b>
       <div class="small muted">${a.list.length} structures · ${fmt(a.svc)} services in this area${multi?` · ${multi} of these structures also serve other areas`:''}</div></div>
-    <div class="small muted">${st.ok+st.nf} of ${st.n} structures checked</div>
-    <div class="bar"><i class="b-ok" style="width:${st.ok*100/(st.n||1)}%"></i><i class="b-nf" style="width:${st.nf*100/(st.n||1)}%"></i></div>
+    <div class="stack" id="aProg" style="gap:10px">${aProgHtml(st)}</div>
   </section>
   <div class="btn-row">
     ${S.liveBlocked?`<label class="btn primary big" for="photo">${I.qr}Scan DTR tag</label>`:`<button class="btn primary big" id="aScanBtn">${I.qr}Scan DTR tag</button>`}
@@ -1168,7 +1526,7 @@ function renderArea(){
   <div class="row between"><span class="small muted">Saved ${Store.mode==='db'?'to this page, synced':'on this device'}</span><button class="btn sm" id="aExp">${I.dl}Export this area</button></div>`;
   const sel=$('aSel');sel.onchange=()=>selectArea(sel.value);
   $('aPrev').onclick=()=>{if(idx>0)selectArea(S.areas[idx-1].ac)};$('aNext').onclick=()=>{if(idx<S.areas.length-1)selectArea(S.areas[idx+1].ac)};
-  const sb=$('aScanBtn');if(sb)sb.onclick=()=>{S.apanel=S.apanel==='scan'?null:'scan';stopCam();renderArea();if(S.apanel==='scan')startLive()};
+  const sb=$('aScanBtn');if(sb)sb.onclick=()=>{if(NScan.available())return NScan.start('area');S.apanel=S.apanel==='scan'?null:'scan';stopCam();renderArea();if(S.apanel==='scan')startLive()};
   $('aListBtn').onclick=()=>{S.atab='pending';renderArea();$('aList').scrollIntoView({block:'start',behavior:'smooth'})};
   const inp=$('aIn'),hint=$('aHint');
   const check=()=>{const v=inp.value.trim();if(!v)return;
@@ -1189,11 +1547,11 @@ function bindADynamic(){
     toast(m==='clear'?'Reset':'Marked not in this area');S.aopen=null;aRerender()});
   main.querySelectorAll('[data-aa]').forEach(b=>b.onclick=()=>decideA(b.dataset.aa));
   main.querySelectorAll('[data-svc]').forEach(b=>b.onclick=()=>{const c=b.dataset.svc;S.dtr=c;S.last=null;S.pending=null;S.open=null;S.tab='pending';S.dtrFilter='';try{localStorage.setItem(LSDTR,c)}catch(e){}S.apanel=null;go('verify')});
-  const u=$('aUndo');if(u)u.onclick=async()=>{const x=S.alast.undo;await Store.putA(S.adr,x.key,x.prev||{del:1,t:Date.now(),by:Who.id});S.alast=null;toast('Undone');aRerender()};
+  const u=$('aUndo');if(u)u.onclick=undoA;
   const am=$('aMore');if(am)am.onclick=()=>{S.alimit+=200;aRerender()};
   Who.fill(main);
 }
-function aRerender(){const y=window.scrollY;if(cam.timer||cam.stream)refreshA();else{renderArea();window.scrollTo(0,y)}}
+function aRerender(){refreshA()}
 function selectArea(ac){if(!S.aMap.has(ac))return;S.adr=ac;S.alast=null;S.apending=null;S.aopen=null;S.atab='pending';S.alimit=200;try{localStorage.setItem(LSAS,ac)}catch(e){}stopCam();renderArea();if(S.apanel==='scan'&&!S.liveBlocked)startLive()}
 function exportArea(a){
   const v=avrec(a.ac),rows=[['AREA_CODE','AREA_NAME','STRUCTURE_CODE','STRUCTURE_NAME','TYPE','SERVICES_IN_AREA','TOTAL_SERVICES','ALL_MAPPING_AREAS','RESULT','SOURCE','TIME']];
@@ -1216,7 +1574,7 @@ function vSearch(){
       if(!S.dtrSet.has(o.dtr)){toast('Structure '+o.dtr+' is outside the 001–800 list');return}
       S.dtr=o.dtr;S.open=o.u;S.dtrFilter='';
       try{localStorage.setItem(LSDTR,o.dtr)}catch(e){}
-      const r=vrec(o.dtr).s[o.u];S.tab=live(r)?(r.st==='ok'?'ok':'nf'):elsewhereIndex().has(o.u)?'nf':'pending';S.limit=100000;S.last=null;go('verify');S.limit=150;
+      const r=vrec(o.dtr).s[o.u];S.tab=live(r)?(r.st==='ok'?'ok':'nf'):elsewhereIndex().has(o.u)?'nf':'pending';S.limit=100000;S.last=null;go('verify');S.limit=60;
       const el=main.querySelector('[data-u="'+o.u+'"]');if(el)el.scrollIntoView({block:'center'})})};
   let t;q.oninput=()=>{clearTimeout(t);t=setTimeout(run,140)};run();
 }
@@ -1224,7 +1582,7 @@ function searchAll(raw){
   const q=raw.trim().toUpperCase();if(q.length<3)return[];
   const out=[],seen=new Set();const add=o=>{if(o&&!seen.has(o.u)&&out.length<60){seen.add(o.u);out.push(o)}};
   add(S.byU.get(q));add(S.byS.get(q));(S.byM.get(normM(q))||[]).forEach(add);const nq=normM(q);
-  for(const o of S.recs){if(out.length>=60)break;if(o.s.includes(q)||o.u.startsWith(q)||(nq.length>=4&&normM(o.m).includes(nq))||o.n.toUpperCase().includes(q))add(o)}
+  for(const o of S.recs){if(out.length>=60)break;if(o.s.includes(q)||o.u.startsWith(q)||(nq.length>=4&&o.mn.includes(nq))||o.N.includes(q))add(o)}
   return out;
 }
 
@@ -1241,6 +1599,8 @@ const kw=n=>fmt(Math.round(n*100)/100);
 const meter=(v,n)=>`<span class="mtr"><i style="width:${n?Math.min(100,v*100/n):0}%"></i></span>`;
 const zero=()=>({svc:0,p1:0,p3:0,ld:0,ok:0,nf:0,el:0,p:0});
 function reportData(){
+  if(S._rd&&S._rdRev===D.rev)return S._rd;S._rdRev=D.rev;return S._rd=reportData0()}
+function reportData0(){
   const ss=svcStatusIndex();
   const byF=aggBy(o=>{const d=S.dtrMap.get(o.dtr);return d&&d.fc?d.fc:null},ss);
   const byA=aggBy(o=>S.areaByName.get(o.an)||null,ss);
@@ -1437,8 +1797,6 @@ function exportDtrDetails(){ // all 800 structure codes with name (NO NAME when 
   const csv=rows.map(csvRow).join('\n');saveRaw('YRGuda_DTR_details.csv',csv);
 }
 /* Android app (Capacitor): files are written to the app cache and handed to the share sheet (WhatsApp, Drive, Files) */
-const isNative=()=>!!(window.Capacitor&&typeof Capacitor.isNativePlatform==='function'&&Capacitor.isNativePlatform());
-const capPlugin=n=>isNative()?((Capacitor.Plugins&&Capacitor.Plugins[n])||(Capacitor.registerPlugin?Capacitor.registerPlugin(n):null)):null;
 async function nativeSave(name,text){
   if(!isNative())return false;
   const FS=capPlugin('Filesystem'),SH=capPlugin('Share');
@@ -1459,7 +1817,7 @@ function exportAll(){const rows=[],elsew=elsewhereIndex();for(const d of S.dtrs)
 
 /* ---------- GUIDE ---------- */
 function vGuide(){
-  main.innerHTML=`<div class="plan stack">${accountCard()}${backupCard()}${dataCard()}
+  main.innerHTML=`<div class="plan stack">${accountCard()}${backupCard()}${dataCard()}${appCard()}${moveCard()}
   <div class="card stack">
     <p class="eyebrow">How to verify a DTR</p>
     <ol>
@@ -1542,7 +1900,13 @@ function vGuide(){
    Public copies of this app carry no consumer data. Staff load the section data file (or the Service Mapping Excel) once per phone;
    it is kept in this browser's storage (IndexedDB) and never uploaded. */
 const IDB={db:null,
-  open(){return this.db||(this.db=new Promise((res,rej)=>{const r=indexedDB.open('yrguda-dtr',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
+  open(){return this.db||(this.db=new Promise((res,rej)=>{const r=indexedDB.open('yrguda-dtr',2);
+    r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('kv'))db.createObjectStore('kv');if(!db.objectStoreNames.contains('ent'))db.createObjectStore('ent')};
+    r.onsuccess=()=>{const db=r.result;db.onversionchange=()=>db.close();res(db)};r.onerror=()=>{this.db=null;rej(r.error)};r.onblocked=()=>{}}))},
+  async putMany(pairs){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('ent','readwrite'),st=t.objectStore('ent');
+    for(const [k,v] of pairs){if(v)st.put(v,k);else st.delete(k)}t.oncomplete=()=>res();t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})},
+  async entAll(){const db=await this.open();return new Promise((res,rej)=>{const st=db.transaction('ent').objectStore('ent');const ks=st.getAllKeys(),vs=st.getAll();
+    vs.onsuccess=()=>res(ks.result.map((k,i)=>[k,vs.result[i]]));vs.onerror=()=>rej(vs.error)})},
   async get(k){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('kv').objectStore('kv').get(k);t.onsuccess=()=>res(t.result||null);t.onerror=()=>rej(t.error)})},
   async set(k,v){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})},
   async del(k){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').delete(k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
@@ -1555,15 +1919,29 @@ async function embeddedParts(){
   const b=$('masterdata').textContent.trim();if(!b||b.startsWith('__'))return null;
   return{txt:await gunzipB64(b),STR:JSON.parse($('structdata').textContent),AR:JSON.parse($('areadata').textContent),meta:{mapOn:'17-Oct-2026',masterOn:'16-Oct-2026',src:'Built into this page'}};
 }
+async function importDataJson(j,src){
+  if(j.app!=='yrguda-dtr'||!j.records||!j.structs||!j.areas)throw new Error('not a section data file');
+  const P={txt:await gunzipB64(j.records),STR:j.structs,AR:j.areas,meta:Object.assign({},j.meta,{src,loaded:Date.now()})};
+  await IDB.set('section',P);
+  if(j.backup&&j.backup.url&&j.backup.key){const c=Backup.cfg();if(c.url!==j.backup.url)c.sentT=0;Object.assign(c,{url:j.backup.url,key:j.backup.key});Backup.setCfg(c)}
+}
 async function importDataFile(file){
   try{const j=JSON.parse(await file.text());
-    if(j.app!=='yrguda-dtr'||!j.records||!j.structs||!j.areas)throw new Error('not a section data file');
-    const P={txt:await gunzipB64(j.records),STR:j.structs,AR:j.areas,meta:Object.assign({},j.meta,{src:'File: '+file.name,loaded:Date.now()})};
-    await IDB.set('section',P);
-    if(j.backup&&j.backup.url&&j.backup.key){const c=Backup.cfg();if(c.url!==j.backup.url)c.sentT=0;Object.assign(c,{url:j.backup.url,key:j.backup.key});Backup.setCfg(c)}
+    if(j.app==='yrguda-dtr-entries')return restoreEntries(j,file.name);
+    await importDataJson(j,'File: '+file.name);
     toast('Section data loaded'+(j.backup?' with Sheet backup settings':''));setTimeout(()=>location.reload(),600);
   }catch(e){toast('That file is not a section data file. Use the .json file you were given.')}
 }
+/* entries backup file (Documents/YRG DTR Verify on the phone): merge it in, newest entry wins */
+async function restoreEntries(j,name){
+  if(!S.ready){toast('Load the section data first, then restore the entries backup');return}
+  let n=0;const m=(target,src,kind)=>{for(const id in src||{}){const cur=target[id]||(target[id]=kind==='v'?{s:{},x:{}}:{s:{}});
+    const k=mergeRecs(cur.s||(cur.s={}),src[id].s)+(kind==='v'?mergeRecs(cur.x||(cur.x={}),src[id].x):0);if(k){n+=k;Persist.mark(kind+':'+id)}}};
+  m(S.ver,j.ver,'v');m(S.fv,j.fv,'f');m(S.av,j.av,'a');
+  D.rebuild();bumpF();await Persist.flush();Backup.soon();
+  toast(n?`Restored ${fmt(n)} entr${n===1?'y':'ies'} from ${name}`:'Nothing newer in that backup');if(S.view==='guide')vGuide();
+}
+$('bkFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)f.text().then(t=>{let j;try{j=JSON.parse(t)}catch(err){}if(!j||j.app!=='yrguda-dtr-entries'){toast('That is not an entries backup file');return}restoreEntries(j,f.name)})};
 let xlsxLoading=null;
 function loadXlsxLib(){return xlsxLoading||(xlsxLoading=new Promise((res,rej)=>{if(window.XLSX)return res();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=()=>{xlsxLoading=null;rej(new Error('Could not load the Excel reader. Check the internet connection.'))};document.head.appendChild(s)}))}
 async function importExcel(file){
@@ -1593,11 +1971,12 @@ async function importExcel(file){
     toast(`Loaded ${fmt(seen.size)} services${missing?`, ${fmt(missing)} without meter number`:''}`);setTimeout(()=>location.reload(),900);
   }catch(e){toast(e.message||'Could not read that Excel file')}
 }
+async function sectionJson(withBackup){
+  const j={app:'yrguda-dtr',v:1,meta:Object.assign({},S.meta,{src:undefined,loaded:undefined}),records:await gzipB64(S.P.txt),structs:S.P.STR,areas:S.P.AR};
+  const bc=Backup.cfg();if(withBackup&&Who.sup&&bc.url&&bc.key)j.backup={url:bc.url,key:bc.key};return j}
 async function exportDataFile(){
   if(!S.P){toast('No data loaded');return}
-  const j={app:'yrguda-dtr',v:1,meta:Object.assign({},S.meta,{src:undefined,loaded:undefined}),records:await gzipB64(S.P.txt),structs:S.P.STR,areas:S.P.AR};
-  const bc=Backup.cfg();if(Who.sup&&bc.url&&bc.key)j.backup={url:bc.url,key:bc.key};
-  saveRaw('YRGuda_section_data.json',JSON.stringify(j));
+  saveRaw('YRGuda_section_data.json',JSON.stringify(await sectionJson(true)));
 }
 $('dataFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importDataFile(f)};
 $('xlsFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importExcel(f)};
@@ -1607,29 +1986,52 @@ function dataCard(){
     <dl class="kv"><div style="grid-column:1/-1"><dt>Source</dt><dd>${h(m.src||'—')}</dd></div><div><dt>Service mapping</dt><dd>${h(m.mapOn||'—')}</dd></div><div><dt>Meter details from</dt><dd>${h(m.masterOn||'—')}</dd></div>
     <div><dt>Services</dt><dd>${fmt(S.live.length)}</dd></div><div><dt>Structures</dt><dd>${fmt(S.structCount||0)}</dd></div></dl>
     ${Who.sup?`<div class="dlgrid"><label class="btn sm" for="xlsFile">Load new mapping Excel</label><label class="btn sm" for="dataFile">Load section data file</label>
-    <button class="btn sm" id="expData">${I.dl}Save data file</button>${m.loaded?'<button class="btn sm" id="clrData">Remove from this phone</button>':''}</div>`:'<p class="hint" style="margin:0">Only the admin can load, save or remove the section data.</p>'}
-    <p class="hint">A new Service Mapping Excel replaces the structure mapping and keeps the meter numbers already on this phone. "Save data file" makes a file you can load on other staff phones. Data stays in this browser and is never uploaded.</p></div>`;
+    <button class="btn sm" id="expData">${I.dl}Save data file</button>${Backup.ready()?'<button class="btn sm" id="putSec">Put section data on Sheet</button>':''}${m.loaded?'<button class="btn sm" id="clrData">Remove from this phone</button>':''}</div>`:'<p class="hint" style="margin:0">Only the admin can load, save or remove the section data.</p>'}
+    <p class="hint">A new Service Mapping Excel replaces the structure mapping and keeps the meter numbers already on this phone. "Save data file" makes a file you can load on other staff phones.${Who.sup?' "Put section data on Sheet" lets a new phone download everything with just the backup key.':''}</p></div>`;
+}
+function appCard(){
+  const a=N.app,fb=FileBackup;
+  return `<div class="card stack" id="appCard"><p class="eyebrow">This phone</p>
+    <dl class="kv"><div><dt>App</dt><dd>${N.on?h((a&&('v'+a.version+' ('+a.build+')'))||'Android app'):'Web page'}</dd></div><div><dt>Phone</dt><dd>${h(Backup.device())}</dd></div>
+    ${N.on?`<div style="grid-column:1/-1"><dt>Automatic backup file</dt><dd>${fb.ok===false?'Could not write to Documents on this phone':fb.last?'Documents/'+h(fb.name())+' · '+h(tstr(fb.last)):'Documents/'+h(fb.name())+' (written a few seconds after each change)'}</dd></div>`:''}</dl>
+    <div class="dlgrid"><label class="btn sm" for="bkFile">Restore entries backup</label>${N.on?'<button class="btn sm" id="fbNow">Write backup file now</button>':''}</div>
+    <p class="hint" style="margin:0">${N.on?'The backup file stays in the phone\'s Documents folder even if the app is removed. If you ever reinstall, tap "Restore entries backup" and pick it.':'Restore merges an entries backup file from the Android app into this page. The newest entry wins.'}</p></div>`;
 }
 function bindDataCard(){
   const e=$('expData');if(e)e.onclick=exportDataFile;
-  const c=$('clrData');if(c)c.onclick=async()=>{if(c.dataset.sure!=='1'){c.dataset.sure='1';c.textContent='Tap again to remove';return}await IDB.del('section');toast('Removed');setTimeout(()=>location.reload(),500)};
+  const ps=$('putSec');if(ps)ps.onclick=async()=>{ps.disabled=true;ps.textContent='Uploading…';const ok=await Backup.putSection();toast(ok?'Section data is on the Sheet':'Could not upload. See Sheet status.');if(S.view==='guide')vGuide()};
+  const c=$('clrData');if(c)c.onclick=async()=>{const ok=await N.confirm('Remove section data?','The services list is removed from this phone. Entries already made stay.','Remove');
+    if(ok===false)return;if(ok===null&&c.dataset.sure!=='1'){c.dataset.sure='1';c.textContent='Tap again to remove';return}await IDB.del('section');toast('Removed');setTimeout(()=>location.reload(),500)};
+  const fb=$('fbNow');if(fb)fb.onclick=async()=>{FileBackup.dirty=true;await FileBackup.write();toast(FileBackup.ok?'Backup file written':'Could not write the backup file');vGuide()};
 }
 function showSetup(msg){
   document.querySelectorAll('.tab').forEach(b=>b.disabled=true);
-  $('storeBadge').textContent='No data';
-  if(!Who.sup){main.innerHTML=`<section class="card stack"><p class="eyebrow">No data on this phone</p><h2>Ask the admin to load the section data</h2>
-    <p style="margin:0">Only the admin can load the section data file on this phone. Ask the admin to sign in here and load it.</p>
-    <button class="btn" id="soBtn">Sign out</button></section>`;$('soBtn').onclick=signOut;return}
+  $('storeBadge').textContent='No data';N.hideSplash();
+  const c=Backup.cfg();
+  const sheetForm=`<form id="gsForm" class="stack">
+      <label class="lbl" for="gsKey">Backup key (from the admin)</label>
+      <input class="inp" id="gsKey" type="password" autocomplete="off" placeholder="Backup key" value="${h(c.key||'')}">
+      <button class="btn primary big" type="submit">${I.dl}Get section data from Google Sheet</button></form>
+    <p class="hint">Downloads the services, structures, feeders and areas the admin put on the Sheet, and starts syncing entries with the other phones.</p>`;
   main.innerHTML=`<section class="card stack">
     <p class="eyebrow">First time on this phone</p>
     <h2>Load your section data</h2>
     ${msg?`<p class="small" style="color:var(--bad);margin:0">${h(msg)}</p>`:''}
-    <p style="margin:0">This app does not carry consumer data. Load it once on this phone and it stays here, in this browser only.</p>
-    <label class="btn primary big" for="dataFile">${I.dl}Load section data file (.json)</label>
-    <p class="hint">The file your admin shares, e.g. YRGuda_section_data.json. It has services, meter numbers, structures, feeders and areas.</p>
-    <label class="btn big" for="xlsFile">Load Service Mapping Excel (.xlsx)</label>
-    <p class="hint">The Service Mapping export from EBS. Without the data file there are no meter numbers, so scanning works by service number or UKSCNO only.</p>
+    <p style="margin:0">This app does not carry consumer data. Load it once on this phone and it stays on this phone.</p>
+    ${sheetForm}
+    ${Who.sup?`<label class="btn big" for="dataFile">Load section data file (.json)</label>
+    <p class="hint">The file your admin shares, e.g. YRGuda_section_data.json.</p>
+    <label class="btn" for="xlsFile">Load Service Mapping Excel (.xlsx)</label>
+    <p class="hint">Without the data file there are no meter numbers, so scanning works by service number or UKSCNO only.</p>`:`<p class="hint">Or ask the admin to sign in here and load the section data file.</p>`}
+    <button class="btn sm" id="soBtn" style="align-self:flex-start">Sign out</button>
   </section>`;
+  $('soBtn').onclick=signOut;
+  $('gsForm').onsubmit=async e=>{e.preventDefault();const key=$('gsKey').value.trim();const btn=e.target.querySelector('button');
+    if(key.length<8){toast('Type the backup key (at least 8 characters)');return}
+    btn.disabled=true;btn.textContent='Downloading…';
+    try{const j=await Backup.getSection(c.url,key);await importDataJson(j,'Google Sheet');
+      const c2=Backup.cfg();Object.assign(c2,{key});Backup.setCfg(c2);toast('Section data downloaded');setTimeout(()=>location.reload(),500)}
+    catch(err){toast(Backup.why(err));btn.disabled=false;btn.innerHTML=I.dl+'Get section data from Google Sheet'}};
 }
 
 /* ---------- Google Sheet backup ----------
@@ -1646,11 +2048,20 @@ const SHEET_HEAD={
   'Feeder checks':['KEY','FEEDER_CODE','FEEDER','STRUCTURE_CODE','STRUCTURE_NAME','MAPPING_FEEDER_CODE','RESULT','STATUS_CODE','SOURCE','REASON','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE'],
   'Area checks':['KEY','AREA_CODE','AREA_NAME','STRUCTURE_CODE','STRUCTURE_NAME','RESULT','STATUS_CODE','SOURCE','RECORDED_BY','BY_ID','RECORDED_AT','T_MS','DEVICE']
 };
+/* network: fetch first; in the Android app fall back to native HTTP if the WebView request fails */
+async function net(url,body){
+  try{const r=await fetch(url,body?{method:'POST',body}:{});return await r.json()}
+  catch(e){const H=N.on&&N.P('CapacitorHttp');if(!H)throw e;
+    const r=await H.request({url,method:body?'POST':'GET',headers:body?{'Content-Type':'text/plain;charset=utf-8'}:{},data:body||undefined});
+    return typeof r.data==='string'?JSON.parse(r.data):r.data}}
+const qurl=(url,params)=>url+(url.includes('?')?'&':'?')+Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
 const Backup={timer:null,busy:false,
   cfg(){let c={};try{c=JSON.parse(localStorage.getItem(BK_KEY)||'{}')||{}}catch(e){}if(!c.url)c.url=DEFAULT_BACKUP_URL;return c},
   setCfg(c){try{localStorage.setItem(BK_KEY,JSON.stringify(c))}catch(e){}},
   ready(){const c=this.cfg();return !!(c.url&&c.key)},
-  device(){let d='';try{d=localStorage.getItem('yrg_device')||'';if(!d){d='phone-'+Math.random().toString(36).slice(2,7);localStorage.setItem('yrg_device',d)}}catch(e){d='phone'}return d},
+  device(){let d='';try{d=localStorage.getItem('yrg_device')||'';
+      const model=N.info&&[N.info.manufacturer,N.info.model].filter(Boolean).join(' ').replace(/^(\S+) \1 /i,'$1 ');
+      if(!d||(model&&d.startsWith('phone-'))){const id=(d.match(/[a-z0-9]{5}$/)||[Math.random().toString(36).slice(2,7)])[0];d=(model?model.slice(0,40):'phone')+'-'+id;localStorage.setItem('yrg_device',d)}}catch(e){d=d||'phone'}return d},
   byName(id){return !id?'':id.startsWith('user:')?id.slice(5):id.startsWith('dev-')?'device':'claude.ai user'},
   rows(since){
     since=since||0;const dev=this.device(),out={'Services':[],'Unknown meters':[],'Feeder checks':[],'Area checks':[]};
@@ -1668,14 +2079,14 @@ const Backup={timer:null,busy:false,
   },
   maxT(rows){let m=0;for(const k in rows)for(const r of rows[k]){const t=Number(r[SHEET_HEAD[k].indexOf('T_MS')]);if(t>m)m=t}return m},
   async post(sheets){const c=this.cfg();
-    const res=await fetch(c.url,{method:'POST',body:JSON.stringify({key:c.key,device:this.device(),user:Who.name,app:'yrg-dtr-1',sheets})});
-    const j=await res.json();if(!j.ok)throw new Error(j.error||'Backup refused');return j},
+    const j=await net(c.url,JSON.stringify({key:c.key,device:this.device(),user:Who.name,app:'yrg-dtr-2',sheets}));
+    if(!j||!j.ok)throw new Error((j&&j.error)||'Backup refused');return j},
   status(msg,ok){const c=this.cfg();c.last={t:Date.now(),ok,msg};this.setCfg(c);updateBadge();
     const el=$('bkStatus');if(el)el.innerHTML=this.statusHtml()},
   statusHtml(){const c=this.cfg();if(!this.ready())return c.url?(Who.sup?'Sheet link is set. Type the backup key below and tap Save and test to start syncing.':'Type the backup key from the admin below to start syncing.'):'Not set up on this phone.';const l=c.last;
     return l?`${l.ok?'✓':'✕'} ${h(l.msg)} <span class="muted">· ${h(tstr(l.t))}</span>`:'Set up. No backup yet.'},
   async run(full){
-    if(!this.ready()||this.busy)return;if(!navigator.onLine){this.status('Offline. Will back up when online.',false);return}
+    if(!this.ready()||this.busy)return;if(!isOnline()){this.status('Offline. Will back up when online.',false);return}
     this.busy=true;const c=this.cfg();const since=full?0:(c.sentT||0);
     try{const rows=this.rows(since);const n=Object.values(rows).reduce((a,r)=>a+r.length,0);
       if(!n){this.status('Up to date',true);return}
@@ -1688,27 +2099,40 @@ const Backup={timer:null,busy:false,
   soon(){if(!this.ready())return;clearTimeout(this.timer);this.timer=setTimeout(()=>this.run(false),45000)},
   async sync(){if(!this.ready()||this.syncing)return;this.syncing=true;try{const n=await this.pull();if(n>0)rerenderIdle();await this.run(false)}finally{this.syncing=false}},
   async phones(){const c=this.cfg();
-    try{const r=await fetch(c.url+(c.url.includes('?')?'&':'?')+'sheets='+encodeURIComponent('Backup log')+'&key='+encodeURIComponent(c.key));const j=await r.json();if(!j.ok)return null;
+    try{const j=await net(qurl(c.url,{sheets:'Backup log',key:c.key}));if(!j||!j.ok)return null;
       const sh=j.sheets['Backup log'];if(!sh||!sh.rows)return[];const m=new Map();
       for(const r2 of sh.rows){const k=r2[1]+'|'+r2[2];const x=m.get(k)||{device:r2[1],user:r2[2],count:0};x.time=r2[0];x.count++;m.set(k,x)}
       return[...m.values()].reverse()}catch(e){return null}},
   async pull(){
     if(!this.ready())return;const c=this.cfg();
-    try{const r=await fetch(c.url+(c.url.includes('?')?'&':'?')+'key='+encodeURIComponent(c.key));const j=await r.json();if(!j.ok)throw new Error(j.error||'Refused');
+    if(!isOnline())return -1;
+    try{const j=await net(qurl(c.url,{key:c.key}));if(!j||!j.ok)throw new Error((j&&j.error)||'Refused');
       let n=0;const col=(sh,name)=>sh.header.indexOf(name);
       const take=(sh,fn)=>{if(!sh||!sh.rows)return;for(const row of sh.rows){const t=Number(row[col(sh,'T_MS')])||0;if(!t)continue;if(fn(row,t,c2=>row[col(sh,c2)]||''))n++}};
       const newer=(cur,t)=>!cur||(cur.t||0)<t;
-      take(j.sheets['Services'],(row,t,g)=>{const dtr=g('DTR_VERIFIED'),u=g('UKSCNO'),st=g('STATUS_CODE');const v=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});if(!newer(v.s[u],t))return false;
+      take(j.sheets['Services'],(row,t,g)=>{const dtr=g('DTR_VERIFIED'),u=g('UKSCNO'),st=g('STATUS_CODE');const v=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});if(!newer(v.s[u],t))return false;Persist.v(dtr);
         v.s[u]=st==='del'?{del:1,t,by:g('BY_ID')}:{st,src:g('SOURCE'),raw:g('SCANNED_TEXT'),reason:g('REASON')||undefined,t,by:g('BY_ID'),mdtr:(st==='other'||st==='conf')?g('MASTER_DTR'):undefined};return true});
-      take(j.sheets['Unknown meters'],(row,t,g)=>{const [dtr,k]=g('KEY').split('|');const v=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});if(!newer(v.x[k],t))return false;
+      take(j.sheets['Unknown meters'],(row,t,g)=>{const [dtr,k]=g('KEY').split('|');const v=S.ver[dtr]||(S.ver[dtr]={s:{},x:{}});if(!newer(v.x[k],t))return false;Persist.v(dtr);
         v.x[k]=g('STATUS_CODE')==='del'?{del:1,t,by:g('BY_ID')}:{raw:g('SCANNED_TEXT'),src:g('SOURCE'),t,by:g('BY_ID'),svc:g('SERVICE_NO')||undefined,u:g('UKSCNO')||undefined};return true});
-      take(j.sheets['Feeder checks'],(row,t,g)=>{const fc=g('FEEDER_CODE'),code=g('STRUCTURE_CODE'),st=g('STATUS_CODE');const v=S.fv[fc]||(S.fv[fc]={s:{}});if(!newer(v.s[code],t))return false;
+      take(j.sheets['Feeder checks'],(row,t,g)=>{const fc=g('FEEDER_CODE'),code=g('STRUCTURE_CODE'),st=g('STATUS_CODE');const v=S.fv[fc]||(S.fv[fc]={s:{}});if(!newer(v.s[code],t))return false;Persist.f(fc);
         v.s[code]=st==='del'?{del:1,t,by:g('BY_ID')}:{st,src:g('SOURCE'),reason:g('REASON')||undefined,t,by:g('BY_ID'),mf:g('MAPPING_FEEDER_CODE')};return true});
-      take(j.sheets['Area checks'],(row,t,g)=>{const ac=g('AREA_CODE'),code=g('STRUCTURE_CODE'),st=g('STATUS_CODE');const v=S.av[ac]||(S.av[ac]={s:{}});if(!newer(v.s[code],t))return false;
+      take(j.sheets['Area checks'],(row,t,g)=>{const ac=g('AREA_CODE'),code=g('STRUCTURE_CODE'),st=g('STATUS_CODE');const v=S.av[ac]||(S.av[ac]={s:{}});if(!newer(v.s[code],t))return false;Persist.a(ac);
         v.s[code]=st==='del'?{del:1,t,by:g('BY_ID')}:{st,src:g('SOURCE'),t,by:g('BY_ID')};return true});
-      Store.saveLocal();Store.saveLocalF();Store.saveLocalA();
+      if(n){D.rebuild();bumpF()}
       this.status(n?`Got ${fmt(n)} entr${n===1?'y':'ies'} from the Sheet`:'Sheet has nothing newer',true);return n;
     }catch(e){this.status(this.why(e),false);return -1}
+  },
+  async putSection(){ // admin: keep the section data in the Sheet, so a new phone needs only the backup key
+    if(!this.ready()||!S.P)return false;const s=JSON.stringify(await sectionJson(false));const rows=[];
+    for(let i=0,p=1;i<s.length;i+=40000,p++)rows.push([String(p),s.slice(i,i+40000)]);
+    this.status('Putting section data on the Sheet…',true);
+    try{await this.post({'App data':{mode:'replace',header:['PART','DATA'],rows}});this.status(`Section data is on the Sheet (${fmt(S.recs.length)} services)`,true);return true}
+    catch(e){this.status(this.why(e),false);return false}
+  },
+  async getSection(url,key){
+    const j=await net(qurl(url,{sheets:'App data',key}));if(!j||!j.ok)throw new Error((j&&j.error)||'Refused');
+    const sh=j.sheets&&j.sheets['App data'];if(!sh||!sh.rows||!sh.rows.length)throw new Error('The Sheet has no section data yet. The admin must tap "Put section data on Sheet" in Guide first.');
+    const txt=sh.rows.slice().sort((a,b)=>Number(a[0])-Number(b[0])).map(r=>r[1]).join('');return JSON.parse(txt);
   },
   async copyMaster(){
     if(!this.ready())return;const head=['UKSCNO','SERVICE_NO','CONSUMER_NAME','ADDRESS','METER_NO','MAKE','PHASE','CATEGORY','LOAD_KW','STRUCTURE_CODE','STRUCTURE_NAME','STRUCTURE_TYPE','FEEDER','AREA_NAME','LAST_READING','READING_MONTH','SEAL_NO','STATUS','IN_CURRENT_MAPPING'];
@@ -1722,6 +2146,18 @@ const Backup={timer:null,busy:false,
 };
 // back up shortly after every change
 for(const m of ['put','putF','putA']){const f=Store[m].bind(Store);Store[m]=async(...a)=>{const r=await f(...a);Backup.soon();return r}}
+/* Android app: a copy of all entries in the phone's Documents folder. It survives removing the app, so a reinstall can restore it. */
+const FileBackup={timer:0,dirty:false,last:0,ok:null,asked:false,
+  name(){let id='';try{id=localStorage.getItem('yrg_install')||'';if(!id){id=Math.random().toString(36).slice(2,8);localStorage.setItem('yrg_install',id)}}catch(e){id='x'}
+    return 'YRG DTR Verify/entries-backup-'+((Who.name||'user').replace(/[^a-z0-9._-]/gi,''))+'-'+id+'.json'},
+  soon(){if(!N.on)return;this.dirty=true;if(!this.timer)this.timer=setTimeout(()=>this.write(),15000)},
+  async write(){clearTimeout(this.timer);this.timer=0;if(!N.on||!this.dirty||!S.ready)return;const FS=N.P('Filesystem');if(!FS)return;this.dirty=false;
+    const data=JSON.stringify({app:'yrguda-dtr-entries',v:1,at:Date.now(),device:Backup.device(),user:Who.name,ver:S.ver,fv:S.fv,av:S.av});
+    try{await FS.writeFile({path:this.name(),data,directory:'DOCUMENTS',encoding:'utf8',recursive:true});this.last=Date.now();this.ok=true}
+    catch(e){ // Android 10 and older ask for storage permission once
+      if(!this.asked){this.asked=true;try{const p=await FS.requestPermissions();if(p&&p.publicStorage==='granted'){this.dirty=true;return this.write()}}catch(e2){}}
+      this.ok=false}}
+};
 function backupCard(){
   const c=Backup.cfg();
   return `<div class="card stack" id="bkCard"><p class="eyebrow">Google Sheet backup and sync</p>
@@ -1750,8 +2186,8 @@ function bindBackupCard(){
     if(!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(url)){toast('Paste the Apps Script web app URL (it starts with https://script.google.com/)');return}
     if(key.length<8){toast('Backup key must be at least 8 characters');return}
     toast('Testing…');
-    try{const r=await fetch(url+(url.includes('?')?'&':'?')+'ping=1&key='+encodeURIComponent(key));const j=await r.json();
-      if(!j.ok)throw new Error(j.error||'Refused');
+    try{const j=await net(qurl(url,{ping:1,key}));
+      if(!j||!j.ok)throw new Error((j&&j.error)||'Refused');
       const c=Backup.cfg();const changed=c.url!==url;Object.assign(c,{url,key});if(changed)c.sentT=0;Backup.setCfg(c);
       Backup.status('Connected to "'+(j.sheet||'Sheet')+'"',true);vGuide();Backup.sync()}
     catch(err){Backup.status(Backup.why(err),false);toast(Backup.why(err))}};
@@ -1765,10 +2201,16 @@ function syncWarn(){
   if(Store.mode==='db'||Backup.ready())return '';
   return `<button class="cbanner" id="syncWarn">${I.warn}<span><b>Not syncing.</b> Entries on this phone are not shared with other phones. Tap to set up the backup key.</span></button>`;
 }
-function rerenderIdle(){if(!S.pending&&!S.fpending&&!S.apending&&!cam.stream){({verify:renderVerify,feeder:renderFeeder,area:renderArea,report:vReport})[S.view]?.()}}
+function rerenderIdle(){ // after other phones' entries arrive: refresh counts in place, never while a decision, the camera or a sheet is open
+  if(!S.ready||S.pending||S.fpending||S.apending||cam.stream||Sheet.el)return;
+  if(NScan.active){NScan.refresh(true);return}
+  const y=window.scrollY;
+  if(S.view==='verify'){if(S.dtr&&$('svcList'))refreshVerify(false);else renderVerify()}
+  else if(S.view==='feeder')refreshF();else if(S.view==='area')refreshA();else if(S.view==='report'){vReport();window.scrollTo(0,y)}}
 function updateBadge(){
-  const b=$('storeBadge');if(!b||!S.ready)return;b.classList.remove('bad');
+  const b=$('storeBadge');if(!b||!S.ready)return;b.classList.remove('bad','off');
   if(Store.mode==='db'){b.textContent='Synced';return}
+  if(Backup.ready()&&!isOnline()){b.textContent='Offline';b.classList.add('off');b.title='Entries are saved on this phone and sync when the internet is back';return}
   if(!Backup.ready()){b.textContent='Not syncing';b.classList.add('bad');b.title='Tap to set up the Google Sheet backup';return}
   const l=Backup.cfg().last;
   if(l&&l.ok){b.textContent='Synced '+new Date(l.t).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});b.title='Tap to sync now'}
@@ -1816,7 +2258,7 @@ const Auth={
 };
 const validName=n=>/^[a-z0-9._-]{2,20}$/.test(n);
 function showLogin(msg){
-  document.querySelector('.tabs').hidden=true;$('userPill').hidden=true;$('storeBadge').textContent='Signed out';
+  document.querySelector('.tabs').hidden=true;$('userPill').hidden=true;$('storeBadge').textContent='Signed out';N.hideSplash();
   $('hdr').innerHTML='YRG DTR Verify<small>Sec 10 Yella Reddy Guda · ERO 11</small>';
   let last='';try{last=localStorage.getItem('yrg_last_user')||''}catch(e){}
   main.innerHTML=`<section class="card stack login" aria-label="Sign in">
@@ -1883,20 +2325,49 @@ function bindAccount(){
     box.onsubmit=e=>{e.preventDefault();const pw=box.querySelector('input').value;if(pw.length<6){toast('At least 6 characters');return}if(Auth.setPassword(n,pw)){toast('Password reset for '+n);vGuide()}}});
 }
 
-/* Android back button: close an open panel or decision first, then go back to Services, then leave the app */
+/* Android back button: close the sheet, scanner, decision or panel first, then go back to Services, then leave the app */
+let backBound=false;
 function bindBackButton(){
-  const App=capPlugin('App');if(!App||!App.addListener)return;
+  const App=capPlugin('App');if(backBound||!App||!App.addListener)return;backBound=true;
   App.addListener('backButton',()=>{
+    if(Sheet.close())return;
     if(S.pending){S.pending=null;return showResult()}
     if(S.fpending){S.fpending=null;return showF()}
     if(S.apending){S.apending=null;return showA()}
-    if(cam.stream||cam.timer){stopCam();S.panel=null;S.fpanel=null;S.apanel=null;return go(S.view)}
-    if(S.view!=='verify'&&S.ready)return go('verify');
+    if(NScan.active)return NScan.stop();
+    if(cam.stream||cam.timer||S.panel||S.fpanel||S.apanel){stopCam();S.panel=null;S.fpanel=null;S.apanel=null;return go(S.view)}
+    if(S.view!=='verify'&&S.ready)return go('verify',true);
     App.exitApp();
   });
 }
+function moveCard(){
+  if(!N.on)return '';
+  return `<div class="card stack"><p class="eyebrow">Moving from the old app</p>
+    <p style="margin:0">If this phone also has the old <b>YRG DTR Verify</b> app with entries in it:</p>
+    <ol><li>Open the old app and sign in as <b>admin</b>.</li>
+      <li>Guide → Google Sheet backup → type the backup key → <b>Save and test</b>. Wait for "Backed up … entries".</li>
+      <li>Come back here and tap <b>Sync now</b>. The entries appear, with who recorded them.</li>
+      <li>When they show here, uninstall the old app.</li></ol></div>`;
+}
+/* pull down at the top of a list screen to sync with the Google Sheet */
+function bindPullToSync(){
+  const ptr=$('ptr');let y0=null,dy=0,armed=false;
+  const ok=()=>S.ready&&['verify','feeder','area','report','search'].includes(S.view)&&!Sheet.el&&!NScan.active&&!cam.stream&&window.scrollY<=0;
+  window.addEventListener('touchstart',e=>{if(!ok()||e.touches.length>1){y0=null;return}y0=e.touches[0].clientY;dy=0;armed=false},{passive:true});
+  window.addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy<=0||window.scrollY>0){ptr.style.opacity=0;return}
+    const p=Math.min(dy,110);ptr.style.transition='none';ptr.style.opacity=Math.min(1,p/70);ptr.style.transform=`translateY(${p-70}px) rotate(${p*3}deg)`;
+    if(p>=80&&!armed){armed=true;N.tap()}else if(p<80)armed=false},{passive:true});
+  window.addEventListener('touchend',()=>{if(y0==null)return;y0=null;ptr.style.transition='transform .2s,opacity .2s';
+    if(armed){ptr.classList.add('go');ptr.style.transform='translateY(14px)';
+      const done=m=>{ptr.classList.remove('go');ptr.style.opacity=0;ptr.style.transform='translateY(-70px)';if(m)toast(m)};
+      if(!Backup.ready()&&Store.mode!=='db'){done('Not syncing. Set the backup key in Guide.');return}
+      if(!isOnline()){done('Offline. Entries are saved on this phone.');return}
+      Backup.sync().then(()=>{const l=Backup.cfg().last;done(l&&l.ok?'Synced':'Sync failed: '+((l&&l.msg)||''))})}
+    else{ptr.style.opacity=0;ptr.style.transform='translateY(-70px)'}});
+}
 
 /* ---------- start ---------- */
+let started=false;
 async function startApp(){
   document.querySelector('.tabs').hidden=false;document.querySelectorAll('.tab').forEach(b=>b.disabled=false);
   Who.fromSession();const up=$('userPill');up.hidden=false;up.textContent=Who.name+(Who.sup&&Who.name!=='admin'?' · admin':'');up.title=Who.sup?'Admin':'Staff';up.onclick=()=>{if(S.ready)go('guide')};
@@ -1906,21 +2377,29 @@ async function startApp(){
   if(!P){showSetup();return}
   try{await loadData(P)}catch(e){showSetup('The saved data could not be read. Load the section data file again.');return}
   S.P=P;S.meta=P.meta||{};S.ready=true;bindBackButton();
-  Store.loadLocal();Store.loadLocalF();if(!S.fdr||!S.fMap.has(S.fdr))S.fdr=S.feeders[0].fc;
-  Store.loadLocalA();if(!S.adr||!S.aMap.has(S.adr))S.adr=S.areas[0].ac;
+  await Persist.load();
+  try{const d=localStorage.getItem(LSDTR);if(d&&S.dtrSet.has(d))S.dtr=d;S.fdr=localStorage.getItem(LSFS)||S.fdr;S.adr=localStorage.getItem(LSAS)||S.adr}catch(e){}
+  if(!S.fdr||!S.fMap.has(S.fdr))S.fdr=S.feeders[0].fc;
+  if(!S.adr||!S.aMap.has(S.adr))S.adr=S.areas[0].ac;
   if(!S.dtr&&S.dtrMap.has('1607010596'))S.dtr='1607010596';
-  go('verify');
+  go('verify');N.hideSplash();
+  (window.requestIdleCallback||(f=>setTimeout(f,400)))(()=>{try{S.dtrs.forEach(d=>dtrStats(d));reportData()}catch(e){}},{timeout:4000}); // warm the caches while idle
   Store.init();
   Who.init();
   // sync with the Google Sheet: bring in other phones' entries, then send ours
   updateBadge();
-  $('storeBadge').onclick=()=>{if(Backup.ready()){toast('Syncing…');Backup.sync().then(()=>toast(Backup.cfg().last&&Backup.cfg().last.ok?'Synced':'Sync failed: '+(Backup.cfg().last||{}).msg))}else go('guide')};
-  window.addEventListener('online',()=>Backup.sync());
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Backup.sync()});
-  setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)Backup.sync()},180000);
+  if(started)return;started=true;
+  $('storeBadge').onclick=()=>{N.tap();if(Backup.ready()){toast('Syncing…');Backup.sync().then(()=>toast(Backup.cfg().last&&Backup.cfg().last.ok?'Synced':'Sync failed: '+(Backup.cfg().last||{}).msg))}else go('guide')};
+  window.addEventListener('online',()=>{updateBadge();Backup.sync()});window.addEventListener('offline',updateBadge);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Backup.sync();else{Persist.flush();FileBackup.write()}});
+  window.addEventListener('pagehide',()=>{Persist.flush()});
+  setInterval(()=>{if(document.visibilityState==='visible'&&isOnline())Backup.sync()},180000);
   if(Backup.ready())setTimeout(()=>Backup.sync(),2500);
+  bindPullToSync();
+  let test=false;try{test=localStorage.getItem('yrg_test')==='1'}catch(e){}
+  if(test)window.__yrg={scan:(t,src)=>routeScan(t,src||'Test'),S,D,NScan,Backup,FileBackup,Persist,net};
 }
-(async()=>{if(Auth.session())await startApp();else showLogin()})();
+(async()=>{N.init();if(Auth.session())await startApp();else showLogin()})();
 })();
 </script>
 

@@ -11,6 +11,9 @@ permissions:
 jobs:
   apk:
     runs-on: ubuntu-latest
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
     steps:
       - uses: actions/checkout@v5
 
@@ -23,12 +26,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-
-      # GitHub's Ubuntu runners already include the Android SDK (ANDROID_HOME) with licences accepted
-      - name: Show Android SDK
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools" | tail -n 8
+          cache: gradle
 
       - name: Install packages
         run: npm ci
@@ -36,23 +34,92 @@ jobs:
       - name: Copy the app into the Android project
         run: npm run sync
 
-      - name: Build debug APK
+      # Optional: if the signing key is stored as repository secrets, CI signs the release APK itself.
+      - name: Signing key from secrets
+        if: env.KEYSTORE_B64 != ''
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+
+      - name: Build release and debug APKs
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
 
-      - name: Name the APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk YRG-DTR-Verify.apk
+      - name: Collect APKs
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/debug/app-debug.apk out/app-debug.apk
+          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk out/DTR-Verify.apk
+          else
+            cp android/app/build/outputs/apk/release/app-release-unsigned.apk out/DTR-Verify-unsigned.apk
+          fi
+          ls -l out
 
       - uses: actions/upload-artifact@v4
         with:
-          name: YRG-DTR-Verify-apk
-          path: YRG-DTR-Verify.apk
+          name: apks
+          path: out/
 
-      - name: Publish to the "apk" release (public download link)
+      - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view apk >/dev/null 2>&1 || gh release create apk --title "Android APK (latest build)" --notes "Built automatically from main. The APK has no consumer data; load YRGuda_section_data.json on first open."
-          gh release upload apk YRG-DTR-Verify.apk --clobber
+          if [ -f out/DTR-Verify.apk ]; then
+            gh release view apk >/dev/null 2>&1 || gh release create apk --title "Android APK (latest build)" --notes "Install DTR-Verify.apk. Signed with the app's permanent key, so each update installs over the previous one."
+            gh release upload apk out/DTR-Verify.apk --clobber
+          else
+            # unsigned build, signed afterwards with the permanent key (see tools/sign-apk.md)
+            gh release view ci-build >/dev/null 2>&1 || gh release create ci-build --prerelease --title "CI build (unsigned, not for installing)" --notes "Unsigned release build from main, waiting to be signed."
+            gh release upload ci-build out/DTR-Verify-unsigned.apk --clobber
+          fi
+
+  emulator:
+    needs: apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apks
+          path: apk
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Test tools
+        run: npm install --no-save --no-package-lock playwright-core@1.63.0
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run the app on an Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated
+          script: node tools/ci/emulator-test.mjs apk/app-debug.apk
+
+      - name: Publish screenshots
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -l shots || exit 0
+          cd shots && zip -q ../emulator-shots.zip *.png report.json && cd ..
+          gh release view ci-screens >/dev/null 2>&1 || gh release create ci-screens --prerelease --title "CI emulator screenshots" --notes "Screenshots from the emulator test (made-up test data)."
+          gh release upload ci-screens emulator-shots.zip --clobber
