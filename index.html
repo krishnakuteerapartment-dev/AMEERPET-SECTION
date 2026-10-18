@@ -1059,6 +1059,7 @@ const NScan={active:false,view:null,lastText:'',lastAt:0,torch:false,zoom:1,maxZ
   available(){return N.on&&!!N.P('BarcodeScanner')&&!S.noNativeScan},
   async start(view){
     const BS=N.P('BarcodeScanner');if(this.active||!BS)return;
+    if(this.stopping)await this.stopping;
     try{let p=await BS.checkPermissions();if(p.camera!=='granted')p=await BS.requestPermissions();
       if(p.camera!=='granted'){const ok=await N.confirm('Camera is off','Allow the camera for this app in Android settings to scan meter codes.','Open settings');if(ok)BS.openSettings().catch(()=>{});return}}catch(e){}
     stopCam();this.active=true;this.view=view;this.typing=false;this.torch=false;this.zoom=1;this.lastText='';
@@ -1085,11 +1086,16 @@ const NScan={active:false,view:null,lastText:'',lastAt:0,torch:false,zoom:1,maxZ
   async stop(silent,noRender){
     if(!this.active)return;this.active=false;const BS=N.P('BarcodeScanner');
     document.documentElement.classList.remove('scanning');if(this.el){this.el.remove();this.el=null}
-    for(const hd of this.handles){try{await hd.remove()}catch(e){}}this.handles=[];
-    try{if(this.torch)await BS.disableTorch()}catch(e){}this.torch=false;
-    try{await BS.stopScan()}catch(e){}
-    const KA=N.P('KeepAwake');if(KA)KA.allowSleep().catch(()=>{});
-    if(!noRender&&S.ready)go(this.view||S.view);
+    const hs=this.handles,torch=this.torch;this.handles=[];this.torch=false;
+    if(!noRender&&S.ready)go(this.view||S.view); // show the screen at once; the camera shuts down behind it
+    const within=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(r,ms))]);
+    this.stopping=(async()=>{
+      for(const hd of hs){try{await within(hd.remove(),1000)}catch(e){}}
+      try{if(torch)await within(BS.disableTorch(),1000)}catch(e){}
+      try{await within(BS.stopScan(),2500)}catch(e){}
+      const KA=N.P('KeepAwake');if(KA)KA.allowSleep().catch(()=>{});
+    })();
+    await this.stopping;this.stopping=null;
   },
   title(){
     if(this.view==='feeder'){const f=S.fMap.get(S.fdr);return['Scan DTR tags',f?f.name:'']}

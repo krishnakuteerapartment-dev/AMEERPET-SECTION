@@ -88,8 +88,13 @@ async function main() {
   await page.evaluate(() => window.__yrg.scan('ZZ999999', 'Barcode (test)')); await sleep(900); await shot('09-scanner-unknown');
   step('scanner results', { stats: await page.textContent('#scanOv .so-stats').catch(() => '') });
   adb('shell input keyevent 4'); await sleep(1200); // back button closes the scanner
-  step('after back', { scanning: await page.evaluate(() => document.documentElement.classList.contains('scanning')), tabs: await page.textContent('#stabsBox') });
+  step('after back', { scanning: await page.evaluate(() => document.documentElement.classList.contains('scanning')), tabs: await page.textContent('#stabsBox', { timeout: 8000 }).catch(e => 'MISSING') });
   await shot('10-after-scan');
+  // open and close the scanner again (camera restarts cleanly)
+  await page.click('#scanBtn'); await sleep(3000); await shot('10b-scanner-again');
+  step('scanner again', { scanning: await page.evaluate(() => document.documentElement.classList.contains('scanning')) });
+  await page.click('#soClose'); await sleep(1000);
+  step('closed with X', { scanning: await page.evaluate(() => document.documentElement.classList.contains('scanning')), list: await page.evaluate(() => !!document.getElementById('svcList')) });
 
   // list: open a row and mark it
   await page.click('#svcList .li'); await sleep(300); await shot('11-row-open');
