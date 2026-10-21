@@ -479,15 +479,17 @@ async function loadData(P){
   S.dtrs=[];
   for(let i=DTR_FROM;i<=DTR_TO;i++){const code=DTR_PREFIX+String(i).padStart(3,'0');
     if(!S.dtrMap.has(code))S.dtrMap.set(code,{code,list:[],p1:0,p3:0});S.dtrs.push(S.dtrMap.get(code))}
-  S.dtrMap.forEach((d,code)=>{const s=STR[code]||[];d.name=s[0]||'';d.type=s[1]||'';d.feeder=s[2]||'';d.fc=s[3]||'';
+  S.dtrMap.forEach((d,code)=>{const s=STR[code]||[];d.name=s[0]||'';d.type=s[1]||'';d.feeder=s[2]||'';d.fc=s[3]||'';d.kva=s[4]||'';d.ss=s[5]||'';
     const ar={};d.list.forEach(o=>{if(o.an)ar[o.an]=(ar[o.an]||0)+1});d.areas=Object.entries(ar).sort((a,b)=>b[1]-a[1]).map(x=>x[0])});
   S.dtrSet=new Set(S.dtrs.map(d=>d.code));
   S.outside=S.live.filter(o=>!S.dtrSet.has(o.dtr)).length;
   S.legacy=S.recs.length-S.live.length;
   // feeders: every structure in the mapping, grouped by its feeder
   const fm=new Map();
-  for(const [code,s] of Object.entries(STR)){const fc=s[3]||s[2];if(!fm.has(fc))fm.set(fc,{fc,name:s[2],list:[]});
-    if(!S.dtrMap.has(code))S.dtrMap.set(code,{code,list:[],p1:0,p3:0,name:s[0],type:s[1],feeder:s[2],fc,areas:[]});fm.get(fc).list.push(S.dtrMap.get(code))}
+  for(const [code,s] of Object.entries(STR)){const fc=s[3]||s[2];
+    if(!S.dtrMap.has(code))S.dtrMap.set(code,{code,list:[],p1:0,p3:0,name:s[0],type:s[1],feeder:s[2],fc,kva:s[4]||'',ss:s[5]||'',areas:[]});
+    if(!fc)continue; // a DTR with no feeder in the DTR list is not put on any feeder
+    if(!fm.has(fc))fm.set(fc,{fc,name:s[2],list:[]});fm.get(fc).list.push(S.dtrMap.get(code))}
   S.feeders=[...fm.values()].sort((a,b)=>a.name.localeCompare(b.name));
   S.feeders.forEach(f=>{f.list.sort((a,b)=>cmp(a.code,b.code));f.svc=f.list.reduce((n,d)=>n+d.list.length,0)});
   S.fMap=new Map(S.feeders.map(f=>[f.fc,f]));
@@ -887,6 +889,7 @@ function renderVerify(){
     </div>
     <label class="field" for="dtrF">${I.search}<input id="dtrF" type="search" inputmode="search" placeholder="Go to DTR: number 001–800 or structure name" value="${h(S.dtrFilter)}" autocomplete="off"></label>
     <div class="hint" id="dtrHint" hidden></div>
+    ${d&&(d.kva||d.ss)?`<div class="small muted">${d.kva?h(d.kva)+' KVA':''}${d.kva&&d.ss?' · ':''}${d.ss?h(d.ss):''}</div>`:''}
     ${d&&(d.feeder||(d.areas&&d.areas.length))?`<div class="small">${d.feeder?h(d.feeder):''}${d.areas&&d.areas.length?`<span class="muted">${d.feeder?' · ':''}Area: ${h(d.areas.slice(0,3).join(', '))}${d.areas.length>3?` +${d.areas.length-3} more`:''}</span>`:''}</div>`:''}
     ${d?(d.list.length?`<div class="small muted" id="dtrProg">${progText(d,st)}</div><div id="barBox">${barHtml(st)}</div>`:`<div class="small" style="color:var(--warn)">No services mapped to this structure code in the service mapping. Meters you scan here are recorded as found on this DTR.</div><div id="barBox" hidden></div>`):''}
   </section>
@@ -2294,14 +2297,17 @@ async function importExcel(file){
     await loadXlsxLib();
     const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];
     const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true}).map(r=>{const o={};for(const k in r)o[k.trim().toUpperCase()]=r[k];return o});
+    if(rows.length&&('STRUCTURE CODE' in rows[0])&&('FUNC. LOC. TEXT' in rows[0])&&!('UKSCNO' in rows[0]))return importDtrList(rows,file);
     const need=['STRUCTURE CODE','UKSCNO','SERVICE NO'];
-    if(!rows.length||need.some(k=>!(k in rows[0])))throw new Error('This is not the Service Mapping Excel (needs Structure Code, UKSCNO and Service No columns).');
+    if(!rows.length||need.some(k=>!(k in rows[0])))throw new Error('This is not the Service Mapping Excel or the all-DTRs list Excel.');
     const cl=v=>String(v==null?'':v).replace(/[\t\n\r]+/g,' ').trim();
-    const STR={},AR={},out=[],seen=new Set();
+    const OLD=S.P&&S.P.STR||{},STR={},AR={},out=[],seen=new Set(),mapped=new Set();
+    for(const [c,v] of Object.entries(OLD))if(v.length>=6&&(v[4]||v[5]))STR[c]=v.slice(); // DTRs from the all-DTRs list stay, with their names
     for(const r of rows){
       const u=cl(r['UKSCNO']).replace(/\.0+$/,'');if(!u||seen.has(u))continue;seen.add(u);
       const code=cl(r['STRUCTURE CODE']).replace(/\.0+$/,'');const o=S.byU.get(u)||{};
-      if(!STR[code])STR[code]=[cl(r['STRUCTURE NAME']),cl(r['STRUCTURE TYPE']),cl(r['FEEDER NAME']),cl(r['FEEDER CODE']).replace(/\.0+$/,'')];
+      if(!mapped.has(code)){mapped.add(code);const o=STR[code],m=[cl(r['STRUCTURE NAME']),cl(r['STRUCTURE TYPE']),cl(r['FEEDER NAME']),cl(r['FEEDER CODE']).replace(/\.0+$/,'')];
+        STR[code]=o?[o[0]||m[0],m[1]||o[1],m[2]||o[2],m[3]||o[3],o[4]||'',o[5]||'']:m}
       const ac=cl(r['AREA CODE']).replace(/\.0+$/,''),an=cl(r['AREA NAME']);
       if(ac){if(!AR[ac])AR[ac]=[an,{}];AR[ac][1][code]=(AR[ac][1][code]||0)+1}
       let addr=cl(r['ADDRESS']);if(!addr.replace(/[\W_]+/g,''))addr=o.a||'';
@@ -2314,6 +2320,21 @@ async function importExcel(file){
     await IDB.set('section',P);
     toast(`Loaded ${fmt(seen.size)} services${missing?`, ${fmt(missing)} without meter number`:''}`);setTimeout(()=>location.reload(),900);
   }catch(e){toast(e.message||'Could not read that Excel file')}
+}
+async function importDtrList(rows,file){ // all-DTRs list Excel: DTR names, KVA, substation (and type/feeder for DTRs without services)
+  if(!S.P){toast('Load the section data first, then the DTR list Excel');return}
+  const cl=v=>String(v==null?'':v).replace(/\s+/g,' ').trim(),code=v=>cl(v).replace(/\.0+$/,'');
+  const STR=JSON.parse(JSON.stringify(S.P.STR)),seen=new Set();let named=0,added=0;
+  for(const r of rows){const c=code(r['STRUCTURE CODE']);if(!c)continue;const kva=code(r['CAPACITY']);
+    if(seen.has(c)){if(kva&&STR[c])STR[c][4]=(STR[c][4]?STR[c][4]+'+':'')+kva;continue}seen.add(c);
+    const nm=cl(r['FUNC. LOC. TEXT']),ss=cl(r['SUBSTATION NAME']),o=(STR[c]||[]).slice();while(o.length<6)o.push('');
+    if(!STR[c])added++;else if(nm&&nm!==o[0])named++;
+    STR[c]=[nm||o[0],o[1]||cl(r['FL TYPE']),o[2]||cl(r['FEEDER NAME']),o[3]||code(r['FEEDER CODE']),kva,ss]}
+  if(!seen.size){toast('No structure codes in that Excel');return}
+  const today=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'-');
+  const P=Object.assign({},S.P,{STR,meta:Object.assign({},S.P.meta,{dtrListOn:today,loaded:Date.now(),src:'DTR list: '+file.name})});
+  await IDB.set('section',P);
+  toast(`DTR list loaded: ${fmt(seen.size)} DTRs, ${named} names updated, ${added} added`);setTimeout(()=>location.reload(),1200);
 }
 async function sectionJson(withBackup){
   const j={app:'yrguda-dtr',v:1,meta:Object.assign({},S.meta,{src:undefined,loaded:undefined}),records:await gzipB64(S.P.txt),structs:S.P.STR,areas:S.P.AR};
@@ -2328,10 +2349,11 @@ function dataCard(){
   const m=S.meta||{};
   return `<div class="card stack" id="dataCard"><p class="eyebrow">Data on this phone</p>
     <dl class="kv"><div style="grid-column:1/-1"><dt>Source</dt><dd>${h(m.src||'—')}</dd></div><div><dt>Service mapping</dt><dd>${h(m.mapOn||'—')}</dd></div><div><dt>Meter details from</dt><dd>${h(m.masterOn||'—')}</dd></div>
-    <div><dt>Services</dt><dd>${fmt(S.live.length)}</dd></div><div><dt>Structures</dt><dd>${fmt(S.structCount||0)}</dd></div></dl>
-    ${Who.sup?`<div class="dlgrid"><label class="btn sm" for="xlsFile">Load new mapping Excel</label><label class="btn sm" for="dataFile">Load section data file</label>
-    <button class="btn sm" id="expData">${I.dl}Save data file</button>${Backup.ready()?'<button class="btn sm" id="putSec">Put section data on Sheet</button>':''}${m.loaded?'<button class="btn sm" id="clrData">Remove from this phone</button>':''}</div>`:'<p class="hint" style="margin:0">Only the admin can load, save or remove the section data.</p>'}
-    <p class="hint">A new Service Mapping Excel replaces the structure mapping and keeps the meter numbers already on this phone. "Save data file" makes a file you can load on other staff phones.${Who.sup?' "Put section data on Sheet" lets a new phone download everything with just the backup key.':''}</p></div>`;
+    <div><dt>Services</dt><dd>${fmt(S.live.length)}</dd></div><div><dt>Structures</dt><dd>${fmt(S.structCount||0)}</dd></div>
+    ${m.dtrListOn?`<div style="grid-column:1/-1"><dt>DTR names from the all-DTRs list</dt><dd>${h(m.dtrListOn)}</dd></div>`:''}</dl>
+    ${Who.sup?`<div class="dlgrid"><label class="btn sm" for="xlsFile">Load Excel (mapping or DTR list)</label><label class="btn sm" for="dataFile">Load section data file</label>
+    <button class="btn sm" id="expData">${I.dl}Save data file</button>${Backup.ready()?'<button class="btn sm" id="putSec">Put section data on Sheet</button>':''}${Backup.ready()&&Store.mode!=='db'?'<button class="btn sm" id="getSec">Get latest data from Sheet</button>':''}${m.loaded?'<button class="btn sm" id="clrData">Remove from this phone</button>':''}</div>`:`${Backup.ready()&&Store.mode!=='db'?'<button class="btn sm" id="getSec">Get latest data from Sheet</button>':''}<p class="hint" style="margin:0">Only the admin can load, save or remove the section data. When the admin puts new data on the Sheet, tap "Get latest data from Sheet".</p>`}
+    <p class="hint">A new Service Mapping Excel replaces the structure mapping and keeps the meter numbers and DTR names already on this phone. The all-DTRs list Excel updates DTR names, KVA and substation. "Save data file" makes a file you can load on other staff phones.${Who.sup?' "Put section data on Sheet" lets a new phone download everything with just the backup key.':''}</p></div>`;
 }
 function appCard(){
   const a=N.app,fb=FileBackup;
@@ -2343,6 +2365,9 @@ function appCard(){
 }
 function bindDataCard(){
   const e=$('expData');if(e)e.onclick=exportDataFile;
+  const gs=$('getSec');if(gs)gs.onclick=async()=>{gs.disabled=true;gs.textContent='Downloading…';
+    try{const c=Backup.cfg();const j=await Backup.getSection(c.url,c.key);await importDataJson(j,'Google Sheet');toast('Section data updated from the Sheet');setTimeout(()=>location.reload(),700)}
+    catch(e){toast(Backup.why(e));gs.disabled=false;gs.textContent='Get latest data from Sheet'}};
   const ps=$('putSec');if(ps)ps.onclick=async()=>{ps.disabled=true;ps.textContent='Uploading…';const ok=await Backup.putSection();toast(ok?'Section data is on the Sheet':'Could not upload. See Sheet status.');if(S.view==='guide')vGuide()};
   const c=$('clrData');if(c)c.onclick=async()=>{const ok=await N.confirm('Remove section data?','The services list is removed from this phone. Entries already made stay.','Remove');
     if(ok===false)return;if(ok===null&&c.dataset.sure!=='1'){c.dataset.sure='1';c.textContent='Tap again to remove';return}await IDB.del('section');toast('Removed');setTimeout(()=>location.reload(),500)};
