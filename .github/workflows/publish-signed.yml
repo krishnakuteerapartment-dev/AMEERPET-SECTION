@@ -41,6 +41,6 @@ jobs:
         run: |
           gh release view apk >/dev/null 2>&1 || gh release create apk --title "Android APK" --notes "Install DTR-Verify.apk."
           gh release upload apk DTR-Verify.apk --clobber
-          gh release edit apk --title "Android APK: DTR Verify" --notes "Download **DTR-Verify.apk** and install it. It is signed with the app's permanent key, so every later update installs over it and keeps the entries on the phone. The APK has no consumer data: on first open, sign in as admin and get the section data from the Google Sheet with the backup key (or load the section data file)."
+          gh release edit apk --title "Android APK: Ameerpet Sec DTR-verify" --notes "Download **DTR-Verify.apk** and install it. It is signed with the app's permanent key, so every later update installs over it and keeps the entries on the phone. The APK has no consumer data: on first open, sign in as admin and get the section data from the Google Sheet with the backup key (or load the section data file)."
           gh release delete-asset apk YRG-DTR-Verify.apk -y || true
           gh release upload apk check-shots.zip --clobber || true

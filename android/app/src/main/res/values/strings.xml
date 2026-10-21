@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">DTR Verify</string>
-    <string name="title_activity_main">DTR Verify</string>
+    <string name="app_name">Ameerpet Sec DTR-verify</string>
+    <string name="title_activity_main">Ameerpet Sec DTR-verify</string>
     <string name="package_name">com.ameerpetsection.yrgdtr</string>
     <string name="custom_url_scheme">com.ameerpetsection.yrgdtr</string>
 </resources>

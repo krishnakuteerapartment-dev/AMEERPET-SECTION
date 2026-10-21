@@ -78,7 +78,7 @@ Every entry can be backed up to a Google Sheet that you own. Several phones can 
 - **Live camera** scanning works here because GitHub Pages serves over HTTPS. Use Chrome on Android, or the APK below.
 
 
-## Android app (APK): DTR Verify
+## Android app (APK): Ameerpet Sec DTR-verify
 
 The same app packaged as a native Android app with **Capacitor**:
 
@@ -95,7 +95,7 @@ Open the link in Chrome on the phone, download, tap the file, and allow "Install
 
 **Updates install over the app and keep its entries.** Every APK is signed with the same permanent key (`yrg-dtr-release.jks`, kept by the admin, never in this repository). Never uninstall to update.
 
-The first test builds were named *YRG DTR Verify* (`com.ameerpetsection.dtrverify`) and each was signed with a throwaway key. *DTR Verify* is a separate app, so it installs next to them. To move entries over: in the old app sign in as admin, set the backup key and tap **Save and test**; then tap **Sync now** in DTR Verify; then uninstall the old app.
+The first test builds were named *YRG DTR Verify* (`com.ameerpetsection.dtrverify`) and each was signed with a throwaway key. *Ameerpet Sec DTR-verify* (first released as *DTR Verify*) is a separate app, so it installs next to them. To move entries over: in the old app sign in as admin, set the backup key and tap **Save and test**; then tap **Sync now** in DTR Verify; then uninstall the old app.
 
 ### How builds are signed
 - `.github/workflows/android-apk.yml` builds an unsigned release APK and a debug APK on every push to `main`, and runs the debug APK on an Android emulator with made-up data (screenshots go to the `ci-screens` release).
@@ -119,7 +119,7 @@ After changing `index.html`, run `npm run sync` again before building.
 | Setting | Value |
 |---|---|
 | App ID | `com.ameerpetsection.yrgdtr` |
-| App name | DTR Verify |
+| App name | Ameerpet Sec DTR-verify (APK file: DTR-Verify.apk) |
 | Capacitor | 8.5.2: ML Kit Barcode Scanning, Haptics, Splash Screen, Keyboard, Network, Device, Dialog, Keep Awake, Filesystem, Share, App |
 | Android | min SDK 24 (Android 7.0), target SDK 36, portrait |
 | Permissions | Internet, Camera, Vibrate, network state; storage only on Android 10 and older (for the backup file) |

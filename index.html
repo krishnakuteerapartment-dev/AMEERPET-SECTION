@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Yella Reddy Guda Meter Reader</title>
+<title>Ameerpet Sec DTR-verify</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#1556b8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -237,7 +237,8 @@ table.inner th,table.inner td{padding:5px 8px;font-size:12px}
 .dr-brand{display:flex;align-items:center;gap:12px}
 .dr-logo{width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.16);display:grid;place-items:center;flex:none}
 .dr-logo svg{width:28px;height:28px}
-.dr-brand b{display:block;font-family:var(--f-head);font-size:20px;line-height:1.1}
+.dr-brand b{display:block;font-family:var(--f-head);font-size:18px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-brand>div:last-child{min-width:0}
 .dr-brand span{font-size:12.5px;opacity:.88}
 .dr-user{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px}
 .dr-user .pill{background:rgba(255,255,255,.2);color:inherit}
@@ -772,7 +773,7 @@ const Drawer={el:null,bg:null,
     const l=Backup.cfg().last,sync=Store.mode==='db'?'Synced in this page':!Backup.ready()?'Not syncing: backup key not set':!isOnline()?'Offline: entries wait on this phone':l&&l.ok?'Last synced '+tstr(l.t):'Last sync failed';
     const dis=S.ready?'':'disabled',a=N.app;
     return `<div class="dr-head">
-        <div class="dr-brand"><div class="dr-logo">${I.qr}</div><div><b>DTR Verify</b><span>Sec 10 Yella Reddy Guda · ERO 11</span></div></div>
+        <div class="dr-brand"><div class="dr-logo">${I.qr}</div><div><b>Ameerpet Sec DTR-verify</b><span>Sec 10 Yella Reddy Guda · ERO 11</span></div></div>
         <div class="dr-user">${DI.user.replace('<svg','<svg width="18" height="18"')}<b>${h(Who.name||'')}</b><span class="pill">${Who.sup?'Admin':'Staff'}</span></div>
         <div class="dr-sync">${h(sync)}</div></div>
       <div class="dr-body">
@@ -798,7 +799,7 @@ const Drawer={el:null,bg:null,
         <div class="dr-line"></div>
         ${this.item('signout',DI.out,'Sign out','Entries stay saved on this phone','','','danger')}
       </div>
-      <div class="dr-foot">${N.on?'DTR Verify '+h(a?'v'+a.version:'app'):'DTR Verify web'} · ${h(Backup.device())}</div>`;
+      <div class="dr-foot">${N.on?'Ameerpet Sec DTR-verify '+h(a?'v'+a.version:'app'):'Ameerpet Sec DTR-verify web'} · ${h(Backup.device())}</div>`;
   },
   open(){
     if(this.el||NScan.active)return;Sheet.close(true);if(document.activeElement)document.activeElement.blur();N.tap();
@@ -2604,10 +2605,10 @@ const Auth={
 const validName=n=>/^[a-z0-9._-]{2,20}$/.test(n);
 function showLogin(msg){
   document.querySelector('.tabs').hidden=true;$('userPill').hidden=true;$('menuBtn').hidden=true;Drawer.close(true);$('storeBadge').textContent='Signed out';N.hideSplash();
-  $('hdr').innerHTML='DTR Verify<small>Sec 10 Yella Reddy Guda · ERO 11</small>';
+  $('hdr').innerHTML='Ameerpet Sec DTR-verify<small>Sec 10 Yella Reddy Guda · ERO 11</small>';
   let last='';try{last=localStorage.getItem('yrg_last_user')||''}catch(e){}
   main.innerHTML=`<section class="card stack login" aria-label="Sign in">
-    <div class="brand">${I.qr}<div><b>DTR Verify</b><span>Sec 10 Yella Reddy Guda · DTR, feeder and area verification</span></div></div>
+    <div class="brand">${I.qr}<div><b>Ameerpet Sec DTR-verify</b><span>Sec 10 Yella Reddy Guda · DTR, feeder and area verification</span></div></div>
     <h2>Sign in</h2>
     <form id="lgForm" class="stack" autocomplete="on">
       <div><label class="lbl" for="lgUser">User name</label><input class="inp" id="lgUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" value="${h(last)}" placeholder="admin"></div>
