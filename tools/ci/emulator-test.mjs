@@ -8,7 +8,6 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 const PKG = 'com.ameerpetsection.yrgdtr';
 const ACT = 'com.ameerpetsection.dtrverify.MainActivity';
 const APK = process.argv[2] || 'apk/app-debug.apk';
-const SHEET = 'https://script.google.com/macros/s/AKfycbwscgjcOgNcTe38j1Ft1RhGEEZK3p0N0IiGtYqtypT7Y7mGswLpCT_MBAPa8Eo2bXSNJQ/exec';
 mkdirSync('shots', { recursive: true });
 const report = { steps: [], errors: [], console: [] };
 const adb = c => { try { return execSync('adb ' + c, { encoding: 'utf8', timeout: 60000 }).trim(); } catch (e) { return 'ERR ' + (e.stdout || e.message); } };
@@ -135,12 +134,8 @@ async function main() {
   const fb = await page.evaluate(async () => { const F = window.__yrg.FileBackup; F.dirty = true; await F.write(); return { ok: F.ok, name: F.name() }; });
   step('documents backup', { ...fb, ls: adb('shell ls -l "/sdcard/Documents/YRG DTR Verify/"') });
 
-  // Google Sheet web app reachable from the WebView (wrong key on purpose: the script refuses and writes nothing)
-  const net = await page.evaluate(async (url) => { const out = {};
-    try { out.get = await window.__yrg.net(url + '?ping=1&key=ci-wrong-key'); } catch (e) { out.get = 'ERR ' + e.message; }
-    try { out.post = await window.__yrg.net(url, JSON.stringify({ key: 'ci-wrong-key', sheets: {} })); } catch (e) { out.post = 'ERR ' + e.message; }
-    return out; }, SHEET);
-  step('sheet network', net);
+  // Google Sheet: no link is built into the test build, so the app must say it is not syncing
+  step('sheet not set', { ready: await page.evaluate(() => window.__yrg.Backup.ready()), badge: await page.textContent('#storeBadge') });
 
   // pull down to sync (not set up -> friendly message)
   await closeKb(); await page.click('[data-tab="verify"]'); await sleep(600);

@@ -54,9 +54,9 @@ jobs:
           mkdir -p out
           cp android/app/build/outputs/apk/debug/app-debug.apk out/app-debug.apk
           if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release.apk out/DTR-Verify.apk
+            cp android/app/build/outputs/apk/release/app-release.apk out/Ameerpet-sec-DTR-verify.apk
           else
-            cp android/app/build/outputs/apk/release/app-release-unsigned.apk out/DTR-Verify-unsigned.apk
+            cp android/app/build/outputs/apk/release/app-release-unsigned.apk out/Ameerpet-sec-DTR-verify-unsigned.apk
           fi
           ls -l out
 
@@ -69,13 +69,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -f out/DTR-Verify.apk ]; then
-            gh release view apk >/dev/null 2>&1 || gh release create apk --title "Android APK (latest build)" --notes "Install DTR-Verify.apk. Signed with the app's permanent key, so each update installs over the previous one."
-            gh release upload apk out/DTR-Verify.apk --clobber
+          if [ -f out/Ameerpet-sec-DTR-verify.apk ]; then
+            gh release view apk >/dev/null 2>&1 || gh release create apk --title "Android APK (latest build)" --notes "Install Ameerpet-sec-DTR-verify.apk. Signed with the app's permanent key, so each update installs over the previous one."
+            gh release upload apk out/Ameerpet-sec-DTR-verify.apk --clobber
           else
             # unsigned build, signed afterwards with the permanent key (see tools/sign-apk.md)
             gh release view ci-build >/dev/null 2>&1 || gh release create ci-build --prerelease --title "CI build (unsigned, not for installing)" --notes "Unsigned release build from main, waiting to be signed."
-            gh release upload ci-build out/DTR-Verify-unsigned.apk --clobber
+            gh release upload ci-build out/Ameerpet-sec-DTR-verify-unsigned.apk --clobber
           fi
 
   emulator:
@@ -112,7 +112,7 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated
-          script: node tools/ci/emulator-test.mjs apk/app-debug.apk
+          script: node tools/ci/emulator-test.mjs apk/app-debug.apk; pip3 install --quiet --break-system-packages cryptography || true; node tools/ci/builtin-data-test.mjs
 
       - name: Publish screenshots
         if: always()

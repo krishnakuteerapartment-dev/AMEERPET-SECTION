@@ -39,8 +39,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view apk >/dev/null 2>&1 || gh release create apk --title "Android APK" --notes "Install DTR-Verify.apk."
-          gh release upload apk DTR-Verify.apk --clobber
-          gh release edit apk --title "Android APK: Ameerpet Sec DTR-verify" --notes "Download **DTR-Verify.apk** and install it. It is signed with the app's permanent key, so every later update installs over it and keeps the entries on the phone. The APK has no consumer data: on first open, sign in as admin and get the section data from the Google Sheet with the backup key (or load the section data file)."
+          gh release view apk >/dev/null 2>&1 || gh release create apk --title "Android APK: Ameerpet sec-DTR verify" --notes "Install Ameerpet-sec-DTR-verify.apk."
+          gh release upload apk Ameerpet-sec-DTR-verify.apk --clobber
+          gh release edit apk --title "Android APK: Ameerpet sec-DTR verify" --notes "Download **Ameerpet-sec-DTR-verify.apk** and install it. It is signed with the app's permanent key, so every later update installs over it and keeps the entries on the phone. This public copy has no consumer data and no Google Sheet link: use the full APK from the admin, or sign in as admin and load the section data file, or paste the Sheet link and tap Get section data from Google Sheet."
+          gh release delete-asset apk DTR-Verify.apk -y || true
           gh release delete-asset apk YRG-DTR-Verify.apk -y || true
           gh release upload apk check-shots.zip --clobber || true

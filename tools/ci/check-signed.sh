@@ -3,8 +3,8 @@
 set -x
 PKG=com.ameerpetsection.yrgdtr
 adb uninstall $PKG || true
-adb install -r DTR-Verify.apk || exit 1
-adb install -r DTR-Verify.apk || exit 1   # reinstall over itself: same key accepted
+adb install -r Ameerpet-sec-DTR-verify.apk || exit 1
+adb install -r Ameerpet-sec-DTR-verify.apk || exit 1   # reinstall over itself: same key accepted
 adb shell dumpsys package $PKG | grep -E "versionCode|versionName|signatures" | head -5
 adb shell am start -W -n $PKG/com.ameerpetsection.dtrverify.MainActivity
 sleep 8
